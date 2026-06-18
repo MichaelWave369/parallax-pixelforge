@@ -1,0 +1,43 @@
+:root {
+  color-scheme: dark;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: #111;
+  color: #f7f0d8;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+
+.screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.card {
+  width: min(680px, 100%);
+  border: 3px solid currentColor;
+  border-radius: 18px;
+  padding: 24px;
+}
+
+.eyebrow { opacity: 0.7; text-transform: uppercase; letter-spacing: 0.12em; }
+
+h1 { font-size: clamp(2rem, 8vw, 4rem); margin: 0 0 16px; }
+
+p { line-height: 1.6; }
+
+.actions { display: grid; gap: 12px; margin-top: 24px; }
+
+button {
+  font: inherit;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 2px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+button:focus, button:hover { transform: translateY(-1px); }
