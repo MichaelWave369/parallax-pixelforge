@@ -2,6 +2,8 @@ import fs from 'node:fs';
 
 const required = [
   'README.md',
+  'LICENSE',
+  'LICENSE-CONTENT-NOTICE.md',
   'package.json',
   'CONTRIBUTING.md',
   'CODE_OF_CONDUCT.md',
