@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: PixelForge launch tracker
+    url: https://github.com/MichaelWave369/parallax-pixelforge/issues/1
+    about: Follow the v5.3 public launch scaffold and remaining setup tasks.
