@@ -1,0 +1,33 @@
+{
+  "manifestType": "369.pocketgame.manifest",
+  "manifestVersion": "0.1.0",
+  "id": "pocketgame-###-your-slug",
+  "slug": "your-game-slug",
+  "title": "Your Game Title",
+  "subtitle": "One clear sentence about the game.",
+  "series": "369 PocketGames",
+  "candidateNumber": 0,
+  "sourceCartridge": "games/your-game-folder",
+  "price": {
+    "model": "premium_paid_once",
+    "usdTarget": "3.69"
+  },
+  "monetization": {
+    "ads": false,
+    "subscriptions": false,
+    "lootBoxes": false,
+    "energyTimers": false,
+    "predatoryIAP": false
+  },
+  "mobile": {
+    "offlinePlayable": true,
+    "orientation": "portrait_or_landscape",
+    "touchFriendly": true,
+    "firstMinuteCharmCheck": true
+  },
+  "store": {
+    "shortDescription": "A tiny premium game with no ads and no traps.",
+    "longDescription": "Describe the finished tiny game here.",
+    "tags": ["retro", "tiny-game", "premium"]
+  }
+}
