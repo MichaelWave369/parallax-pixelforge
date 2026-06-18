@@ -1,0 +1,12 @@
+{
+  "name": "parallax-pixelforge",
+  "version": "5.3.0-alpha",
+  "private": false,
+  "description": "Open-source retro game creation studio for tiny cartridge-style games and 369 PocketGames.",
+  "type": "module",
+  "scripts": {
+    "test": "npm run validate:public-release",
+    "validate:public-release": "node scripts/validate_public_release.js",
+    "github:preflight": "npm run validate:public-release"
+  }
+}
