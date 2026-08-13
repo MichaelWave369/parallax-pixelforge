@@ -5,8 +5,10 @@
   "description": "Open-source retro game creation studio for tiny cartridge-style games and 369 PocketGames.",
   "type": "module",
   "scripts": {
-    "test": "npm run validate:public-release",
+    "test": "npm run validate:public-release && npm run validate:adaptation",
     "validate:public-release": "node scripts/validate_public_release.js",
-    "github:preflight": "npm run validate:public-release"
+    "adaptation:export": "node scripts/export_parallax_adaptation.js",
+    "validate:adaptation": "node scripts/export_parallax_adaptation.js games/starter --check",
+    "github:preflight": "npm test"
   }
 }
