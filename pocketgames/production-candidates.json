@@ -1,0 +1,16 @@
+{
+  "schema": "pixelforge.pocketgame-production-candidates.v5.6",
+  "candidates": [
+    {
+      "candidateNumber": 2,
+      "slug": "the-legend-of-more-bounce",
+      "title": "The Legend of More Bounce",
+      "manifest": "pocketgames/the_legend_of_more_bounce.pocketgame.json",
+      "package": "exports\\pocketgames\\the-legend-of-more-bounce\\candidate-0.2.0",
+      "status": "production-candidate-human-signoff-pending",
+      "production_candidate": true,
+      "retail_release_ready": false
+    }
+  ],
+  "generated_at": "2026-10-03T20:46:11.394Z"
+}

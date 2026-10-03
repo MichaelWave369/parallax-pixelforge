@@ -1,0 +1,20 @@
+{
+  "name": "pixelforge-the-legend-of-more-bounce",
+  "version": "1.7.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "lucide-react": "latest"
+  },
+  "devDependencies": {},
+  "description": "The Legend of More Bounce \u2014 PixelForge v5.26 four-chapter SNES adventure with Stormglass Coast, Gale Mantle air-dash, Undertow Bell boss, persistent saves and five-point fast travel."
+}

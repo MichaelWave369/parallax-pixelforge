@@ -1,0 +1,95 @@
+{
+  "schema": "pixelforge.audio-cue-pack.v1",
+  "packVersion": "0.1.0",
+  "cartridge": "the-legend-of-more-bounce",
+  "profile": "snes-inspired-original",
+  "sampleRate": 22050,
+  "channels": 1,
+  "format": "PCM16 WAV",
+  "generator": "tools/generate_legend_audio_v519.py",
+  "rightsStatus": "original",
+  "networkRequired": false,
+  "cues": [
+    {
+      "id": "title",
+      "file": "title-theme.v0.1.wav",
+      "role": "Title screen music",
+      "loop": true,
+      "durationSeconds": 17.143,
+      "sha256": "ec8332911d4c51780370010a0e9ce29593634009dfc4e3ca29d99f164e8d47f1"
+    },
+    {
+      "id": "overworld",
+      "file": "bouncehome-grove-theme.v0.1.wav",
+      "role": "Bouncehome Grove music",
+      "loop": true,
+      "durationSeconds": 15.484,
+      "sha256": "7a88c4463521dcec684772599e566aba366a63774df7ed1997952802451397de"
+    },
+    {
+      "id": "woods",
+      "file": "wobble-woods-theme.v0.1.wav",
+      "role": "Wobble Woods music",
+      "loop": true,
+      "durationSeconds": 13.913,
+      "sha256": "e6381b21a20b24f9042c974967ba2a3bd0e5f9cc58c50d9d8230d203d383a859"
+    },
+    {
+      "id": "tower",
+      "file": "larrina-tower-theme.v0.1.wav",
+      "role": "Larrina Tower music",
+      "loop": true,
+      "durationSeconds": 21.818,
+      "sha256": "04a422cc59602fa1ed9a30201e7cd6152b2b6eb1218019de68b45c2cc4e91be2"
+    },
+    {
+      "id": "bounce-impact",
+      "file": "bounce-impact.v0.1.wav",
+      "role": "Bounce pad impact",
+      "loop": false,
+      "durationSeconds": 0.28,
+      "sha256": "c6ade6d9a99472584f0b58b62ecab43f2e97ebf0074ba7662a7964bc330623cd"
+    },
+    {
+      "id": "rune-pickup",
+      "file": "rune-pickup.v0.1.wav",
+      "role": "Bounce Rune pickup",
+      "loop": false,
+      "durationSeconds": 0.75,
+      "sha256": "174c56abce9cf240d5e6fcafc88b0f64fd14b87926d7d4fea7e60ef443c23c24"
+    },
+    {
+      "id": "gate-open",
+      "file": "echo-gate-open.v0.1.wav",
+      "role": "Echo Gate opening",
+      "loop": false,
+      "durationSeconds": 1.25,
+      "sha256": "2d858223ef371fb28b17fae7cd232654c0a0c67185665378fe64e6e36b460872"
+    },
+    {
+      "id": "dialogue-blip",
+      "file": "dialogue-blip.v0.1.wav",
+      "role": "Dialogue text blip",
+      "loop": false,
+      "durationSeconds": 0.055,
+      "sha256": "ab264c5f102791dba1c1c86c635d8687992c2f2b3d393913810ebeb3fd1467dc"
+    },
+    {
+      "id": "hit",
+      "file": "hit.v0.1.wav",
+      "role": "Damage/fall hit",
+      "loop": false,
+      "durationSeconds": 0.3,
+      "sha256": "679f368619a69caded09fe47550e0223bb7b49205a61eb49364866ffcf78ac76"
+    },
+    {
+      "id": "ending",
+      "file": "ending-sting.v0.1.wav",
+      "role": "Run-complete ending sting",
+      "loop": false,
+      "durationSeconds": 2.8,
+      "sha256": "bf9e54e70b37487dbd2bd7eb552db386eff901e6be175982fb4a288c170dd435"
+    }
+  ],
+  "boundary": "All cues are deterministic oscillator/noise synthesis generated locally from original note/event patterns. No external samples, recordings, or copyrighted game music are used."
+}

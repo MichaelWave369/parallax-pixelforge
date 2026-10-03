@@ -1,0 +1,18 @@
+{
+  "name": "Journey to the Parallax Pyramid",
+  "short_name": "Parallax Pyramid",
+  "description": "A tiny premium road-trip RPG candidate from 369 PocketGames.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape-primary",
+  "background_color": "#0d1020",
+  "theme_color": "#171b31",
+  "icons": [
+    {
+      "src": "/pocketgame-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

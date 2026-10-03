@@ -1,0 +1,131 @@
+{
+  "schema": "pixelforge.gold-standard-audit.v5.18",
+  "generated_at": "2026-10-03T20:46:19.377Z",
+  "cartridge": "the-legend-of-more-bounce",
+  "status": "playtest-ready-not-gold-approved",
+  "checks": [
+    {
+      "id": "machine-final-art",
+      "passed": true,
+      "evidence": "8/8 required final-art roles ready"
+    },
+    {
+      "id": "complete-run-state",
+      "passed": true,
+      "evidence": "Tower ends in explicit legend-complete state"
+    },
+    {
+      "id": "coyote-time",
+      "passed": true,
+      "evidence": "100 ms"
+    },
+    {
+      "id": "jump-buffer",
+      "passed": true,
+      "evidence": "120 ms"
+    },
+    {
+      "id": "jump-reach-margin",
+      "passed": true,
+      "evidence": "base reach 72.7 px vs max ground gap 38px"
+    },
+    {
+      "id": "bounce-reach-margin",
+      "passed": true,
+      "evidence": "bounce reach 96.0 px"
+    },
+    {
+      "id": "local-telemetry",
+      "passed": true,
+      "evidence": "standalone exposes downloadable local-only run receipt"
+    },
+    {
+      "id": "audio-assets-present",
+      "passed": true,
+      "evidence": "36 real audio files found"
+    }
+  ],
+  "physics": {
+    "baseJumpHeightPx": 47.3,
+    "baseAirTimeSeconds": 0.758,
+    "baseHorizontalReachPx": 72.7,
+    "bounceHeightPx": 82.5,
+    "bounceHorizontalReachPx": 96,
+    "maxGroundGapPx": 38
+  },
+  "estimatedCriticalPath": {
+    "groveTraversalSeconds": 4.88,
+    "wobbleRunFloorSeconds": 6.08,
+    "towerDialogueBeats": 4,
+    "note": "These are deterministic lower-bound/structure indicators, not a human completion-time measurement."
+  },
+  "audio": {
+    "profileStatus": "ready",
+    "filesFound": [
+      "games\\the-legend-of-more-bounce\\assets\\audio-v519\\bounce-impact.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v519\\bouncehome-grove-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v519\\dialogue-blip.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v519\\echo-gate-open.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v519\\ending-sting.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v519\\hit.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v519\\larrina-tower-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v519\\rune-pickup.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v519\\title-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v519\\wobble-woods-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v521\\boss-break.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v521\\boss-defeat.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v521\\flat-note-boss-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v522\\beacon-restored.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v522\\eastwind-road-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v522\\echo-boots-upgrade.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v522\\glassgrass-pass-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v522\\signal-mill-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v523\\iron-blossom-victory.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v523\\iron-orchard-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v523\\resonance-bracer-upgrade.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v523\\rivet-forge-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v523\\rustbloom-warden-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v523\\rustroot-cavern-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v526\\gale-mantle-upgrade.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v526\\stormglass-cliffs-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v526\\stormglass-coast-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v526\\stormglass-compass-victory.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v526\\tide-engine-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v526\\undertow-bell-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v527\\blind-angle-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v527\\convergence-victory.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v527\\mirrorfall-basin-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v527\\splitlight-causeway-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v527\\triune-observatory-theme.v0.1.wav",
+      "games\\the-legend-of-more-bounce\\assets\\audio-v527\\view-shift.v0.1.wav"
+    ]
+  },
+  "blockers": [
+    {
+      "id": "human-control-feel-review",
+      "stage": "gold-standard",
+      "reason": "Control quality cannot be promoted from physics constants alone."
+    },
+    {
+      "id": "human-visual-review",
+      "stage": "gold-standard",
+      "reason": "8/8 asset readiness is not the same as aesthetic approval."
+    },
+    {
+      "id": "commercial-content-depth",
+      "stage": "retail",
+      "reason": "Current cartridge remains a compact vertical slice; sufficient $3.69 content depth requires human judgment and likely expansion."
+    },
+    {
+      "id": "price-worthiness",
+      "stage": "retail",
+      "reason": "No human $3.69 worthiness receipt exists."
+    },
+    {
+      "id": "store-art-signoff",
+      "stage": "retail",
+      "reason": "Final store-art human approval remains separate."
+    }
+  ],
+  "authorityBoundary": "This audit can prove structure, timing margins, asset presence, and completion-state wiring. It cannot prove fun, beauty, sufficient commercial depth, or price worthiness."
+}

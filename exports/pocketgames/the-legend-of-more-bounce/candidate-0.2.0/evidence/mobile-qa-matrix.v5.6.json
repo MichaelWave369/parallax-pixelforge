@@ -1,0 +1,47 @@
+{
+  "schema": "pixelforge.mobile-qa-matrix.v5.6",
+  "generated_at": "2026-10-03T20:46:07.777Z",
+  "slug": "the-legend-of-more-bounce",
+  "title": "The Legend of More Bounce",
+  "automated_preflight_passed": true,
+  "physical_device_release_signoff": false,
+  "rows": [
+    {
+      "id": "source-mobile-readability",
+      "environment": "Static source/CSS audit",
+      "status": "pass",
+      "evidence": "exports/qa/the-legend-of-more-bounce.mobile-readability.v5.4.json"
+    },
+    {
+      "id": "desktop-browser-proof",
+      "environment": "Headless Chromium deterministic playthrough",
+      "status": "pass",
+      "evidence": "community/playtests/the-legend-of-more-bounce.automated-browser-proof.v5.5.json"
+    },
+    {
+      "id": "pwa-wrapper-structure",
+      "environment": "PWA research wrapper structure",
+      "status": "pass",
+      "evidence": "exports/pocketgames/the-legend-of-more-bounce/mobile-wrapper"
+    },
+    {
+      "id": "android-small-phone",
+      "environment": "Physical Android small-phone touch test",
+      "status": "human-device-test-pending",
+      "evidence": null
+    },
+    {
+      "id": "iphone-small-phone",
+      "environment": "Physical iPhone Safari touch test",
+      "status": "human-device-test-pending",
+      "evidence": null
+    },
+    {
+      "id": "install-offline-reopen",
+      "environment": "Installed PWA offline close/reopen test",
+      "status": "human-device-test-pending",
+      "evidence": null
+    }
+  ],
+  "boundary": "Automated/source checks may support production packaging. Physical-device rows remain explicit human tests before mobile-store release."
+}

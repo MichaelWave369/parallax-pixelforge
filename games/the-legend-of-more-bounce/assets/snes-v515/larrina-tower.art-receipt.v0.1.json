@@ -1,0 +1,18 @@
+{
+  "schema": "pixelforge.tower-art-receipt.v5.15",
+  "status": "original-art-generated",
+  "rightsStatus": "original",
+  "tiles": {
+    "path": "assets/snes-v515/larrina-tower-tiles.v0.1.png",
+    "tileSize": 16,
+    "tileCount": 16,
+    "sha256": "be01bb5f2f132fb4384418626d895528b1c7c4589bc5892388a5953ffb62b749"
+  },
+  "room": {
+    "path": "assets/snes-v515/larrina-tower-room.v0.1.png",
+    "dimensions": "320x180",
+    "sha256": "9d70e92d7cb35605606f6c915befc3bcf0acddd273e85b75b6e334df0d49183b"
+  },
+  "tileStudioSeed": "world/larrina-tower.tile-studio-seed.v5.15.json",
+  "boundary": "Original PixelForge Larrina Tower interior assets. Human visual review remains pending; shared UI and bounce effects remain separate roles."
+}

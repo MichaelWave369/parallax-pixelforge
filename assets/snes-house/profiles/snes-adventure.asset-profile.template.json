@@ -1,0 +1,183 @@
+{
+  "schema": "pixelforge.asset-profile.v1",
+  "profileVersion": "1.0.0",
+  "cartridgeSlug": "__CARTRIDGE_SLUG__",
+  "cartridgeTitle": "__CARTRIDGE_TITLE__",
+  "packId": "pf-snes-house-foundation-v1",
+  "visualEra": "16-bit",
+  "styleProfile": "snes-adventure",
+  "status": "asset-contract-ready-content-pending",
+  "releasePolicy": {
+    "contractRequiredForProductionCandidate": true,
+    "allRequiredSlotsReadyForRetailRelease": true,
+    "humanVisualReviewRequiredForGoldStandard": true
+  },
+  "slots": [
+    {
+      "id": "hero",
+      "type": "hero-spritesheet",
+      "required": true,
+      "status": "awaiting-art",
+      "frameSize": "32x48",
+      "sheetGrid": "8x6",
+      "states": [
+        "idle",
+        "walk",
+        "run",
+        "jump-bounce",
+        "interact",
+        "damage",
+        "victory",
+        "view-transition"
+      ],
+      "paletteId": "pf-overworld-grove-v1",
+      "file": null,
+      "rightsStatus": "original-art-required",
+      "notes": "Replace this note with cartridge-specific art direction."
+    },
+    {
+      "id": "primary-npc",
+      "type": "npc-spritesheet",
+      "required": true,
+      "status": "awaiting-art",
+      "frameSize": "32x48",
+      "sheetGrid": "6x4",
+      "states": [
+        "idle",
+        "talk",
+        "blink",
+        "smile",
+        "concern",
+        "celebrate"
+      ],
+      "paletteId": "pf-tower-interior-v1",
+      "file": null,
+      "rightsStatus": "original-art-required",
+      "notes": "Replace this note with cartridge-specific art direction."
+    },
+    {
+      "id": "primary-portraits",
+      "type": "portrait-set",
+      "required": true,
+      "status": "awaiting-art",
+      "frameSize": "96x96",
+      "states": [
+        "neutral",
+        "smile",
+        "concern",
+        "surprised"
+      ],
+      "paletteId": "pf-tower-interior-v1",
+      "file": null,
+      "rightsStatus": "original-art-required"
+    },
+    {
+      "id": "overworld-tiles",
+      "type": "tileset",
+      "required": true,
+      "status": "awaiting-art",
+      "tileSize": 16,
+      "regions": [
+        "grass",
+        "paths",
+        "trees",
+        "water",
+        "ruins",
+        "flowers",
+        "signage",
+        "tower-exterior"
+      ],
+      "paletteId": "pf-overworld-grove-v1",
+      "file": null,
+      "rightsStatus": "original-art-required"
+    },
+    {
+      "id": "primary-stage-tiles",
+      "type": "tileset",
+      "required": true,
+      "status": "awaiting-art",
+      "tileSize": 16,
+      "regions": [
+        "ground",
+        "platforms",
+        "trees-far",
+        "trees-near",
+        "mist",
+        "bounce-flora",
+        "ruins",
+        "echo-gate"
+      ],
+      "paletteId": "pf-wobble-woods-v1",
+      "file": null,
+      "rightsStatus": "original-art-required"
+    },
+    {
+      "id": "interior-kit",
+      "type": "interior-kit",
+      "required": true,
+      "status": "awaiting-art",
+      "tileSize": 16,
+      "regions": [
+        "stone-wall",
+        "wood-floor",
+        "window",
+        "banner",
+        "bookshelf",
+        "lamp",
+        "record-table",
+        "door",
+        "props"
+      ],
+      "paletteId": "pf-tower-interior-v1",
+      "file": null,
+      "rightsStatus": "original-art-required"
+    },
+    {
+      "id": "shared-ui-frames",
+      "type": "ui-frame-kit",
+      "required": true,
+      "status": "awaiting-art",
+      "nineSlice": "16,16,16,16",
+      "paletteId": "pf-ui-frame-v1",
+      "file": null,
+      "rightsStatus": "original-art-required",
+      "notes": "Replace this note with cartridge-specific art direction."
+    },
+    {
+      "id": "effects",
+      "type": "effects-sheet",
+      "required": true,
+      "status": "awaiting-art",
+      "frameSize": "32x32",
+      "states": [
+        "bounce-impact",
+        "rune-pickup",
+        "gate-open",
+        "sparkle",
+        "hit"
+      ],
+      "paletteId": "pf-wobble-woods-v1",
+      "file": null,
+      "rightsStatus": "original-art-required"
+    },
+    {
+      "id": "audio-cues",
+      "type": "audio-cue-pack",
+      "required": false,
+      "status": "awaiting-audio",
+      "cueIds": [
+        "title",
+        "overworld",
+        "woods",
+        "tower",
+        "rune-pickup",
+        "gate-open",
+        "dialogue-blip",
+        "ending"
+      ],
+      "file": null,
+      "rightsStatus": "original-audio-required"
+    }
+  ],
+  "boundary": "This profile proves that every required art role is specified. It does not claim that final sprite sheets, tilesets, portraits, UI art, or audio already exist."
+}

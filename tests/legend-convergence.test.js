@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { DEFAULT_QUEST, normalizeQuest, checkpointForQuest } from '../games/the-legend-of-more-bounce/src/save-system.js';
+const base={...DEFAULT_QUEST,appleNodes:[],stormglassCompass:true,chapterFourComplete:true};
+const top=normalizeQuest({...base,prismCyan:true,prismMagenta:true,prismGold:true});assert.equal(top.worldBeamAligned,true);assert.equal(checkpointForQuest(top).id,'splitlight-causeway');
+const side=normalizeQuest({...top,pulseNodes:3});assert.equal(side.pulseNodesPowered,true);assert.equal(checkpointForQuest(side).id,'triune-observatory');
+const first=normalizeQuest({...side,lensStep:3});assert.equal(first.viewSigil,true);assert.equal(checkpointForQuest(first).id,'blind-angle');
+const complete=normalizeQuest({...first,blindAngleDefeated:true,convergenceCrown:true,chapterFiveComplete:true});assert.equal(checkpointForQuest(complete).id,'mirrorfall-complete');
+for(const f of ['mirrorfall-basin.runtime-scene.v5.27.json','splitlight-causeway.runtime-scene.v5.27.json','triune-observatory.runtime-scene.v5.27.json','blind-angle.runtime-scene.v5.27.json']) assert.ok(fs.existsSync(`games/the-legend-of-more-bounce/runtime/${f}`));
+console.log('Legend v5.27 convergence tests passed: top-down -> side-view -> first-person -> tri-view boss causality is persistent and ordered.');

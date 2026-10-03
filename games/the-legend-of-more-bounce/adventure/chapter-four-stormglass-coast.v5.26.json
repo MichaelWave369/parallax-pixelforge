@@ -1,0 +1,65 @@
+{
+  "schema": "pixelforge.adventure.chapter.v5.26",
+  "id": "stormglass-coast",
+  "chapter": 4,
+  "title": "Stormglass Coast",
+  "entryRequires": [
+    "ironBlossom"
+  ],
+  "hub": {
+    "id": "stormglass-coast",
+    "nodes": [
+      "tidewatch-pier",
+      "sable-current",
+      "shell-cove",
+      "stormglass-cliffs",
+      "lighthouse"
+    ],
+    "npc": "sable-current"
+  },
+  "collectible": {
+    "id": "tideglass-shell",
+    "required": 3
+  },
+  "upgrade": {
+    "id": "galeMantle",
+    "source": "sable-current",
+    "cost": "tideglass-shells:3",
+    "effect": "midair-dash",
+    "requiredFor": "stormglass-cliffs-gaps"
+  },
+  "sideView": {
+    "id": "stormglass-cliffs",
+    "requiredAbility": "galeMantle",
+    "dashGaps": 3,
+    "reward": "pressurePrism"
+  },
+  "firstPersonPuzzle": {
+    "id": "tide-engine",
+    "sequence": [
+      "tide",
+      "wind",
+      "light",
+      "bell"
+    ],
+    "steps": 4,
+    "reward": "tideEngineSolved"
+  },
+  "boss": {
+    "id": "undertow-bell",
+    "health": 5,
+    "mechanic": "air-dash-through-surge-then-bounce-strike",
+    "requiredAbility": "galeMantle",
+    "reward": "stormglassCompass"
+  },
+  "travelLandmark": "stormglass-lighthouse",
+  "humanBoundaries": [
+    "air-dash-feel",
+    "cliff-readability",
+    "puzzle-clarity",
+    "boss-fairness",
+    "chapter-pacing",
+    "commercial-content-depth",
+    "price-worthiness"
+  ]
+}

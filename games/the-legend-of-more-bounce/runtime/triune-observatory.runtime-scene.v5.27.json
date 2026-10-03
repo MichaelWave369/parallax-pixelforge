@@ -1,0 +1,17 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.27",
+  "id": "triune-observatory",
+  "mode": "first-person",
+  "chapter": 5,
+  "contract": {
+    "requires": [
+      "pulseNodesPowered"
+    ],
+    "lensShutters": 3,
+    "outputs": [
+      "viewSigil"
+    ],
+    "crossViewEffect": "boss-route-open"
+  },
+  "rightsStatus": "original"
+}

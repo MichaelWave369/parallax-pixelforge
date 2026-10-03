@@ -1,0 +1,48 @@
+{
+  "schema": "pixelforge.store-metadata.v5.6",
+  "generated_at": "2026-10-03T20:46:07.702Z",
+  "slug": "the-legend-of-more-bounce",
+  "title": "The Legend of More Bounce",
+  "subtitle": "One tiny world seen three ways: overworld, side-view action, and first-person interaction.",
+  "series": "369 PocketGames",
+  "target_price_usd": "3.69",
+  "pricing_model": "premium_paid_once",
+  "tagline": "One world. Three ways of seeing it.",
+  "short_description": "A tiny retro adventure that jumps between three classic ways of seeing a game world.",
+  "long_description": "The Legend of More Bounce is a compact handcrafted PixelForge adventure starring More Bounce and Princess Larrina. Cross a top-down overworld, enter Wobble Woods as a side-scrolling action scene, recover the Bounce Rune, then step through the Echo Gate into a first-person tower encounter. One shared state follows you through all three perspectives. Built for the 369 PocketGames lane: paid once, offline-friendly, no ads, no subscriptions, and no predatory purchases.",
+  "feature_bullets": [
+    "Three perspectives inside one tiny shared world",
+    "Top-down overworld exploration, side-view action, and first-person interaction",
+    "A complete proof-sized adventure with a clear beginning and ending",
+    "Local-first play with no account, telemetry, or network requirement",
+    "Paid-once 369 PocketGames design with no ads or predatory IAP"
+  ],
+  "content_notes": [
+    "Light fantasy adventure",
+    "No gambling mechanics",
+    "No online chat",
+    "No account required",
+    "Prototype-length production candidate"
+  ],
+  "orientation": "landscape-primary",
+  "monetization_promise": {
+    "noAds": true,
+    "noPredatoryIap": true,
+    "noSubscriptions": true,
+    "noLootBoxes": true,
+    "noEnergyTimers": true,
+    "offlinePlayable": true
+  },
+  "assets": {
+    "screenshots": [
+      "exports/playable/screenshots/01-overworld.png",
+      "exports/playable/screenshots/02-side-view.png",
+      "exports/playable/screenshots/03-first-person.png",
+      "exports/playable/screenshots/04-ending.png"
+    ],
+    "final_icon": "human-signoff-pending",
+    "feature_graphic": "human-signoff-pending",
+    "trailer": "optional-not-required"
+  },
+  "release_note": "Production-candidate metadata packet. Store submission/signing is outside PixelForge v5.6."
+}

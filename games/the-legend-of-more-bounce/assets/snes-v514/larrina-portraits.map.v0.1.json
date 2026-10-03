@@ -1,0 +1,15 @@
+{
+  "schema": "pixelforge.portrait-map.v1",
+  "assetSlotId": "larrina-portraits",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 4,
+  "expressions": {
+    "neutral": 0,
+    "smile": 1,
+    "concern": 2,
+    "surprised": 3
+  },
+  "layout": "horizontal-strip",
+  "rights": "original"
+}

@@ -1,0 +1,15 @@
+{
+  "manifestType": "pixelforge.porch-source-manifest",
+  "version": "4.0.0-alpha",
+  "includedSources": [
+    "brother_presence.py",
+    "gratitude_wall.py",
+    "gtsp_protection.py",
+    "memory_garden.py",
+    "secure_layer.py",
+    "infinite_porch_FINAL(1).py",
+    "Nevtext.py",
+    "docker-compose.kingdom_poc.yml"
+  ],
+  "boundary": "Packaged as reference/source material only. Review and test before production or public network use."
+}

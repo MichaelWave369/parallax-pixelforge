@@ -1,0 +1,50 @@
+{
+  "schema": "pixelforge.chapter-two-depth-audit.v5.22",
+  "generatedAt": "2026-10-03T20:46:25.995Z",
+  "status": "chapter-two-machine-depth-pass-human-commercial-and-upgrade-review-pending",
+  "machineEvidence": {
+    "newOverworldRegions": 1,
+    "newOverworldNodes": 5,
+    "newNamedNpcEncounters": 1,
+    "newSideViewRoutes": 1,
+    "newStrongerEnemies": 3,
+    "newCollectibles": 3,
+    "newPermanentUpgrades": 1,
+    "newFirstPersonInteriors": 1,
+    "newPuzzleSteps": 3,
+    "newChapterRewards": 1,
+    "staticSpriteHitsRequired": 6,
+    "relaySparksRequired": 3,
+    "permanentUpgrade": "Echo Boots",
+    "signalMillPuzzleSteps": 3,
+    "minimumNewAuthoredInteractionBeats": 16,
+    "totalAuthoredChapters": 2
+  },
+  "blockers": [
+    {
+      "id": "human-upgrade-feel-review",
+      "reason": "A machine can prove Echo Boots gate progression, not that the upgrade feels exciting."
+    },
+    {
+      "id": "human-chapter-pacing-review",
+      "reason": "Chapter pacing and backtracking require human play."
+    },
+    {
+      "id": "human-static-enemy-difficulty-review",
+      "reason": "Two-hit enemy structure exists; fairness and fun remain human judgments."
+    },
+    {
+      "id": "human-audio-visual-review",
+      "reason": "New art/audio integrity can be verified, quality still needs human review."
+    },
+    {
+      "id": "commercial-content-depth",
+      "reason": "A second chapter materially expands the game but does not automatically prove $3.69 value."
+    },
+    {
+      "id": "price-worthiness",
+      "reason": "Price worthiness remains a named human signoff."
+    }
+  ],
+  "authorityBoundary": "v5.22 adds a second authored adventure chapter and a permanent movement-upgrade gate. Content depth, upgrade feel, pacing, difficulty, audio/visual quality, replay desire, and commercial value remain human judgments."
+}

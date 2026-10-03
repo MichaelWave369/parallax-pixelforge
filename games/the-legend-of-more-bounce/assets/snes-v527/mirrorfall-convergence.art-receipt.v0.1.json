@@ -1,0 +1,39 @@
+{
+  "schema": "pixelforge.art-receipt.v5.27",
+  "rightsStatus": "original",
+  "sourceNote": "Original PixelForge Chapter Five art generated from deterministic local drawing primitives; no external game assets.",
+  "assets": [
+    {
+      "file": "perri-prism-npc.v0.1.png",
+      "sha256": "dad2e8f6164de3b6440c86689ca32ff1df912bc0cecb73f47345533e2f6207ba"
+    },
+    {
+      "file": "convergence-items.v0.1.png",
+      "sha256": "f57eae1879aec834e40eee9624cda4cb7a3ed20466094c2e5d6cb96734eeb804"
+    },
+    {
+      "file": "mirrorfall-basin.map.v0.1.png",
+      "sha256": "9bd87e4ad451dd573aa0137526d21ed64a6c3b15e2e4709fe86fe7a104daa328"
+    },
+    {
+      "file": "splitlight-causeway.stage.v0.1.png",
+      "sha256": "8fcf646505cd4e603b420a110b2e8d2cb7862cdda58bcd185c1c24ac438da587"
+    },
+    {
+      "file": "triune-observatory-room.v0.1.png",
+      "sha256": "2e87cba57adeabb314586471f6f5a05365d58cbb332f8585432058bc16e29c69"
+    },
+    {
+      "file": "blind-angle.v0.1.png",
+      "sha256": "5648234d30f6f5b07f23a290b45d02c13ea1a0f403cc27a97cf58b8af3b2b270"
+    },
+    {
+      "file": "blind-angle-arena.v0.1.png",
+      "sha256": "b62d54489b6c2dd659600aa7ae596ad9607c0667e433b1090c3809d4a1215b0f"
+    },
+    {
+      "file": "legend-world-map.v0.3.png",
+      "sha256": "b5d733a5db32bd388c7f31a72a028c672fb09816214094caad61f6a274138edb"
+    }
+  ]
+}

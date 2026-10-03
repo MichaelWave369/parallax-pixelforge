@@ -1,0 +1,13 @@
+{
+  "schema": "pixelforge.audio-rights-receipt.v5.22",
+  "rightsStatus": "original",
+  "externalSamplesUsed": false,
+  "externalMusicUsed": false,
+  "cueHashes": {
+    "east-road": "0c66dd9bb587f01b98754dc7d4ea089e938f77f805224fec4067259932795239",
+    "glassgrass": "49a4959419538baf435ff6562bbbd33e4099b6eff0debc3f48910a349c9d6d08",
+    "signal-mill": "3a9409f4ce0cc9dbdd64a2074d9708f723bebf271ea991c35b533b8677396def",
+    "echo-boots": "8fba60c6ca3ee8ac6f52d1cb444da4a1e17fcb8d52e88f9673d61be75c481e31",
+    "beacon-restored": "da551e5082e947604600e9d49bfe2ea5bea44597a3933a95181a645bf9d4aaaf"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "pixelforge.legend-convergence-audit.v5.27",
+  "status": "machine-three-view-convergence-contract-pass-human-cross-view-clarity-switch-friction-boss-readability-pacing-and-commercial-depth-review-pending",
+  "machineEvidence": {
+    "chapter": 5,
+    "newRuntimeScenes": 4,
+    "crossViewCausalLinks": 3,
+    "topDownPrisms": 3,
+    "sideViewPulseNodes": 3,
+    "firstPersonShutters": 3,
+    "bossPhases": 3,
+    "minimumAuthoredInteractionBeats": 14,
+    "audioCues": 6,
+    "travelLandmarks": 6,
+    "saveSchemaVersion": 4,
+    "migratesFrom": [
+      "v5.24",
+      "v5.25",
+      "v5.26"
+    ],
+    "networkSync": false
+  },
+  "blockers": [
+    {
+      "id": "human-cross-view-causality-clarity",
+      "reason": "A human must confirm that changes in one perspective are understandable in the others."
+    },
+    {
+      "id": "human-view-switch-friction",
+      "reason": "A human must judge whether moving between viewpoints feels exciting rather than cumbersome."
+    },
+    {
+      "id": "human-blind-angle-readability",
+      "reason": "The three boss phases require human readability/fairness review."
+    },
+    {
+      "id": "human-chapter-five-pacing",
+      "reason": "Machine interaction counts cannot establish satisfying pacing."
+    },
+    {
+      "id": "commercial-content-depth",
+      "reason": "More authored beats do not prove commercial value."
+    },
+    {
+      "id": "price-worthiness",
+      "reason": "$3.69 worthiness remains a named human judgment."
+    }
+  ]
+}

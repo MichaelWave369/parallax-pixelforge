@@ -1,0 +1,144 @@
+{
+  "schema": "pixelforge.pocketgame-candidate-package.v5.6",
+  "generated_at": "2026-10-03T20:46:11.383Z",
+  "slug": "the-legend-of-more-bounce",
+  "title": "The Legend of More Bounce",
+  "status": "production-candidate-human-signoff-pending",
+  "files": [
+    {
+      "path": "RELEASE_STATUS.md",
+      "sha256": "45147c07d71b4319147ca3f32ac1a57e9cbb0477bb8a6f889165343ea5101eef",
+      "bytes": 406
+    },
+    {
+      "path": "evidence/asset-profile.json",
+      "sha256": "71555f6950afd20c71978ddb01253cdde5c441ecd75644f7cc6c440ca7c06334",
+      "bytes": 8622
+    },
+    {
+      "path": "evidence/asset-review.v5.8.json",
+      "sha256": "190df02ae6962fedc489214c63d92597f55cd700affbc9a09805d711df70bf08",
+      "bytes": 3776
+    },
+    {
+      "path": "evidence/automated-browser-proof.json",
+      "sha256": "56f8870c732727704ac3542727a93052bbd0e3e2ee9307610b3ebe98821954aa",
+      "bytes": 807
+    },
+    {
+      "path": "evidence/community-review.json",
+      "sha256": "f93829abc48e6916b048ff9296a0258c15871cb3b2ced2a63847158d0d85b0cf",
+      "bytes": 1228
+    },
+    {
+      "path": "evidence/mobile-qa-matrix.v5.6.json",
+      "sha256": "ce77068cd3e63580601f0c7a11e5f5315596bfda792c17452fdb208538fd3498",
+      "bytes": 1627
+    },
+    {
+      "path": "evidence/mobile-qa-matrix.v5.6.md",
+      "sha256": "8da1c748fd6c20b501b9a49e5b8c750873412bddb9b138653ca6c0375417663a",
+      "bytes": 920
+    },
+    {
+      "path": "evidence/mobile-readability.json",
+      "sha256": "431b5f86dbeab6b865e9cc2ea703f43be24f8bb99922ffb80fc22a33cb9d71f0",
+      "bytes": 1449
+    },
+    {
+      "path": "evidence/release-decision.v5.6.json",
+      "sha256": "4a6705939077947d8dacd16e19e4e983f90099bdc318ffa5280c6d94f593b522",
+      "bytes": 4315
+    },
+    {
+      "path": "evidence/release-decision.v5.6.md",
+      "sha256": "c99382531514e40a5d86c09233162ceee109fa4a1c9ea62a26e5254452453b99",
+      "bytes": 2067
+    },
+    {
+      "path": "governance/CREDITS.md",
+      "sha256": "0ddd2996511b837d57329e2fcd0b7dfbb141740b0116afd4b7966cb69f7beb0a",
+      "bytes": 612
+    },
+    {
+      "path": "governance/RIGHTS.md",
+      "sha256": "db0650ace9b89ea47addb0d2b78b14949725b7ce29326d860e4d66dc7cad98fd",
+      "bytes": 3244
+    },
+    {
+      "path": "governance/rights-declaration.v5.6.json",
+      "sha256": "edc68939800d969393e28acdeef8e04727dbee9163373e44aad6b6b34a0eeaf2",
+      "bytes": 2123
+    },
+    {
+      "path": "manifest/the_legend_of_more_bounce.pocketgame.json",
+      "sha256": "5830f162dde4587fd3b90405652983ba01c77e83b4a0a4f7c981e52ae60e19fb",
+      "bytes": 6543
+    },
+    {
+      "path": "mobile-wrapper/README.md",
+      "sha256": "1cd8b7728b18050627c0546ac1f2d2d321710411306501fe351adea57720668e",
+      "bytes": 324
+    },
+    {
+      "path": "mobile-wrapper/icon.svg",
+      "sha256": "09cc6efd2feee00fa7b2fd3f45610c527cbadae4de9baba460e565e5cade2f0f",
+      "bytes": 607
+    },
+    {
+      "path": "mobile-wrapper/index.html",
+      "sha256": "4922856de7368533cf8184732ec0b84365a0011a5f722f42385631ea81840cf0",
+      "bytes": 24847
+    },
+    {
+      "path": "mobile-wrapper/manifest.webmanifest",
+      "sha256": "1503359f9f74892eec95ec832b806a0650c001fdbc5770482cf266492abdca63",
+      "bytes": 477
+    },
+    {
+      "path": "mobile-wrapper/service-worker.js",
+      "sha256": "61a17b1c3867668c2df6fefb7471e45baa2706f9f865ad9d756a37e98129ce7d",
+      "bytes": 327
+    },
+    {
+      "path": "playable/index.html",
+      "sha256": "74695a131000350a4ac2ca4cbb9d7a480b4153ebedf28ba562dac232bed6c3f9",
+      "bytes": 24509
+    },
+    {
+      "path": "store/ASSET_CHECKLIST.md",
+      "sha256": "c23f8ea360c9e53958269b254f85c447f6ae9e1688cd772452f99418564691be",
+      "bytes": 500
+    },
+    {
+      "path": "store/STORE_PAGE.md",
+      "sha256": "981406c8f3e50f74b7a742e735132ddc39ddd87253e114b50ce6bf5c28da4a30",
+      "bytes": 1599
+    },
+    {
+      "path": "store/screenshots/01-overworld.png",
+      "sha256": "20e4a744783720d120fb1ea785b0f0d472f97cb4126438fa49279a5574c291db",
+      "bytes": 148782
+    },
+    {
+      "path": "store/screenshots/02-side-view.png",
+      "sha256": "1de3c71193d28ace84d0747940d32e56ff8fcb69dfbd9fc938b76f79e17082d2",
+      "bytes": 131081
+    },
+    {
+      "path": "store/screenshots/03-first-person.png",
+      "sha256": "30168b1da565ed5dc2a46e88ac56667920c9655d0f7ec3a12110fd0876ded98f",
+      "bytes": 165188
+    },
+    {
+      "path": "store/screenshots/04-ending.png",
+      "sha256": "233ac7e12a225d61eba6dad28bbde046efd61113ef3d0be7e0751e197f62f2c0",
+      "bytes": 213710
+    },
+    {
+      "path": "store/store-metadata.v5.6.json",
+      "sha256": "15f565620d2ce6ba330d6059fe2c2eac42d201dc4727fa2bfe7e993070f574e2",
+      "bytes": 2342
+    }
+  ]
+}

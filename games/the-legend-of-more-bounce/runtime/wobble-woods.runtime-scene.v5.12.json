@@ -1,0 +1,169 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.12",
+  "title": "Wobble Woods \u2014 Side-View Runtime Seed",
+  "status": "playable-layout-art-pending",
+  "sceneId": "wobble-woods",
+  "runtime": {
+    "contentVersion": "5.12",
+    "mode": "side-view",
+    "camera": {
+      "mode": "follow-x",
+      "zoom": 2,
+      "viewportWidth": 320,
+      "viewportHeight": 180
+    },
+    "player": {
+      "x": 36,
+      "y": 120,
+      "speed": 92,
+      "jumpVelocity": -250,
+      "gravity": 660,
+      "facing": "right",
+      "animation": "idle",
+      "grounded": true
+    },
+    "returnTransition": {
+      "xMax": 12,
+      "toSceneId": "bouncehome-grove",
+      "spawnX": 21.0,
+      "spawnY": 8.5
+    },
+    "goal": {
+      "type": "bounce-rune",
+      "x": 548,
+      "y": 78,
+      "collected": false
+    },
+    "echoGate": {
+      "x": 620,
+      "y": 96,
+      "requires": "bounce-rune",
+      "toSceneId": "larrina-tower",
+      "enabled": true
+    }
+  },
+  "world": {
+    "width": 672,
+    "height": 180,
+    "floorY": 148,
+    "platforms": [
+      {
+        "x": 0,
+        "y": 148,
+        "w": 150,
+        "h": 32,
+        "kind": "ground"
+      },
+      {
+        "x": 178,
+        "y": 148,
+        "w": 120,
+        "h": 32,
+        "kind": "ground"
+      },
+      {
+        "x": 332,
+        "y": 148,
+        "w": 130,
+        "h": 32,
+        "kind": "ground"
+      },
+      {
+        "x": 500,
+        "y": 148,
+        "w": 172,
+        "h": 32,
+        "kind": "ground"
+      },
+      {
+        "x": 92,
+        "y": 116,
+        "w": 54,
+        "h": 12,
+        "kind": "platform"
+      },
+      {
+        "x": 214,
+        "y": 104,
+        "w": 60,
+        "h": 12,
+        "kind": "platform"
+      },
+      {
+        "x": 368,
+        "y": 116,
+        "w": 64,
+        "h": 12,
+        "kind": "platform"
+      },
+      {
+        "x": 500,
+        "y": 94,
+        "w": 74,
+        "h": 12,
+        "kind": "platform"
+      }
+    ],
+    "bouncePads": [
+      {
+        "x": 136,
+        "y": 140,
+        "w": 18,
+        "h": 8,
+        "power": -330
+      },
+      {
+        "x": 286,
+        "y": 140,
+        "w": 18,
+        "h": 8,
+        "power": -330
+      },
+      {
+        "x": 452,
+        "y": 140,
+        "w": 18,
+        "h": 8,
+        "power": -330
+      }
+    ],
+    "decor": [
+      {
+        "type": "ruin",
+        "x": 310,
+        "y": 110
+      },
+      {
+        "type": "glow-shroom",
+        "x": 140,
+        "y": 132
+      },
+      {
+        "type": "glow-shroom",
+        "x": 456,
+        "y": 132
+      },
+      {
+        "type": "gate",
+        "x": 626,
+        "y": 84
+      }
+    ]
+  },
+  "spriteBinding": {
+    "assetSlotId": "more-bounce-hero",
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "fps": 8,
+    "status": "ready",
+    "file": "../assets/snes-v512/more-bounce-hero.v0.1.png",
+    "animationMap": "../assets/snes-v512/more-bounce-hero.anim.v0.1.json",
+    "sha256": "0b8ae496533333ac66dab4dfee9fdfbd797f051f1104070bf1d9361d2f276cd7"
+  },
+  "environmentBinding": {
+    "assetSlotId": "wobble-woods-stage",
+    "status": "awaiting-art",
+    "file": null
+  },
+  "claimBoundary": "Wobble Woods platform geometry, bounce pads, rune goal and scene-return binding are authored. Final Wobble Woods tiles/background art remains awaiting-art."
+}

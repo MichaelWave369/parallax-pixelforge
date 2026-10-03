@@ -1,0 +1,19 @@
+{
+  "name": "The Legend of More Bounce",
+  "short_name": "More Bounce",
+  "description": "A tiny retro adventure that jumps between three classic ways of seeing a game world.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#171321",
+  "theme_color": "#171321",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

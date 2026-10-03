@@ -1,0 +1,61 @@
+{
+  "schema": "pixelforge.effects-map.v5.17",
+  "frameWidth": 32,
+  "frameHeight": 32,
+  "frameCount": 20,
+  "sheetLayout": "20x1",
+  "animations": {
+    "bounce-impact": {
+      "frames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "fps": 12,
+      "loop": false
+    },
+    "rune-pickup": {
+      "frames": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "fps": 10,
+      "loop": false
+    },
+    "gate-open": {
+      "frames": [
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "fps": 9,
+      "loop": false
+    },
+    "sparkle": {
+      "frames": [
+        13,
+        14,
+        15,
+        16
+      ],
+      "fps": 8,
+      "loop": true
+    },
+    "hit": {
+      "frames": [
+        17,
+        18,
+        19
+      ],
+      "fps": 12,
+      "loop": false
+    }
+  },
+  "paletteId": "pf-wobble-woods-v1",
+  "rightsStatus": "original"
+}

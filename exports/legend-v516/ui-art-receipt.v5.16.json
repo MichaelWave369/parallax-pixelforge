@@ -1,0 +1,40 @@
+{
+  "schema": "pixelforge.legend-content-receipt.v5.16",
+  "generatedAt": "2026-10-03T20:46:17.717Z",
+  "cartridge": "the-legend-of-more-bounce",
+  "status": "shared-snes-ui-original-art-retained",
+  "requiredFinalArt": {
+    "baselineReady": 7,
+    "currentReady": 8,
+    "total": 8,
+    "pending": 0
+  },
+  "assets": {
+    "atlas": {
+      "path": "games/the-legend-of-more-bounce/assets/snes-v516/shared-ui-frames.v0.1.png",
+      "sha256": "49bf57ba1f979030b67e12c7e829dc79716dc8edf36b9124b609b6494894f7f2",
+      "dimensions": "256x96",
+      "iconCount": 14,
+      "rights": "original"
+    },
+    "nineSlice": {
+      "families": [
+        "dialogue",
+        "menu",
+        "status"
+      ],
+      "slice": 16
+    },
+    "components": [
+      "HUD",
+      "Rune counter",
+      "transition card",
+      "inventory slot"
+    ]
+  },
+  "runtime": {
+    "tower": "shared-ui-final-art-bound",
+    "standalonePreview": "exports/runtime/legend-v5.16-snes-ui-preview.html"
+  },
+  "boundary": "v5.16 UI-art baseline retained. Current required final-art readiness: 8/8; human visual-gold-standard approval remains separate."
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "pixelforge.rights-declaration-receipt.v5.6",
+  "generated_at": "2026-10-03T20:46:07.666Z",
+  "slug": "the-legend-of-more-bounce",
+  "title": "The Legend of More Bounce",
+  "declaration_status": "declared-not-independently-verified",
+  "third_party_ip_allowed": false,
+  "asset_status": "original_prototype_assets_declared",
+  "inventory": [
+    {
+      "path": "games/the-legend-of-more-bounce/RIGHTS.md",
+      "kind": "rights-declaration",
+      "bytes": 3244,
+      "sha256": "db0650ace9b89ea47addb0d2b78b14949725b7ce29326d860e4d66dc7cad98fd"
+    },
+    {
+      "path": "games/the-legend-of-more-bounce/CREDITS.md",
+      "kind": "creator-credits",
+      "bytes": 612,
+      "sha256": "0ddd2996511b837d57329e2fcd0b7dfbb141740b0116afd4b7966cb69f7beb0a"
+    },
+    {
+      "path": "games\\the-legend-of-more-bounce\\src\\main.jsx",
+      "kind": "source-or-declaration",
+      "bytes": 98304,
+      "sha256": "a8711dfd3ad986104c6226da3fb53e1f14df666244db2d24be5436a639317a05"
+    },
+    {
+      "path": "games\\the-legend-of-more-bounce\\src\\styles.css",
+      "kind": "source-or-declaration",
+      "bytes": 46602,
+      "sha256": "0730d47ef31b36a4f88363235481736556d9746bb2876c09d75046099f47f9cc"
+    },
+    {
+      "path": "games\\the-legend-of-more-bounce\\public\\starter-assets\\cartridge.svg",
+      "kind": "original-starter-asset",
+      "bytes": 607,
+      "sha256": "09cc6efd2feee00fa7b2fd3f45610c527cbadae4de9baba460e565e5cade2f0f"
+    },
+    {
+      "path": "games\\the-legend-of-more-bounce\\public\\starter-assets\\spark.svg",
+      "kind": "original-starter-asset",
+      "bytes": 324,
+      "sha256": "161db7a6e57f09c8a7a746117c2518577d0e3b2fdc0abe04d685926f6dd17f8f"
+    },
+    {
+      "path": "games\\the-legend-of-more-bounce\\public\\starter-assets\\RIGHTS.md",
+      "kind": "source-or-declaration",
+      "bytes": 154,
+      "sha256": "54d7e6083373ff547aaecf528a018dd99d67a2fb1197a71e2c6343eb44111c4f"
+    }
+  ],
+  "boundary": "This receipt proves which declarations/files were packaged and their hashes. It does not independently prove ownership beyond the project declarations."
+}

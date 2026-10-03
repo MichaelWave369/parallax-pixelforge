@@ -1,0 +1,121 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.17",
+  "title": "Larrina Tower \u2014 All Final Art Runtime",
+  "status": "playable-interaction-all-final-art-bound",
+  "sceneId": "larrina-tower",
+  "runtime": {
+    "contentVersion": "5.17",
+    "mode": "first-person",
+    "camera": {
+      "mode": "fixed",
+      "zoom": 2,
+      "viewportWidth": 320,
+      "viewportHeight": 180
+    },
+    "interaction": {
+      "advanceKeys": [
+        "Enter",
+        " ",
+        "e"
+      ],
+      "dialogueIds": [
+        "hello",
+        "truth",
+        "kingdom",
+        "rune"
+      ],
+      "endingAfter": "rune"
+    },
+    "returnTransition": {
+      "toSceneId": "wobble-woods",
+      "enabled": true
+    }
+  },
+  "characterBinding": {
+    "assetSlotId": "larrina-character",
+    "status": "ready",
+    "file": "../assets/snes-v514/larrina-character.v0.1.png",
+    "animationMap": "../assets/snes-v514/larrina-character.anim.v0.1.json",
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "frameCount": 24,
+    "sha256": "3f0a5a6bd3b080e2799259d5caf2a050e1338a4d292c09a76fa310c072913e70"
+  },
+  "portraitBinding": {
+    "assetSlotId": "larrina-portraits",
+    "status": "ready",
+    "file": "../assets/snes-v514/larrina-portraits.v0.1.png",
+    "portraitMap": "../assets/snes-v514/larrina-portraits.map.v0.1.json",
+    "frameWidth": 96,
+    "frameHeight": 96,
+    "frameCount": 4,
+    "sha256": "5c55f6d81aafffddb2b1a6fca448f6cc760f7c06a054d1f2db35e02307788e45"
+  },
+  "environmentBinding": {
+    "assetSlotId": "larrina-tower-interior",
+    "status": "ready",
+    "file": "../assets/snes-v515/larrina-tower-tiles.v0.1.png",
+    "roomFile": "../assets/snes-v515/larrina-tower-room.v0.1.png",
+    "tileStudioSeed": "../world/larrina-tower.tile-studio-seed.v5.15.json",
+    "tileSize": 16,
+    "tileCount": 16,
+    "sha256": "be01bb5f2f132fb4384418626d895528b1c7c4589bc5892388a5953ffb62b749",
+    "roomSha256": "9d70e92d7cb35605606f6c915befc3bcf0acddd273e85b75b6e334df0d49183b",
+    "countsAsFinalArt": true
+  },
+  "dialogue": [
+    {
+      "id": "hello",
+      "speaker": "Princess Larrina",
+      "expression": "smile",
+      "text": "You actually found the Bounce Rune. I told the castle council you would."
+    },
+    {
+      "id": "truth",
+      "speaker": "More Bounce",
+      "expression": "neutral",
+      "text": "I mostly followed the road, bounced over some stuff, and tried not to look like I knew what I was doing."
+    },
+    {
+      "id": "kingdom",
+      "speaker": "Princess Larrina",
+      "expression": "concern",
+      "text": "The kingdom is losing its rhythm \u2014 the little timing that makes people feel alive."
+    },
+    {
+      "id": "rune",
+      "speaker": "Princess Larrina",
+      "expression": "surprised",
+      "text": "Raise the Rune. One world can be seen three ways \u2014 and all three are real."
+    }
+  ],
+  "claimBoundary": "Character, portraits, Tower interior, shared UI, and effects are original, hashed, runtime-bound final-art roles. All eight required art roles are machine-ready; human visual review remains separate.",
+  "uiBinding": {
+    "assetSlotId": "shared-ui-frames",
+    "status": "ready",
+    "file": "../assets/snes-v516/shared-ui-frames.v0.1.png",
+    "atlasMap": "../assets/snes-v516/shared-ui-atlas.v0.1.json",
+    "dialogueFrame": "../assets/snes-v516/shared-ui-dialogue-frame.v0.1.png",
+    "hudFrame": "../assets/snes-v516/shared-ui-hud-frame.v0.1.png",
+    "runeChip": "../assets/snes-v516/shared-ui-rune-chip.v0.1.png",
+    "transitionCard": "../assets/snes-v516/shared-ui-transition-card.v0.1.png",
+    "nineSlice": 16,
+    "sha256": "49bf57ba1f979030b67e12c7e829dc79716dc8edf36b9124b609b6494894f7f2",
+    "countsAsFinalArt": true
+  },
+  "effectsBinding": {
+    "assetSlotId": "bounce-effects",
+    "status": "ready",
+    "file": "../assets/snes-v517/bounce-effects.v0.1.png",
+    "animationMap": "../assets/snes-v517/bounce-effects.anim.v0.1.json",
+    "frameWidth": 32,
+    "frameHeight": 32,
+    "frameCount": 20,
+    "sha256": "f63a5f315f649e524db46b419f0d7e4776fea845f11c6afb8aeef21b3841d025",
+    "triggers": {
+      "sparkle": "dialogue/ending Rune emphasis",
+      "gate-open": "entry transition"
+    },
+    "countsAsFinalArt": true
+  }
+}

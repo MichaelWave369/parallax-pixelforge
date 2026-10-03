@@ -1,0 +1,24 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.26",
+  "id": "tide-engine",
+  "mode": "first-person",
+  "environment": "assets/snes-v526/tide-engine-room.v0.1.png",
+  "musicCue": "tide-engine",
+  "puzzle": {
+    "sequence": [
+      "tide",
+      "wind",
+      "light",
+      "bell"
+    ],
+    "steps": 4
+  },
+  "progression": {
+    "requires": [
+      "pressurePrism"
+    ],
+    "awards": [
+      "tideEngineSolved"
+    ]
+  }
+}

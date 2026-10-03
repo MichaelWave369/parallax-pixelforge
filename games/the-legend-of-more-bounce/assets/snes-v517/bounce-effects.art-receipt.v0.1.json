@@ -1,0 +1,22 @@
+{
+  "schema": "pixelforge.art-receipt.v5.17",
+  "assetSlotId": "bounce-effects",
+  "status": "ready",
+  "rightsStatus": "original",
+  "source": "Original PixelForge sprite/effects artwork authored for The Legend of More Bounce v5.17.",
+  "file": "assets/snes-v517/bounce-effects.v0.1.png",
+  "sha256": "f63a5f315f649e524db46b419f0d7e4776fea845f11c6afb8aeef21b3841d025",
+  "animationMap": "assets/snes-v517/bounce-effects.anim.v0.1.json",
+  "animationMapSha256": "3749bbb7fbc590c9f705cda2e12db3c231f9c420e977c49c8041a295b7652b0e",
+  "frameSize": "32x32",
+  "frameCount": 20,
+  "states": [
+    "bounce-impact",
+    "rune-pickup",
+    "gate-open",
+    "sparkle",
+    "hit"
+  ],
+  "countsAsFinalArt": true,
+  "humanVisualReviewRequired": true
+}

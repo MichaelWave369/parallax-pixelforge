@@ -1,22 +1,22 @@
 ---
 name: Bug report
 about: Report something broken in PixelForge Studio or a sample cartridge
-title: "Bug: "
+title: "[Bug]: "
 labels: bug
-assignees: ""
 ---
 
 ## What happened?
 
-Describe the bug clearly.
+Describe the issue clearly.
 
 ## Where did it happen?
 
-- [ ] PixelForge Studio
-- [ ] Starter cartridge
-- [ ] Sample/demo cartridge
-- [ ] 369 PocketGames export lane
-- [ ] Documentation
+- [ ] PixelForge Studio root
+- [ ] Journey sample cartridge
+- [ ] Starter template
+- [ ] PocketGames manifest/export
+- [ ] Docs
+- [ ] Other
 
 ## Steps to reproduce
 
@@ -28,17 +28,17 @@ Describe the bug clearly.
 
 What should have happened?
 
-## Screenshots or logs
+## Actual behavior
 
-Paste screenshots, console output, or terminal output if useful.
+What happened instead?
 
 ## Environment
 
 - OS:
 - Browser:
 - Node version:
-- Package version/commit:
+- Device/phone if mobile:
 
-## Notes
+## Console output or screenshots
 
-Anything else that would help us fix it.
+Paste logs or attach screenshots if helpful.

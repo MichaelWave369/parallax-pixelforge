@@ -1,0 +1,45 @@
+{
+  "schema": "pixelforge.legend-save-profile.v5.24",
+  "game": "the-legend-of-more-bounce",
+  "saveSchema": "pixelforge.legend-save.v5.24",
+  "schemaVersion": 1,
+  "manualSlots": 3,
+  "autosave": true,
+  "storage": "local-browser-first",
+  "networkSync": false,
+  "resumePolicy": "safe-checkpoint",
+  "portableJson": true,
+  "migrationPolicy": "additive-defaults-forward",
+  "records": [
+    "progress",
+    "inventory",
+    "equipment",
+    "questLog",
+    "discoveredLocations",
+    "bossRecords",
+    "checkpoint",
+    "playtimeSeconds"
+  ],
+  "checkpoints": [
+    "bouncehome-start",
+    "old-tempo-clue",
+    "grove-key",
+    "bounce-rune",
+    "echo-hollow-clear",
+    "rhythm-crest",
+    "flat-note-defeated",
+    "eastern-road",
+    "echo-boots",
+    "eastern-beacon-restored",
+    "iron-orchard",
+    "resonance-bracer",
+    "rustroot-cleared",
+    "iron-orchard-complete"
+  ],
+  "humanBoundaries": [
+    "save-menu-usability",
+    "checkpoint-placement-feel",
+    "inventory-readability",
+    "quest-log-clarity"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "pixelforge.audio-rights-receipt.v5.21",
+  "rightsStatus": "original",
+  "externalSamplesUsed": false,
+  "externalMusicUsed": false,
+  "cueHashes": {
+    "boss": "cdb0cd69dfe95bceeaedc3eb9969771d90c798c834b491ff7bf596a3b8e30574",
+    "boss-break": "083534ee53646925665b82301e92b7426b48251051db3f694a879b94db9fe3fa",
+    "boss-defeat": "ac364576056816235fd12606ed10b6d786103e8c8d2b62f38446df17a667b4f9"
+  }
+}

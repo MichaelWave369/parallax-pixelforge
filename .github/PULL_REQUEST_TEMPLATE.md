@@ -1,28 +1,38 @@
 ## Summary
 
-What does this PR add, fix, or change?
+What changed?
 
 ## Type of change
 
-- [ ] PixelForge Studio code/tooling
-- [ ] Documentation
-- [ ] Starter/sample cartridge
-- [ ] Community cartridge
-- [ ] 369 PocketGames export lane
-- [ ] Cleanup / maintenance
+- [ ] Docs
+- [ ] Bug fix
+- [ ] Feature
+- [ ] Cartridge
+- [ ] PocketGames manifest/export
+- [ ] Tests/validators
+- [ ] Other
 
-## Checklist
+## Checks run
 
-- [ ] I ran the relevant local check or explained why I could not.
-- [ ] I did not include private notes, secrets, credentials, or personal data.
-- [ ] Any submitted cartridge content uses original or properly licensed code/art/writing/music/sound.
-- [ ] The change respects the open-source code vs protected content/license split.
-- [ ] The change keeps PixelForge welcoming for first-time tiny-game creators.
+- [ ] `npm test`
+- [ ] `npm run validate:demo`
+- [ ] `npm run validate:journey-cartridge`
+- [ ] `npm run pocketgames:all`
+- [ ] `npm run validate:public-release`
+- [ ] Not applicable because:
 
-## Screenshots / demo notes
+## Rights and assets
 
-Add screenshots, GIFs, or notes if this changes the UI or game behavior.
+- [ ] I have the right to contribute these files.
+- [ ] No ripped sprites, copyrighted music, franchise characters, or unclear web images are included.
+- [ ] Attribution/rights notes are included where needed.
 
-## Related issue
+## Boundary review
 
-Closes #
+- [ ] No hidden tracking, deceptive UX, or manipulative monetization was added.
+- [ ] No public networking, accounts, free-text chat, or remote save behavior was added without explicit review.
+- [ ] Claim-boundary notes are included if science, wellness, spirituality, history, AI, mythology, or real people are referenced.
+
+## Screenshots
+
+Add screenshots for UI/cartridge changes when helpful.

@@ -1,0 +1,88 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.14",
+  "title": "Larrina Tower \u2014 Character & Portrait Runtime",
+  "status": "playable-interaction-character-art-bound-interior-art-pending",
+  "sceneId": "larrina-tower",
+  "runtime": {
+    "contentVersion": "5.14",
+    "mode": "first-person",
+    "camera": {
+      "mode": "fixed",
+      "zoom": 2,
+      "viewportWidth": 320,
+      "viewportHeight": 180
+    },
+    "interaction": {
+      "advanceKeys": [
+        "Enter",
+        " ",
+        "e"
+      ],
+      "dialogueIds": [
+        "hello",
+        "truth",
+        "kingdom",
+        "rune"
+      ],
+      "endingAfter": "rune"
+    },
+    "returnTransition": {
+      "toSceneId": "wobble-woods",
+      "enabled": true
+    }
+  },
+  "characterBinding": {
+    "assetSlotId": "larrina-character",
+    "status": "ready",
+    "file": "../assets/snes-v514/larrina-character.v0.1.png",
+    "animationMap": "../assets/snes-v514/larrina-character.anim.v0.1.json",
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "frameCount": 24,
+    "sha256": "3f0a5a6bd3b080e2799259d5caf2a050e1338a4d292c09a76fa310c072913e70"
+  },
+  "portraitBinding": {
+    "assetSlotId": "larrina-portraits",
+    "status": "ready",
+    "file": "../assets/snes-v514/larrina-portraits.v0.1.png",
+    "portraitMap": "../assets/snes-v514/larrina-portraits.map.v0.1.json",
+    "frameWidth": 96,
+    "frameHeight": 96,
+    "frameCount": 4,
+    "sha256": "5c55f6d81aafffddb2b1a6fca448f6cc760f7c06a054d1f2db35e02307788e45"
+  },
+  "environmentBinding": {
+    "assetSlotId": "larrina-tower-interior",
+    "status": "awaiting-art",
+    "file": null,
+    "semanticPreviewAllowed": true,
+    "countsAsFinalArt": false
+  },
+  "dialogue": [
+    {
+      "id": "hello",
+      "speaker": "Princess Larrina",
+      "expression": "smile",
+      "text": "You actually found the Bounce Rune. I told the castle council you would."
+    },
+    {
+      "id": "truth",
+      "speaker": "More Bounce",
+      "expression": "neutral",
+      "text": "I mostly followed the road, bounced over some stuff, and tried not to look like I knew what I was doing."
+    },
+    {
+      "id": "kingdom",
+      "speaker": "Princess Larrina",
+      "expression": "concern",
+      "text": "The kingdom is losing its rhythm \u2014 the little timing that makes people feel alive."
+    },
+    {
+      "id": "rune",
+      "speaker": "Princess Larrina",
+      "expression": "surprised",
+      "text": "Raise the Rune. One world can be seen three ways \u2014 and all three are real."
+    }
+  ],
+  "claimBoundary": "Larrina gameplay character and portrait art are original, ready, hashed, and runtime-bound. The Tower interior remains a semantic layout preview and does not count as final SNES environment art."
+}

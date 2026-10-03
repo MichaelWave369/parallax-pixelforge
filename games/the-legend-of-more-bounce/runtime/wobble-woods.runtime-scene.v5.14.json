@@ -1,0 +1,179 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.14",
+  "title": "Wobble Woods \u2014 v5.14 Larrina Transition Runtime",
+  "status": "playable-layout-original-art-bound",
+  "sceneId": "wobble-woods",
+  "runtime": {
+    "contentVersion": "5.14",
+    "mode": "side-view",
+    "camera": {
+      "mode": "follow-x",
+      "zoom": 2,
+      "viewportWidth": 320,
+      "viewportHeight": 180
+    },
+    "player": {
+      "x": 36,
+      "y": 120,
+      "speed": 92,
+      "jumpVelocity": -250,
+      "gravity": 660,
+      "facing": "right",
+      "animation": "idle",
+      "grounded": true
+    },
+    "returnTransition": {
+      "xMax": 12,
+      "toSceneId": "bouncehome-grove",
+      "spawnX": 21.0,
+      "spawnY": 8.5
+    },
+    "goal": {
+      "type": "bounce-rune",
+      "x": 548,
+      "y": 78,
+      "collected": false
+    },
+    "echoGate": {
+      "x": 620,
+      "y": 96,
+      "requires": "bounce-rune",
+      "toSceneId": "larrina-tower",
+      "enabled": true,
+      "targetStatus": "character-art-ready-interior-art-pending"
+    }
+  },
+  "world": {
+    "width": 672,
+    "height": 180,
+    "floorY": 148,
+    "platforms": [
+      {
+        "x": 0,
+        "y": 148,
+        "w": 150,
+        "h": 32,
+        "kind": "ground"
+      },
+      {
+        "x": 178,
+        "y": 148,
+        "w": 120,
+        "h": 32,
+        "kind": "ground"
+      },
+      {
+        "x": 332,
+        "y": 148,
+        "w": 130,
+        "h": 32,
+        "kind": "ground"
+      },
+      {
+        "x": 500,
+        "y": 148,
+        "w": 172,
+        "h": 32,
+        "kind": "ground"
+      },
+      {
+        "x": 92,
+        "y": 116,
+        "w": 54,
+        "h": 12,
+        "kind": "platform"
+      },
+      {
+        "x": 214,
+        "y": 104,
+        "w": 60,
+        "h": 12,
+        "kind": "platform"
+      },
+      {
+        "x": 368,
+        "y": 116,
+        "w": 64,
+        "h": 12,
+        "kind": "platform"
+      },
+      {
+        "x": 500,
+        "y": 94,
+        "w": 74,
+        "h": 12,
+        "kind": "platform"
+      }
+    ],
+    "bouncePads": [
+      {
+        "x": 136,
+        "y": 140,
+        "w": 18,
+        "h": 8,
+        "power": -330
+      },
+      {
+        "x": 286,
+        "y": 140,
+        "w": 18,
+        "h": 8,
+        "power": -330
+      },
+      {
+        "x": 452,
+        "y": 140,
+        "w": 18,
+        "h": 8,
+        "power": -330
+      }
+    ],
+    "decor": [
+      {
+        "type": "ruin",
+        "x": 310,
+        "y": 110
+      },
+      {
+        "type": "glow-shroom",
+        "x": 140,
+        "y": 132
+      },
+      {
+        "type": "glow-shroom",
+        "x": 456,
+        "y": 132
+      },
+      {
+        "type": "gate",
+        "x": 626,
+        "y": 84
+      }
+    ]
+  },
+  "spriteBinding": {
+    "assetSlotId": "more-bounce-hero",
+    "frameWidth": 32,
+    "frameHeight": 48,
+    "fps": 8,
+    "status": "ready",
+    "file": "../assets/snes-v512/more-bounce-hero.v0.1.png",
+    "animationMap": "../assets/snes-v512/more-bounce-hero.anim.v0.1.json",
+    "sha256": "0b8ae496533333ac66dab4dfee9fdfbd797f051f1104070bf1d9361d2f276cd7"
+  },
+  "environmentBinding": {
+    "assetSlotId": "wobble-woods-stage",
+    "status": "ready",
+    "file": "../assets/snes-v513/wobble-woods-tiles.v0.1.png",
+    "sha256": "fc28d6230620aa5f01f29e423fe23460ccf902029777e272f64e94814e0f59c0",
+    "tileStudioSeed": "../world/wobble-woods.tile-studio-seed.v5.13.json",
+    "layers": {
+      "far": "../assets/snes-v513/wobble-woods-layer-far.v0.1.png",
+      "mist": "../assets/snes-v513/wobble-woods-layer-mist.v0.1.png",
+      "near": "../assets/snes-v513/wobble-woods-layer-near.v0.1.png",
+      "foreground": "../assets/snes-v513/wobble-woods-layer-foreground.v0.1.png"
+    },
+    "artReceipt": "../assets/snes-v513/wobble-woods.art-receipt.v0.1.json"
+  },
+  "claimBoundary": "Wobble Woods original environment art and More Bounce hero remain bound. Echo Gate now transitions into the v5.14 Larrina Tower character/portrait runtime; Tower interior art remains pending."
+}

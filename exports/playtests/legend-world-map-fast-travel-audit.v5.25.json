@@ -1,0 +1,39 @@
+{
+  "schema": "pixelforge.legend-world-map-fast-travel-audit.v5.25",
+  "status": "machine-travel-contract-pass-human-world-map-readability-shrine-placement-and-fast-travel-balance-review-pending",
+  "machineEvidence": {
+    "landmarks": 6,
+    "activatedLandmarks": 4,
+    "startingHomeActive": true,
+    "easternBeaconAutoActive": true,
+    "manualArrivalLandmarks": true,
+    "travelCount": 1,
+    "saveSchema": "pixelforge.legend-save.v5.27",
+    "saveSchemaVersion": 4,
+    "legacyV524Migration": true,
+    "networkSync": false
+  },
+  "blockers": [
+    {
+      "id": "human-world-map-readability",
+      "label": "Human world-map readability review"
+    },
+    {
+      "id": "human-shrine-placement-feel",
+      "label": "Human checkpoint shrine placement / activation feel review"
+    },
+    {
+      "id": "human-fast-travel-balance",
+      "label": "Human fast-travel convenience versus exploration-balance review"
+    },
+    {
+      "id": "commercial-content-depth",
+      "label": "Commercial content depth remains a human judgment"
+    },
+    {
+      "id": "price-worthiness",
+      "label": "$3.69 worthiness remains a human judgment"
+    }
+  ],
+  "privacy": "travel state is stored locally inside the portable Legend save; no network sync or telemetry"
+}

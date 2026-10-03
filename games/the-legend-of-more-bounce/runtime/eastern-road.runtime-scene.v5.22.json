@@ -1,0 +1,1 @@
+{"schema":"pixelforge.runtime-scene.v5.22","id":"eastern-road","mode":"overworld","environment":"assets/snes-v522/eastwind-road.map.v0.1.png","musicCue":"east-road","nodes":["tower-gate","eastwind-mill","glassgrass-pass","high-bridge","signal-mill"],"npc":"mira-reed","progression":{"requires":["resonanceSeal"],"awards":["miraMet"]}}

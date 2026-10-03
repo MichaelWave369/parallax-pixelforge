@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="369 PocketGames pyramid icon">
+  <rect width="512" height="512" rx="96" fill="#0d1020"/>
+  <circle cx="256" cy="174" r="106" fill="#171b31" stroke="#ffd36e" stroke-width="12"/>
+  <path d="M96 390 256 102l160 288H96Z" fill="#202645" stroke="#ffd36e" stroke-width="14" stroke-linejoin="round"/>
+  <path d="M256 102v288" stroke="#8df7c8" stroke-width="10" stroke-linecap="round"/>
+  <path d="M146 315h220M176 260h160M209 205h94" stroke="#8dc8ff" stroke-width="10" stroke-linecap="round" opacity="0.9"/>
+  <text x="256" y="452" text-anchor="middle" font-family="monospace" font-size="56" font-weight="800" fill="#f8f2de">369</text>
+</svg>

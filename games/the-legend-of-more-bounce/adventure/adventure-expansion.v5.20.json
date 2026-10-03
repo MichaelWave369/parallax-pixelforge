@@ -1,0 +1,46 @@
+{
+  "schema": "pixelforge.adventure-expansion.v5.20",
+  "title": "The Legend of More Bounce — Echo Hollow Adventure Expansion",
+  "status": "playable-expansion-human-depth-review-pending",
+  "acts": [
+    {
+      "id": "grove-clues",
+      "mode": "overworld",
+      "objectives": ["meet-old-tempo", "open-old-ruin-chest", "enter-wobble-woods"]
+    },
+    {
+      "id": "rune-and-shards",
+      "mode": "side-view",
+      "objectives": ["collect-bounce-rune", "unlock-echo-hollow", "defeat-three-flatlings", "collect-three-echo-shards"]
+    },
+    {
+      "id": "beat-shrine",
+      "mode": "first-person",
+      "objectives": ["solve-moon-rune-bounce-sequence", "claim-rhythm-crest"]
+    },
+    {
+      "id": "tower-payoff",
+      "mode": "first-person",
+      "objectives": ["visit-larrina-tower", "complete-larrina-dialogue", "complete-run"]
+    }
+  ],
+  "progressionFlags": [
+    "oldTempoMet",
+    "groveKey",
+    "bounceRune",
+    "echoShards:3",
+    "rhythmCrest",
+    "towerComplete"
+  ],
+  "contentCounts": {
+    "overworldNodes": 6,
+    "sideViewRoutes": 2,
+    "firstPersonInteriors": 2,
+    "namedNpcEncounters": 1,
+    "enemyEncounters": 3,
+    "collectibleShards": 3,
+    "puzzleSteps": 3,
+    "majorQuestItems": 3
+  },
+  "claimBoundary": "v5.20 expands the playable adventure structure and adds original NPC/enemy/item/environment art. Commercial content depth remains a human judgment and is not automatically approved by these counts."
+}

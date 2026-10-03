@@ -1,0 +1,53 @@
+{
+  "schema": "pixelforge.chapter-two-audio-pack.v5.22",
+  "cartridge": "the-legend-of-more-bounce",
+  "rightsStatus": "original",
+  "format": "PCM16 WAV",
+  "sampleRate": 22050,
+  "channels": 1,
+  "generator": "tools/generate_eastern_road_v522.py",
+  "externalSamplesUsed": false,
+  "cues": [
+    {
+      "id": "east-road",
+      "file": "eastwind-road-theme.v0.1.wav",
+      "loop": true,
+      "role": "Eastern Road overworld theme",
+      "durationSeconds": 14.545,
+      "sha256": "0c66dd9bb587f01b98754dc7d4ea089e938f77f805224fec4067259932795239"
+    },
+    {
+      "id": "glassgrass",
+      "file": "glassgrass-pass-theme.v0.1.wav",
+      "loop": true,
+      "role": "Glassgrass Pass route theme",
+      "durationSeconds": 12.308,
+      "sha256": "49a4959419538baf435ff6562bbbd33e4099b6eff0debc3f48910a349c9d6d08"
+    },
+    {
+      "id": "signal-mill",
+      "file": "signal-mill-theme.v0.1.wav",
+      "loop": true,
+      "role": "Signal Mill puzzle ambience",
+      "durationSeconds": 17.778,
+      "sha256": "3a9409f4ce0cc9dbdd64a2074d9708f723bebf271ea991c35b533b8677396def"
+    },
+    {
+      "id": "echo-boots",
+      "file": "echo-boots-upgrade.v0.1.wav",
+      "loop": false,
+      "role": "Echo Boots permanent-upgrade sting",
+      "durationSeconds": 1.7,
+      "sha256": "8fba60c6ca3ee8ac6f52d1cb444da4a1e17fcb8d52e88f9673d61be75c481e31"
+    },
+    {
+      "id": "beacon-restored",
+      "file": "beacon-restored.v0.1.wav",
+      "loop": false,
+      "role": "Eastern Beacon restored chapter payoff",
+      "durationSeconds": 2.2,
+      "sha256": "da551e5082e947604600e9d49bfe2ea5bea44597a3933a95181a645bf9d4aaaf"
+    }
+  ],
+  "humanAudioApproval": "pending"
+}

@@ -1,0 +1,15 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.20",
+  "sceneId": "echo-hollow",
+  "mode": "side-view",
+  "status": "playable-expansion",
+  "world": {"width":672,"height":180,"floorY":148,"enemyCount":3,"shardCount":3},
+  "player": {"speed":96,"jumpVelocity":-250,"gravity":660,"coyoteTimeMs":100,"jumpBufferMs":120},
+  "progression": {"requires":["bounceRune","groveKey"],"awards":"echoShards:3","nextScene":"bouncehome-grove"},
+  "artBindings": {
+    "background":"../assets/snes-v520/echo-hollow.stage-base.v0.1.png",
+    "enemySheet":"../assets/snes-v520/flatling-enemy.v0.1.png",
+    "itemAtlas":"../assets/snes-v520/adventure-items.v0.1.png",
+    "heroSheet":"../assets/snes-v512/more-bounce-hero.v0.1.png"
+  }
+}

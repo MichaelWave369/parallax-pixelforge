@@ -1,0 +1,43 @@
+{
+  "schema": "pixelforge.art-receipt.v5.23",
+  "rightsStatus": "original",
+  "sourceNote": "Original PixelForge Chapter Three art generated locally from project-authored primitives; no external art assets.",
+  "assets": [
+    {
+      "file": "tessa-coil-npc.v0.1.png",
+      "sha256": "d93ac6c7e39fd653b4265a48faf80ac86ba71052d31d9e6aff2c5715607b5008"
+    },
+    {
+      "file": "bram-gearroot-npc.v0.1.png",
+      "sha256": "f63d528028f485aed55862d434c48b1842760e1cefe18e302d64033968fc214b"
+    },
+    {
+      "file": "rustling-enemy.v0.1.png",
+      "sha256": "ae0fc1152a75cfa8d5a54d58ab1f09eb8d781b96e7fe737e9cda7c6d5fe3a9de"
+    },
+    {
+      "file": "iron-orchard-items.v0.1.png",
+      "sha256": "6c374e301067a5ae56a0fc83613718b2830cb7d58e34139e9e59fa901b68c367"
+    },
+    {
+      "file": "iron-orchard.map.v0.1.png",
+      "sha256": "c01a4216311af07dd067ab1f1c5c346660b499a5b4c99e3f95e0647ef6235382"
+    },
+    {
+      "file": "rustroot-cavern.stage.v0.1.png",
+      "sha256": "36500df2e18d23b746330ae6e69bed1143512810082e557e54d534b94b40dd1a"
+    },
+    {
+      "file": "rivet-forge-room.v0.1.png",
+      "sha256": "d0af3bceb61b34a807655c20a9f92fb74fa322666e66102e08575ca88b1f5d70"
+    },
+    {
+      "file": "rustbloom-warden.v0.1.png",
+      "sha256": "ef0d9e568515195d2431b3369b6a3845a10920a4f9f604a46b53a4f01e885f51"
+    },
+    {
+      "file": "rustbloom-warden-arena.v0.1.png",
+      "sha256": "2b01381cc66b6465dc0c293d4520ae58feccf4756ad90a5803c00d5eac11ac56"
+    }
+  ]
+}

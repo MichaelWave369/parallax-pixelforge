@@ -1,0 +1,23 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.23",
+  "id": "rustroot-cavern",
+  "mode": "side-view",
+  "environment": "assets/snes-v523/rustroot-cavern.stage.v0.1.png",
+  "musicCue": "rustroot",
+  "enemy": {
+    "id": "rustling",
+    "count": 3,
+    "health": 3,
+    "armorRequires": "resonanceBracer"
+  },
+  "optionalReward": "wrenchCharm",
+  "progression": {
+    "requires": [
+      "resonanceBracer"
+    ],
+    "awards": [
+      "wrenchCharm",
+      "orchardSigil"
+    ]
+  }
+}

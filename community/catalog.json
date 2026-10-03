@@ -1,0 +1,174 @@
+{
+  "schema": "pixelforge.community-catalog.v5.5",
+  "generated_at": "2026-10-03T20:46:10.782Z",
+  "local_first": true,
+  "network_required": false,
+  "cartridge_count": 3,
+  "featured_count": 2,
+  "cartridges": [
+    {
+      "slug": "journey-to-parallax-pyramid",
+      "title": "Journey to the Parallax Pyramid",
+      "version": "1.0.0-rc1",
+      "status": "learning-sample-pocketgame-candidate",
+      "creator": "Parallax PixelForge",
+      "studio": "Parallax PixelForge",
+      "description": "This game began as `parallax_trail_pyramid_at_shasta_playable_v_1_0_RC1.jsx` and has been wrapped as a runnable PixelForge demo cartridge candidate.",
+      "modes": [
+        "route-adventure",
+        "survival-rpg",
+        "local-save"
+      ],
+      "tags": [
+        "learning-cartridge",
+        "adventure",
+        "369-pocketgames",
+        "local-first"
+      ],
+      "featured": true,
+      "learning_value": "Shows a larger stateful adventure cartridge with saves, resources, regions, encounters, badges, and PocketGames metadata.",
+      "paths": {
+        "cartridge": "games/journey-to-parallax-pyramid/",
+        "readme": "games/journey-to-parallax-pyramid/README.md",
+        "rights": "games/journey-to-parallax-pyramid/RIGHTS.md",
+        "credits": "games/journey-to-parallax-pyramid/CREDITS.md"
+      },
+      "badges": {
+        "rights": "declared",
+        "credits": "declared",
+        "claims": "bounded",
+        "mobile": "pass",
+        "runtime": "local-first",
+        "visual": "lane-not-required",
+        "assets": "lane-not-required"
+      },
+      "review_passed": true,
+      "playtests": {
+        "total_receipts": 0,
+        "human_sessions": 0,
+        "automated_sessions": 0,
+        "automated_passes": 0,
+        "averages": {
+          "fun": null,
+          "clarity": null,
+          "difficulty": null,
+          "replay": null
+        }
+      }
+    },
+    {
+      "slug": "starter",
+      "title": "starter",
+      "version": "0.1.0",
+      "status": "prototype",
+      "creator": "Parallax PixelForge",
+      "studio": "Parallax PixelForge",
+      "description": "Copy this folder to make a tiny game.",
+      "modes": [],
+      "tags": [],
+      "featured": false,
+      "learning_value": "",
+      "paths": {
+        "cartridge": "games/starter/",
+        "readme": "games/starter/README.md",
+        "rights": "games/starter/RIGHTS.md",
+        "credits": null
+      },
+      "badges": {
+        "rights": "review-needed",
+        "credits": "review-needed",
+        "claims": "review-needed",
+        "mobile": "review-needed",
+        "runtime": "review-needed"
+      },
+      "review_passed": false,
+      "playtests": {
+        "total_receipts": 0,
+        "human_sessions": 0,
+        "automated_sessions": 0,
+        "automated_passes": 0,
+        "averages": {
+          "fun": null,
+          "clarity": null,
+          "difficulty": null,
+          "replay": null
+        }
+      }
+    },
+    {
+      "slug": "the-legend-of-more-bounce",
+      "title": "The Legend of More Bounce",
+      "version": "1.6.0",
+      "status": "three-chapter-save-inventory-equipment-candidate-human-ux-and-commercial-review-pending",
+      "creator": "Parallax PixelForge",
+      "studio": "Parallax PixelForge",
+      "description": "This cartridge is `PF_GOLD_STANDARD_001`, the first source-level proof of PixelForge's SNES-first 16-bit house lane. It declares the visual profile in `cartridge.meta.json` and must pass `npm run style:check -- games/the-legend-of-more-bounce`. Passing the deterministic audit does not replace final human visual review.",
+      "modes": [
+        "overworld",
+        "side-view",
+        "first-person"
+      ],
+      "tags": [
+        "learning-cartridge",
+        "tri-view",
+        "adventure",
+        "local-first",
+        "16-bit",
+        "snes-adventure",
+        "expressive-pixel",
+        "gold-standard-candidate",
+        "asset-forge",
+        "asset-contract",
+        "boss-combat",
+        "rhythm-boss",
+        "the-flat-note",
+        "resonance-seal",
+        "chapter-three",
+        "iron-orchard",
+        "hub",
+        "branching-sidequest",
+        "resonance-bracer",
+        "rustroot-cavern",
+        "rustbloom-warden",
+        "iron-blossom",
+        "save-system",
+        "autosave",
+        "safe-checkpoints",
+        "inventory",
+        "equipment",
+        "quest-log",
+        "portable-save-json"
+      ],
+      "featured": true,
+      "learning_value": "Proves shared cartridge state across three perspectives and three chapters, plus local-first multi-slot saves, safe checkpoint resume, portable save JSON, inventory/equipment, quest journal and boss records.",
+      "paths": {
+        "cartridge": "games/the-legend-of-more-bounce/",
+        "readme": "games/the-legend-of-more-bounce/README.md",
+        "rights": "games/the-legend-of-more-bounce/RIGHTS.md",
+        "credits": "games/the-legend-of-more-bounce/CREDITS.md"
+      },
+      "badges": {
+        "rights": "declared",
+        "credits": "declared",
+        "claims": "bounded",
+        "mobile": "pass",
+        "runtime": "local-first",
+        "visual": "snes-source-pass",
+        "assets": "required-assets-ready"
+      },
+      "review_passed": true,
+      "playtests": {
+        "total_receipts": 1,
+        "human_sessions": 0,
+        "automated_sessions": 1,
+        "automated_passes": 1,
+        "averages": {
+          "fun": null,
+          "clarity": null,
+          "difficulty": null,
+          "replay": null
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "pixelforge.palette.v1",
+  "id": "pf-ui-frame-v1",
+  "name": "PixelForge Framed UI",
+  "purpose": "Shared SNES-style UI frames, text, highlight, danger, and inactive states",
+  "colors": [
+    "#02030a",
+    "#080a12",
+    "#0d0f1b",
+    "#111421",
+    "#17172a",
+    "#302947",
+    "#47485c",
+    "#7e7b8a",
+    "#c9c4b5",
+    "#fff0c4",
+    "#ffd76c",
+    "#62efff",
+    "#d17b8f",
+    "#89dba1",
+    "#40254c",
+    "#6f458a"
+  ],
+  "colorCount": 16,
+  "rights": "Original PixelForge house palette definitions; color values alone are not claimed as exclusive creative property."
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.27",
+  "id": "blind-angle",
+  "mode": "tri-view-boss",
+  "chapter": 5,
+  "contract": {
+    "requires": [
+      "viewSigil"
+    ],
+    "phases": [
+      "top-down-prism",
+      "side-view-pulse",
+      "first-person-lens"
+    ],
+    "outputs": [
+      "convergenceCrown",
+      "chapterFiveComplete"
+    ]
+  },
+  "rightsStatus": "original"
+}

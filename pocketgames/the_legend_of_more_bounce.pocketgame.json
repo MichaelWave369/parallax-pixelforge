@@ -1,0 +1,155 @@
+{
+  "manifestType": "369.pocketgame.manifest",
+  "manifestVersion": "0.2.0",
+  "pixelforgeVersionTarget": "5.8.0-alpha",
+  "id": "pocketgame-002-the-legend-of-more-bounce",
+  "slug": "the-legend-of-more-bounce",
+  "title": "The Legend of More Bounce",
+  "subtitle": "One tiny world seen three ways: overworld, side-view action, and first-person interaction.",
+  "series": "369 PocketGames",
+  "candidateNumber": 2,
+  "sourceCartridge": "games/the-legend-of-more-bounce",
+  "cartridgeManifest": "games/the-legend-of-more-bounce/cartridge.meta.json",
+  "price": {
+    "model": "premium_paid_once",
+    "usdTarget": "3.69",
+    "saleFloorUsd": "0.99",
+    "bundleEligible": true,
+    "notes": "Production-candidate target only. Public retail release remains blocked until a human worthiness playtest and final store-art review are signed off."
+  },
+  "monetizationBoundary": {
+    "noAds": true,
+    "noPredatoryIap": true,
+    "noSubscriptions": true,
+    "noLootBoxes": true,
+    "noEnergyTimers": true,
+    "offlinePlayable": true
+  },
+  "mobileProfile": {
+    "orientation": "landscape-primary",
+    "minimumTapTargetPx": 44,
+    "readabilityTarget": "Readable and tappable on 6-inch phones without zoom.",
+    "sessionLengthMinutes": {
+      "firstSessionTarget": 3,
+      "completeRunTarget": 8,
+      "fullExperienceTarget": 12
+    },
+    "controls": [
+      "large touch buttons",
+      "keyboard-compatible controls",
+      "scroll-safe panels",
+      "no account or network requirement"
+    ]
+  },
+  "storePageSeed": {
+    "shortDescription": "A tiny retro adventure that jumps between three classic ways of seeing a game world.",
+    "longDescription": "The Legend of More Bounce is a compact handcrafted PixelForge adventure starring More Bounce and Princess Larrina. Cross a top-down overworld, enter Wobble Woods as a side-scrolling action scene, recover the Bounce Rune, then step through the Echo Gate into a first-person tower encounter. One shared state follows you through all three perspectives. Built for the 369 PocketGames lane: paid once, offline-friendly, no ads, no subscriptions, and no predatory purchases.",
+    "featureBullets": [
+      "Three perspectives inside one tiny shared world",
+      "Top-down overworld exploration, side-view action, and first-person interaction",
+      "A complete proof-sized adventure with a clear beginning and ending",
+      "Local-first play with no account, telemetry, or network requirement",
+      "Paid-once 369 PocketGames design with no ads or predatory IAP"
+    ],
+    "contentNotes": [
+      "Light fantasy adventure",
+      "No gambling mechanics",
+      "No online chat",
+      "No account required",
+      "Prototype-length production candidate"
+    ],
+    "tagline": "One world. Three ways of seeing it."
+  },
+  "rightsAndSafety": {
+    "assetStatus": "original_prototype_assets_declared",
+    "publicTextReviewRequired": true,
+    "claimBoundaryReviewRequired": true,
+    "thirdPartyIpAllowed": false,
+    "requiredRightsReceipt": "games/the-legend-of-more-bounce/RIGHTS.md"
+  },
+  "productionEvidence": {
+    "communityReview": "exports/reviews/the-legend-of-more-bounce.community-review.v5.5.json",
+    "mobileReadability": "exports/qa/the-legend-of-more-bounce.mobile-readability.v5.4.json",
+    "automatedBrowserProof": "community/playtests/the-legend-of-more-bounce.automated-browser-proof.v5.5.json",
+    "standalonePlayable": "exports/playable/the-legend-of-more-bounce-v0.1.html",
+    "screenshots": [
+      "exports/playable/screenshots/01-overworld.png",
+      "exports/playable/screenshots/02-side-view.png",
+      "exports/playable/screenshots/03-first-person.png",
+      "exports/playable/screenshots/04-ending.png"
+    ],
+    "credits": "games/the-legend-of-more-bounce/CREDITS.md",
+    "rightsDeclarationReceipt": "exports/qa/the-legend-of-more-bounce.rights-declaration.v5.6.json",
+    "assetProfile": "games/the-legend-of-more-bounce/asset-profile.json",
+    "assetReview": "exports/asset-reviews/the-legend-of-more-bounce.asset-profile.v5.8.json"
+  },
+  "releaseGates": [
+    {
+      "id": "gate-rights-and-credits",
+      "name": "Rights + Creator Credits Gate",
+      "required": true,
+      "status": "evidence-ready",
+      "criteria": "Original/properly licensed assets are declared and creator credits are present."
+    },
+    {
+      "id": "gate-mobile-readability",
+      "name": "Mobile Readability Gate",
+      "required": true,
+      "status": "evidence-ready",
+      "criteria": "The cartridge passes the PixelForge mobile readability receipt with no errors."
+    },
+    {
+      "id": "gate-browser-playthrough",
+      "name": "Automated Browser Playthrough Gate",
+      "required": true,
+      "status": "evidence-ready",
+      "criteria": "A deterministic browser proof reaches the ending with zero page errors."
+    },
+    {
+      "id": "gate-offline-package",
+      "name": "Offline Package Gate",
+      "required": true,
+      "status": "evidence-ready",
+      "criteria": "A standalone local playable exists and requires no account or network service."
+    },
+    {
+      "id": "gate-asset-contract",
+      "name": "SNES Asset Contract Gate",
+      "required": true,
+      "status": "evidence-ready",
+      "criteria": "Required 16-bit asset roles are explicitly declared and audited without pretending missing art exists."
+    },
+    {
+      "id": "gate-final-asset-content",
+      "name": "Final Required Asset Content Gate",
+      "required": true,
+      "status": "content-pending",
+      "criteria": "Every required sprite, tileset, interior, UI, portrait, and effects slot points to a reviewed ready asset before retail release."
+    },
+    {
+      "id": "gate-price-worthiness",
+      "name": "$3.69 Human Worthiness Gate",
+      "required": true,
+      "status": "human-signoff-required",
+      "criteria": "At least one named human playtester can explain why the finished build feels worth the paid-once target price."
+    },
+    {
+      "id": "gate-final-store-art",
+      "name": "Final Store Art Gate",
+      "required": true,
+      "status": "human-signoff-required",
+      "criteria": "Final icon, feature graphic, and screenshots are reviewed for brand quality and store suitability."
+    }
+  ],
+  "communityTemplate": {
+    "canBeUsedAsExample": true,
+    "recommendedForNewCreators": true,
+    "doNotCloneAsYourOwnGame": true,
+    "lessonFocus": [
+      "shared state across multiple perspectives",
+      "small complete loop",
+      "local-first packaging",
+      "evidence-backed production promotion"
+    ]
+  }
+}

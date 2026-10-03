@@ -1,0 +1,39 @@
+{
+  "schema": "pixelforge.art-receipt.v5.26",
+  "rightsStatus": "original",
+  "sourceNote": "Original PixelForge Chapter Four Stormglass Coast assets generated locally from project-authored pixel primitives; no external art assets.",
+  "assets": [
+    {
+      "file": "sable-current-npc.v0.1.png",
+      "sha256": "fe5dfa3fc8d82853f7e854214b404cc29ba4da3d91fd7e76415b753c347c8449"
+    },
+    {
+      "file": "stormglass-items.v0.1.png",
+      "sha256": "9b7f5ad4b936870ed7abcb31b7dffe9fa58318e26753c7219fed71030e75a2f5"
+    },
+    {
+      "file": "stormglass-coast.map.v0.1.png",
+      "sha256": "ecca2acb278aad0c0bf264950070f999571e67696f444f6dab55abd902fc2f69"
+    },
+    {
+      "file": "stormglass-cliffs.stage.v0.1.png",
+      "sha256": "11ebb32ec3e73d76b09545e85d9200aaff60bd1c4fc489ecc38028a210887e62"
+    },
+    {
+      "file": "tide-engine-room.v0.1.png",
+      "sha256": "f61d8f14792243b4edf7f592ad4c6dc59aee36aa330cb91e64b72aa0c0d80c27"
+    },
+    {
+      "file": "undertow-bell.v0.1.png",
+      "sha256": "00d1bbb11002a87cb9257059a3721d9c2c79f9e51f964edc664d04bc7449617c"
+    },
+    {
+      "file": "undertow-bell-arena.v0.1.png",
+      "sha256": "3b3872ebc6cb2ac9b120ad7f6fb27d8a3211851b33f05e5d9332300541bc5238"
+    },
+    {
+      "file": "legend-world-map.v0.2.png",
+      "sha256": "b5ee417d1413f88968e80568b68874db987b5f1bfd59a47b539f130eeac009bd"
+    }
+  ]
+}

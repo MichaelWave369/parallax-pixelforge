@@ -1,0 +1,26 @@
+{
+  "schema": "pixelforge.palette.v1",
+  "id": "pf-wobble-woods-v1",
+  "name": "Wobble Woods",
+  "purpose": "Side-view forest depth, mist, ruins, and magic",
+  "colors": [
+    "#0b1110",
+    "#153a2e",
+    "#184c31",
+    "#255f39",
+    "#37663d",
+    "#2b5c42",
+    "#3f5870",
+    "#24275d",
+    "#6e5c8f",
+    "#9bc85e",
+    "#b9d6d0",
+    "#62efff",
+    "#ffd76c",
+    "#7b8579",
+    "#d9d0b0",
+    "#e990a5"
+  ],
+  "colorCount": 16,
+  "rights": "Original PixelForge house palette definitions; color values alone are not claimed as exclusive creative property."
+}

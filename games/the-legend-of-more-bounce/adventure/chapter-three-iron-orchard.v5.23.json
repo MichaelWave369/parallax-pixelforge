@@ -1,0 +1,50 @@
+{
+  "schema": "pixelforge.adventure.chapter.v5.23",
+  "id": "iron-orchard",
+  "chapter": 3,
+  "title": "The Iron Orchard",
+  "hub": {
+    "id": "iron-orchard",
+    "nodes": [
+      "rivet-row",
+      "gearapple-grove",
+      "rustroot-cavern",
+      "warden-gate"
+    ],
+    "npcs": [
+      "tessa-coil",
+      "bram-gearroot"
+    ]
+  },
+  "requiredQuest": {
+    "gearApples": 3,
+    "trade": "resonanceBracer",
+    "purpose": "break-rustling-armor-and-warden-guard"
+  },
+  "optionalQuest": {
+    "id": "brams-lost-wrench",
+    "reward": "heartRivet",
+    "effect": "max-hearts+1"
+  },
+  "enemyTier": {
+    "id": "rustling",
+    "count": 3,
+    "health": 3,
+    "armorRequires": "resonanceBracer"
+  },
+  "boss": {
+    "id": "rustbloom-warden",
+    "health": 4,
+    "guardCycles": 4,
+    "requiredAbility": "resonanceBracer",
+    "reward": "ironBlossom"
+  },
+  "humanBoundaries": [
+    "hub-flow",
+    "sidequest-value",
+    "combat-ability-feel",
+    "boss-fairness",
+    "commercial-content-depth",
+    "price-worthiness"
+  ]
+}

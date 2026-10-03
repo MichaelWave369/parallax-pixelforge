@@ -1,0 +1,29 @@
+{
+  "schema": "pixelforge.playtest-receipt.v5.5",
+  "kind": "automated-browser",
+  "cartridge_slug": "the-legend-of-more-bounce",
+  "cartridge_title": "The Legend of More Bounce",
+  "recorded_at": "2026-08-13T19:00:00Z",
+  "passed": true,
+  "browser": "Chromium headless proof run",
+  "page_errors": 0,
+  "path": [
+    "Overworld",
+    "Follow Trail",
+    "Enter Wobble Woods",
+    "Collect Bounce Rune",
+    "Enter Echo Gate",
+    "Inspect Moon Window",
+    "Ask about kingdom",
+    "Raise Bounce Rune",
+    "Ending"
+  ],
+  "ratings": {
+    "fun": null,
+    "clarity": null,
+    "difficulty": null,
+    "replay": null
+  },
+  "evidence": "Browser-tested proof receipt from PixelForge v5.4 Legend integration; subjective ratings intentionally omitted.",
+  "privacy": "No user profile or hidden telemetry."
+}

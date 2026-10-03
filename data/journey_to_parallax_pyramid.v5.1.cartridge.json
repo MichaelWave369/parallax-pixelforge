@@ -1,0 +1,72 @@
+{
+  "schema": "pixelforge.cartridge.v0.1",
+  "cartridge_id": "journey_to_parallax_pyramid",
+  "title": "Journey to the Parallax Pyramid",
+  "source_title": "Parallax Trail: The Pyramid at Shasta",
+  "version": "0.1.0-public-demo-candidate",
+  "pixelForge_release": "v5.1 public demo cartridge candidate",
+  "engine": "React + Vite",
+  "entrypoint": "games/journey-to-parallax-pyramid/src/App.jsx",
+  "source_sha256": "bed0ff20dfbcb9cd424cf3bb9b60ade420aa1c87c9b56c76139fb5c0be1a31a0",
+  "status": "bundled_demo_candidate",
+  "license_intent": "MIT-compatible project code; assets are code-generated/placeholders unless later replaced by external media.",
+  "public_release_boundary": {
+    "public_repo_safe": true,
+    "local_first": true,
+    "network_required": false,
+    "accounts_required": false,
+    "free_text_chat": false,
+    "remote_save_overwrite": false,
+    "ai_memory_required": false,
+    "live_bbs_required": false
+  },
+  "gameplay_summary": {
+    "genre": "retro trail survival / narrative adventure",
+    "vibe": ["heartfelt", "weird", "road-trip", "mythic", "cozy", "funny"],
+    "win_condition": "Arrive together at the Mt. Shasta outer gate while maintaining coherence, resources, crew bonds, and virtues.",
+    "core_loop": ["travel", "encounter", "choose", "camp", "repair/rest/archive", "gate trial", "continue route"],
+    "save_model": "browser localStorage continuity save"
+  },
+  "content_summary": {
+    "route_nodes": [
+      "Garage at the Edge of Normal",
+      "Static Wastes",
+      "Brolar Plains",
+      "Mycelium Lowlands",
+      "ChronoLattice Pass",
+      "Dreamfield Forest",
+      "Mt. Shasta Outer Gate"
+    ],
+    "crew": ["Mikey", "Ori", "Larrina", "Forge", "Vessel"],
+    "systems": [
+      "resources",
+      "body/mind/spirit stability",
+      "369 virtues",
+      "signal weather",
+      "town visits",
+      "bond abilities",
+      "field manual",
+      "EVIE-style starter cards",
+      "journey quests",
+      "badges",
+      "encounters",
+      "gate trials",
+      "continuity receipt"
+    ]
+  },
+  "pixelForge_mapping": {
+    "shelf_entry": true,
+    "cartridge_export": true,
+    "playtest_theater_candidate": true,
+    "ai_scout_candidate": true,
+    "public_alpha_demo_candidate": true,
+    "recommended_next_passes": [
+      "rename visible title to Journey to the Parallax Pyramid or keep Parallax Trail as subtitle",
+      "add title/box art and cartridge art placeholders",
+      "create PixelForge shelf card",
+      "add first-run Play Demo button to public alpha launcher",
+      "run browser playtest and collect feedback receipt",
+      "audit text and assets for public MIT release"
+    ]
+  }
+}

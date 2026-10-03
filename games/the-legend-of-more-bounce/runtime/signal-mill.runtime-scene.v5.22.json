@@ -1,0 +1,1 @@
+{"schema":"pixelforge.runtime-scene.v5.22","id":"signal-mill","mode":"first-person","environment":"assets/snes-v522/signal-mill-room.v0.1.png","musicCue":"signal-mill","puzzle":{"sequence":["sun","wind","rune"],"steps":3},"progression":{"requires":["echoBoots","relaySparks:3"],"awards":["beaconLens","eastComplete"]}}

@@ -1,0 +1,38 @@
+{
+  "schema": "pixelforge.legend-save-profile.v5.27",
+  "game": "the-legend-of-more-bounce",
+  "saveSchema": "pixelforge.legend-save.v5.27",
+  "schemaVersion": 4,
+  "manualSlots": 3,
+  "autosave": true,
+  "storage": "local-browser-first",
+  "networkSync": false,
+  "resumePolicy": "safe-checkpoint",
+  "portableJson": true,
+  "migrationPolicy": "accept-v5.24-v5.25-v5.26-and-add-chapter-five-convergence-plus-sixth-travel-landmark",
+  "records": [
+    "progress",
+    "inventory",
+    "equipment",
+    "questLog",
+    "discoveredLocations",
+    "travelNetwork",
+    "bossRecords",
+    "checkpoint",
+    "playtimeSeconds"
+  ],
+  "travelNetwork": {
+    "schema": "pixelforge.legend-travel.v5.27",
+    "startingActivatedLandmarks": [
+      "bouncehome-shrine"
+    ],
+    "fastTravel": "activated-landmarks-only",
+    "chapterFiveLandmark": "mirrorfall-observatory"
+  },
+  "humanBoundaries": [
+    "save-menu-usability",
+    "checkpoint-placement-feel",
+    "world-map-readability",
+    "cross-view-causality-clarity"
+  ]
+}

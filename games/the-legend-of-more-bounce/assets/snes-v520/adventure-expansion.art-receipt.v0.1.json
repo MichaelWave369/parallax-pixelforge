@@ -1,0 +1,28 @@
+{
+  "schema": "pixelforge.legend-adventure-expansion.v5.20",
+  "version": "0.1",
+  "rightsStatus": "original",
+  "claimBoundary": "Original programmatic pixel assets created for The Legend of More Bounce v5.20 Adventure Expansion. Existing v5.12-v5.19 assets remain governed by their prior receipts.",
+  "assets": [
+    {
+      "file": "old-tempo-npc.v0.1.png",
+      "sha256": "3968e99f806a514c47933491ace0cd30a260ae22406801abd0a709182e2d0427"
+    },
+    {
+      "file": "flatling-enemy.v0.1.png",
+      "sha256": "496e134f0db42cdb6e590355107b8fd59e9e9a62146364b0cda7e5232da68110"
+    },
+    {
+      "file": "adventure-items.v0.1.png",
+      "sha256": "59da738819b023c6bd5312727cc2eb1d95249842b2926453200cba9d3ee1f90c"
+    },
+    {
+      "file": "echo-hollow.stage-base.v0.1.png",
+      "sha256": "e7ad9943f040ddf4e46a56255630433e599ba25e8aff29650324292fcc15e235"
+    },
+    {
+      "file": "beat-shrine-room.v0.1.png",
+      "sha256": "ca098ae99d7e3a45ea6bb56f7c66e1680b2d8e8c43060267b1e6c511b737c39d"
+    }
+  ]
+}

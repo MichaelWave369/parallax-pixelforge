@@ -1,0 +1,128 @@
+{
+  "schema": "pixelforge.asset-profile-review.v5.8",
+  "generated_at": "2026-10-03T20:46:09.413Z",
+  "cartridge_path": "games\\the-legend-of-more-bounce",
+  "slug": "the-legend-of-more-bounce",
+  "title": "The Legend of More Bounce",
+  "packId": "pf-snes-house-foundation-v1",
+  "contract_passed": true,
+  "content_ready": true,
+  "human_visual_signoff": false,
+  "status": "asset-content-ready-human-visual-review-pending",
+  "checks": {
+    "schema": true,
+    "slug_matches": true,
+    "title_matches": true,
+    "visual_lane_matches": true,
+    "pack_matches": true,
+    "slots_declared": true,
+    "required_types_covered": true,
+    "statuses_valid": true,
+    "slot_types_valid": true,
+    "palettes_valid": true,
+    "rights_status_declared": true,
+    "targets_declared": true,
+    "release_policy_declared": true,
+    "ready_slots_have_files": true,
+    "ready_slots_have_rights": true
+  },
+  "slots": [
+    {
+      "id": "more-bounce-hero",
+      "type": "hero-spritesheet",
+      "required": true,
+      "status": "ready",
+      "file": "assets/snes-v512/more-bounce-hero.v0.1.png",
+      "file_exists": true,
+      "file_consistency": true,
+      "rights_ready_if_claimed": true
+    },
+    {
+      "id": "larrina-character",
+      "type": "npc-spritesheet",
+      "required": true,
+      "status": "ready",
+      "file": "assets/snes-v514/larrina-character.v0.1.png",
+      "file_exists": true,
+      "file_consistency": true,
+      "rights_ready_if_claimed": true
+    },
+    {
+      "id": "larrina-portraits",
+      "type": "portrait-set",
+      "required": true,
+      "status": "ready",
+      "file": "assets/snes-v514/larrina-portraits.v0.1.png",
+      "file_exists": true,
+      "file_consistency": true,
+      "rights_ready_if_claimed": true
+    },
+    {
+      "id": "bouncehome-overworld",
+      "type": "tileset",
+      "required": true,
+      "status": "ready",
+      "file": "assets/snes-v512/bouncehome-grove-tiles.v0.1.png",
+      "file_exists": true,
+      "file_consistency": true,
+      "rights_ready_if_claimed": true
+    },
+    {
+      "id": "wobble-woods-stage",
+      "type": "tileset",
+      "required": true,
+      "status": "ready",
+      "file": "assets/snes-v513/wobble-woods-tiles.v0.1.png",
+      "file_exists": true,
+      "file_consistency": true,
+      "rights_ready_if_claimed": true
+    },
+    {
+      "id": "larrina-tower-interior",
+      "type": "interior-kit",
+      "required": true,
+      "status": "ready",
+      "file": "assets/snes-v515/larrina-tower-tiles.v0.1.png",
+      "file_exists": true,
+      "file_consistency": true,
+      "rights_ready_if_claimed": true
+    },
+    {
+      "id": "shared-ui-frames",
+      "type": "ui-frame-kit",
+      "required": true,
+      "status": "ready",
+      "file": "assets/snes-v516/shared-ui-frames.v0.1.png",
+      "file_exists": true,
+      "file_consistency": true,
+      "rights_ready_if_claimed": true
+    },
+    {
+      "id": "bounce-effects",
+      "type": "effects-sheet",
+      "required": true,
+      "status": "ready",
+      "file": "assets/snes-v517/bounce-effects.v0.1.png",
+      "file_exists": true,
+      "file_consistency": true,
+      "rights_ready_if_claimed": true
+    },
+    {
+      "id": "snes-audio-cues",
+      "type": "audio-cue-pack",
+      "required": false,
+      "status": "ready",
+      "file": "assets/audio-v519/legend-audio-cues.v0.1.json",
+      "file_exists": true,
+      "file_consistency": true,
+      "rights_ready_if_claimed": true
+    }
+  ],
+  "counts": {
+    "total": 9,
+    "required": 8,
+    "ready": 9,
+    "pending": 0
+  },
+  "boundary": "This receipt verifies asset-slot coverage, paths, declared rights state, and release-contract semantics. It does not certify visual quality, originality, license validity, or commercial readiness."
+}

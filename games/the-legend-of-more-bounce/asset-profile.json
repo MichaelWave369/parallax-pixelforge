@@ -1,0 +1,233 @@
+{
+  "schema": "pixelforge.asset-profile.v1",
+  "profileVersion": "1.0.0",
+  "cartridgeSlug": "the-legend-of-more-bounce",
+  "cartridgeTitle": "The Legend of More Bounce",
+  "packId": "pf-snes-house-foundation-v1",
+  "visualEra": "16-bit",
+  "styleProfile": "snes-adventure",
+  "status": "all-required-final-art-and-audio-ready-human-review-pending",
+  "releasePolicy": {
+    "contractRequiredForProductionCandidate": true,
+    "allRequiredSlotsReadyForRetailRelease": true,
+    "humanVisualReviewRequiredForGoldStandard": true
+  },
+  "slots": [
+    {
+      "id": "more-bounce-hero",
+      "type": "hero-spritesheet",
+      "required": true,
+      "status": "ready",
+      "frameSize": "32x48",
+      "sheetGrid": "8x6",
+      "states": [
+        "idle",
+        "walk",
+        "run",
+        "jump-bounce",
+        "interact",
+        "damage",
+        "victory",
+        "view-transition"
+      ],
+      "paletteId": "pf-overworld-grove-v1",
+      "file": "assets/snes-v512/more-bounce-hero.v0.1.png",
+      "rightsStatus": "original",
+      "notes": "Original 23-frame 32x48 PixelForge hero sheet. Long wavy hair and long chin beard remain readable at gameplay scale.",
+      "sha256": "0b8ae496533333ac66dab4dfee9fdfbd797f051f1104070bf1d9361d2f276cd7",
+      "animationMap": "assets/snes-v512/more-bounce-hero.anim.v0.1.json"
+    },
+    {
+      "id": "larrina-character",
+      "type": "npc-spritesheet",
+      "required": true,
+      "status": "ready",
+      "frameSize": "32x48",
+      "sheetGrid": "6x4",
+      "states": [
+        "idle",
+        "talk",
+        "blink",
+        "smile",
+        "concern",
+        "celebrate"
+      ],
+      "paletteId": "pf-tower-interior-v1",
+      "file": "assets/snes-v514/larrina-character.v0.1.png",
+      "rightsStatus": "original",
+      "notes": "Original 24-frame 32x48 PixelForge Princess Larrina gameplay sheet with long brown pigtails and six expression/action states.",
+      "sha256": "3f0a5a6bd3b080e2799259d5caf2a050e1338a4d292c09a76fa310c072913e70",
+      "animationMap": "assets/snes-v514/larrina-character.anim.v0.1.json"
+    },
+    {
+      "id": "larrina-portraits",
+      "type": "portrait-set",
+      "required": true,
+      "status": "ready",
+      "frameSize": "96x96",
+      "states": [
+        "neutral",
+        "smile",
+        "concern",
+        "surprised"
+      ],
+      "paletteId": "pf-tower-interior-v1",
+      "file": "assets/snes-v514/larrina-portraits.v0.1.png",
+      "rightsStatus": "original",
+      "sha256": "5c55f6d81aafffddb2b1a6fca448f6cc760f7c06a054d1f2db35e02307788e45",
+      "portraitMap": "assets/snes-v514/larrina-portraits.map.v0.1.json",
+      "notes": "Original four-expression 96x96 portrait set: neutral, smile, concern, surprised."
+    },
+    {
+      "id": "bouncehome-overworld",
+      "type": "tileset",
+      "required": true,
+      "status": "ready",
+      "tileSize": 16,
+      "regions": [
+        "grass",
+        "paths",
+        "trees",
+        "water",
+        "ruins",
+        "flowers",
+        "signage",
+        "tower-exterior"
+      ],
+      "paletteId": "pf-overworld-grove-v1",
+      "file": "assets/snes-v512/bouncehome-grove-tiles.v0.1.png",
+      "rightsStatus": "original",
+      "sha256": "34a4f4ad888707edb48253cf15a03af5659c20a78c249ea20630185e30196be3",
+      "tileStudioSeed": "world/bouncehome-grove.tile-studio-seed.v5.12.json"
+    },
+    {
+      "id": "wobble-woods-stage",
+      "type": "tileset",
+      "required": true,
+      "status": "ready",
+      "tileSize": 16,
+      "regions": [
+        "ground",
+        "platforms",
+        "trees-far",
+        "trees-near",
+        "mist",
+        "bounce-flora",
+        "ruins",
+        "echo-gate"
+      ],
+      "paletteId": "pf-wobble-woods-v1",
+      "file": "assets/snes-v513/wobble-woods-tiles.v0.1.png",
+      "rightsStatus": "original",
+      "sha256": "fc28d6230620aa5f01f29e423fe23460ccf902029777e272f64e94814e0f59c0",
+      "tileCount": 16,
+      "tileStudioSeed": "world/wobble-woods.tile-studio-seed.v5.13.json",
+      "artReceipt": "assets/snes-v513/wobble-woods.art-receipt.v0.1.json",
+      "layerFiles": [
+        "assets/snes-v513/wobble-woods-layer-far.v0.1.png",
+        "assets/snes-v513/wobble-woods-layer-mist.v0.1.png",
+        "assets/snes-v513/wobble-woods-layer-near.v0.1.png",
+        "assets/snes-v513/wobble-woods-layer-foreground.v0.1.png"
+      ],
+      "notes": "Original 16x16 side-view forest tiles plus four native 672x180 parallax layers. Platform geometry remains authored runtime data."
+    },
+    {
+      "id": "larrina-tower-interior",
+      "type": "interior-kit",
+      "required": true,
+      "status": "ready",
+      "tileSize": 16,
+      "regions": [
+        "stone-wall",
+        "wood-floor",
+        "window",
+        "banner",
+        "bookshelf",
+        "lamp",
+        "record-table",
+        "door",
+        "props"
+      ],
+      "paletteId": "pf-tower-interior-v1",
+      "file": "assets/snes-v515/larrina-tower-tiles.v0.1.png",
+      "rightsStatus": "original",
+      "sha256": "be01bb5f2f132fb4384418626d895528b1c7c4589bc5892388a5953ffb62b749",
+      "tileCount": 16,
+      "tileStudioSeed": "world/larrina-tower.tile-studio-seed.v5.15.json",
+      "artReceipt": "assets/snes-v515/larrina-tower.art-receipt.v0.1.json",
+      "roomFile": "assets/snes-v515/larrina-tower-room.v0.1.png",
+      "roomSha256": "9d70e92d7cb35605606f6c915befc3bcf0acddd273e85b75b6e334df0d49183b",
+      "notes": "Original 16x16 reusable interior kit plus composed 320x180 first-person room: stone, wood, moon window, banner, bookshelf, lamp, record-player table, door, rug and props."
+    },
+    {
+      "id": "shared-ui-frames",
+      "type": "ui-frame-kit",
+      "required": true,
+      "status": "ready",
+      "nineSlice": "16,16,16,16",
+      "paletteId": "pf-ui-frame-v1",
+      "file": "assets/snes-v516/shared-ui-frames.v0.1.png",
+      "rightsStatus": "original",
+      "notes": "Original PixelForge SNES UI kit: three 16px nine-slice frame families, dialogue/HUD/rune/menu/transition/inventory components and 14 native 16x16 icons.",
+      "sha256": "49bf57ba1f979030b67e12c7e829dc79716dc8edf36b9124b609b6494894f7f2",
+      "atlasMap": "assets/snes-v516/shared-ui-atlas.v0.1.json",
+      "componentFiles": [
+        "assets/snes-v516/shared-ui-dialogue-frame.v0.1.png",
+        "assets/snes-v516/shared-ui-menu-frame.v0.1.png",
+        "assets/snes-v516/shared-ui-status-frame.v0.1.png",
+        "assets/snes-v516/shared-ui-hud-frame.v0.1.png",
+        "assets/snes-v516/shared-ui-rune-chip.v0.1.png",
+        "assets/snes-v516/shared-ui-transition-card.v0.1.png",
+        "assets/snes-v516/shared-ui-inventory-slot.v0.1.png"
+      ],
+      "artReceipt": "assets/snes-v516/shared-ui.art-receipt.v0.1.json"
+    },
+    {
+      "id": "bounce-effects",
+      "type": "effects-sheet",
+      "required": true,
+      "status": "ready",
+      "frameSize": "32x32",
+      "states": [
+        "bounce-impact",
+        "rune-pickup",
+        "gate-open",
+        "sparkle",
+        "hit"
+      ],
+      "paletteId": "pf-wobble-woods-v1",
+      "file": "assets/snes-v517/bounce-effects.v0.1.png",
+      "rightsStatus": "original",
+      "sha256": "f63a5f315f649e524db46b419f0d7e4776fea845f11c6afb8aeef21b3841d025",
+      "animationMap": "assets/snes-v517/bounce-effects.anim.v0.1.json",
+      "frameCount": 20,
+      "sheetGrid": "20x1",
+      "artReceipt": "assets/snes-v517/bounce-effects.art-receipt.v0.1.json",
+      "notes": "Original 20-frame 32x32 PixelForge effects sheet: bounce impact, Rune pickup, Echo Gate opening, sparkle, and hit bursts."
+    },
+    {
+      "id": "snes-audio-cues",
+      "type": "audio-cue-pack",
+      "required": false,
+      "status": "ready",
+      "cueIds": [
+        "title",
+        "overworld",
+        "woods",
+        "tower",
+        "bounce-impact",
+        "rune-pickup",
+        "gate-open",
+        "dialogue-blip",
+        "hit",
+        "ending"
+      ],
+      "file": "assets/audio-v519/legend-audio-cues.v0.1.json",
+      "rightsStatus": "original",
+      "sha256": "54c90991604226c3f9d3b566c4bebdde7eb8a4a3fd87ca537363791756b3ed3f",
+      "rightsReceipt": "assets/audio-v519/legend-audio.rights-receipt.v0.1.json",
+      "notes": "Original local-first SNES-inspired audio pack: four loopable themes plus six gameplay SFX. Deterministic synthesis source included; no external samples."
+    }
+  ],
+  "boundary": "All eight required final-art roles and the optional SNES audio cue pack now contain original repository assets. Machine-side media readiness is complete; human control, visual, fun, content-depth, value, and store-art review remain separate."
+}

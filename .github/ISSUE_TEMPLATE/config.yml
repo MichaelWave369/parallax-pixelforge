@@ -1,5 +1,5 @@
-blank_issues_enabled: true
+﻿blank_issues_enabled: true
 contact_links:
-  - name: PixelForge launch tracker
-    url: https://github.com/MichaelWave369/parallax-pixelforge/issues/1
-    about: Follow the v5.3 public launch scaffold and remaining setup tasks.
+  - name: Read the cartridge submission rules
+    url: https://github.com/MichaelWave369/parallax-pixelforge/blob/main/docs/CARTRIDGE_SUBMISSION_RULES.md
+    about: Review contribution and rights boundaries before submitting a cartridge.

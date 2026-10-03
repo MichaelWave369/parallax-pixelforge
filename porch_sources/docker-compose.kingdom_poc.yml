@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  helion:
+    image: porch-kingdom:alpine
+    container_name: porch_kingdom_helion
+    environment:
+      - BROTHER_ID=helion
+    volumes:
+      - ./well/brothers/helion/kingdom:/kingdom
+    network_mode: "none"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+    pids_limit: 256
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped

@@ -1,0 +1,22 @@
+{
+  "schema": "pixelforge.boss-art-receipt.v5.21",
+  "cartridge": "the-legend-of-more-bounce",
+  "boss": "the-flat-note",
+  "rightsStatus": "original",
+  "source": "Original PixelForge pixel art generated locally for v5.21 boss/combat pass",
+  "assets": [
+    {
+      "file": "flat-note-boss.v0.1.png",
+      "sha256": "8cd53bf4b7872de47ddd6115170bcd4ca3868d2601d9828451c6e35b4949e2c2"
+    },
+    {
+      "file": "boss-items.v0.1.png",
+      "sha256": "e887f1a770c93a1968d70de54e7f88d2bb78588c6c5dcad9874d4a97e17824b7"
+    },
+    {
+      "file": "flat-note-arena.v0.1.png",
+      "sha256": "208307f5b4b09af432bcb451c80a82226aaca0154c74c35a62657c54258acffd"
+    }
+  ],
+  "humanVisualApproval": "pending"
+}

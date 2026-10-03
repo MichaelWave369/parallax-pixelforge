@@ -1,0 +1,36 @@
+{
+  "schema": "pixelforge.chapter-three-audio.v5.23",
+  "rightsStatus": "original",
+  "cues": [
+    {
+      "id": "iron-orchard",
+      "file": "iron-orchard-theme.v0.1.wav",
+      "sha256": "eba5d4fc0131f6c8b2760e19923d5e06ae64f915870f6450493bdc9ed1ce81fe"
+    },
+    {
+      "id": "rustroot",
+      "file": "rustroot-cavern-theme.v0.1.wav",
+      "sha256": "b9aafd3a32d59df43beeb031ef980702e685813d3fae4b3e0697e885ed15f7f0"
+    },
+    {
+      "id": "rivet-forge",
+      "file": "rivet-forge-theme.v0.1.wav",
+      "sha256": "c4b13163d1d70bdfda02ad94e6e0044c9a9881d4f49a315a6bfc8f40309c4de2"
+    },
+    {
+      "id": "rustbloom-boss",
+      "file": "rustbloom-warden-theme.v0.1.wav",
+      "sha256": "246225df06d65699d70e950a0487d86870fde6e5ea04ba1fb8d76f9076e74382"
+    },
+    {
+      "id": "bracer-upgrade",
+      "file": "resonance-bracer-upgrade.v0.1.wav",
+      "sha256": "f8085ac9423737975ccb3bdb3e358db7d9579cd3ee29965c9164da21240346b2"
+    },
+    {
+      "id": "iron-blossom",
+      "file": "iron-blossom-victory.v0.1.wav",
+      "sha256": "62cc6cc1a9366b40b7330249f44063961cbf270dcbe3a7f7ad6ec91c5acb9eb2"
+    }
+  ]
+}

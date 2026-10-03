@@ -1,0 +1,17 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.26",
+  "id": "stormglass-coast",
+  "mode": "overworld-hub",
+  "environment": "assets/snes-v526/stormglass-coast.map.v0.1.png",
+  "musicCue": "stormglass-coast",
+  "progression": {
+    "requires": [
+      "ironBlossom"
+    ],
+    "awards": [
+      "sableMet",
+      "tideglassShells:3",
+      "galeMantle"
+    ]
+  }
+}

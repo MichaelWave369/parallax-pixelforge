@@ -1,0 +1,1 @@
+{"schema":"pixelforge.runtime-scene.v5.22","id":"glassgrass-pass","mode":"side-view","environment":"assets/snes-v522/glassgrass-pass.stage.v0.1.png","musicCue":"glassgrass","enemy":{"id":"static-sprite","count":3,"health":2},"collectible":{"id":"relaySpark","count":3},"progression":{"requires":["miraMet"],"awards":["relaySparks:3","echoBoots"]}}

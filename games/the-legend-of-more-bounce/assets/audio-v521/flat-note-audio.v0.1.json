@@ -1,0 +1,38 @@
+{
+  "schema": "pixelforge.boss-audio-pack.v5.21",
+  "cartridge": "the-legend-of-more-bounce",
+  "boss": "the-flat-note",
+  "rightsStatus": "original",
+  "format": "PCM16 WAV",
+  "sampleRate": 22050,
+  "channels": 1,
+  "generator": "tools/generate_flat_note_v521.py",
+  "externalSamplesUsed": false,
+  "cues": [
+    {
+      "id": "boss",
+      "file": "flat-note-boss-theme.v0.1.wav",
+      "loop": true,
+      "role": "The Flat Note boss music with deliberate dropped beats",
+      "durationSeconds": 19.2,
+      "sha256": "cdb0cd69dfe95bceeaedc3eb9969771d90c798c834b491ff7bf596a3b8e30574"
+    },
+    {
+      "id": "boss-break",
+      "file": "boss-break.v0.1.wav",
+      "loop": false,
+      "role": "On-beat weak-point break",
+      "durationSeconds": 0.8,
+      "sha256": "083534ee53646925665b82301e92b7426b48251051db3f694a879b94db9fe3fa"
+    },
+    {
+      "id": "boss-defeat",
+      "file": "boss-defeat.v0.1.wav",
+      "loop": false,
+      "role": "Flat Note defeat / Resonance Seal award",
+      "durationSeconds": 2.2,
+      "sha256": "ac364576056816235fd12606ed10b6d786103e8c8d2b62f38446df17a667b4f9"
+    }
+  ],
+  "humanAudioApproval": "pending"
+}

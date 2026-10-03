@@ -1,0 +1,33 @@
+{
+  "schema": "pixelforge.legend-content-receipt.v5.15",
+  "generatedAt": "2026-10-03T20:46:16.905Z",
+  "cartridge": "the-legend-of-more-bounce",
+  "status": "larrina-tower-original-art-pass",
+  "requiredFinalArt": {
+    "baselineReady": 6,
+    "currentReady": 8,
+    "total": 8,
+    "pending": 0
+  },
+  "assets": {
+    "tiles": {
+      "path": "games/the-legend-of-more-bounce/assets/snes-v515/larrina-tower-tiles.v0.1.png",
+      "sha256": "be01bb5f2f132fb4384418626d895528b1c7c4589bc5892388a5953ffb62b749",
+      "dimensions": "256x16",
+      "tileSize": "16x16",
+      "tiles": 16,
+      "rights": "original"
+    },
+    "room": {
+      "path": "games/the-legend-of-more-bounce/assets/snes-v515/larrina-tower-room.v0.1.png",
+      "sha256": "9d70e92d7cb35605606f6c915befc3bcf0acddd273e85b75b6e334df0d49183b",
+      "dimensions": "320x180",
+      "rights": "original"
+    }
+  },
+  "runtime": {
+    "tower": "first-person-real-interior-art-bound",
+    "standalonePreview": "exports/runtime/legend-v5.15-larrina-tower-preview.html"
+  },
+  "boundary": "v5.15 baseline retained. Current required final-art readiness: 8/8; human visual-gold-standard approval remains separate."
+}
