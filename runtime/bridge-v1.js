@@ -49,9 +49,8 @@ export function createBridgeV1(adapter) {
 
     registerController: (descriptor) => {
       assertControllerDescriptorV1(descriptor);
-      const value = jsonClone(adapter.registerController(jsonClone(descriptor)));
-      if (value !== undefined) immutableCopy(value);
-      return value;
+      const value = adapter.registerController(jsonClone(descriptor));
+      return value === undefined ? undefined : immutableCopy(value);
     },
 
     observe: (controllerId, actorId) => {
