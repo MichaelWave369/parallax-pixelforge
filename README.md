@@ -9,7 +9,7 @@ Community cartridges grow the arcade.
 
 ## Current launch target
 
-v5.3 Public GitHub Launch Kit.
+v5.3 Public GitHub Launch Kit, with the v1 agent-native runtime bridge foundation.
 
 ## 369 PocketGames promise
 
@@ -21,6 +21,8 @@ Small, complete games with no ads, no subscriptions, no loot boxes, no energy ti
 - `docs/CARTRIDGE_SUBMISSION_RULES.md`
 - `games/starter/`
 - `pocketgames/templates/pocketgame_manifest.template.json`
+- `docs/RUNTIME_BRIDGE_V1.md`
+- `runtime/bridge-v1.js`
 
 ## Public preflight
 
