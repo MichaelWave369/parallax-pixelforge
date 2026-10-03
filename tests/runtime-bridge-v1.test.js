@@ -23,14 +23,15 @@ test("reference cartridge runs through register/observe/submit/step/events/snaps
   assert.equal(observation.value, 3);
   assert.deepEqual(observation.allowedActions, ["ADD"]);
 
-  const decision = bridge.submit("script:1", {
+  const receipt = bridge.submit("script:1", {
     actorId: "counter",
     type: "ADD",
     params: { amount: 4 },
   });
-  assert.deepEqual(decision, { accepted: true, reason: "ALLOW" });
+  assert.deepEqual(receipt, { queued: true, tick: 0 });
 
-  bridge.advance();
+  const events = bridge.advance();
+  assert.equal(events[0].type, "ACTION_ACCEPTED");
   assert.equal(bridge.snapshot().value, 7);
   assert.equal(bridge.snapshot().tick, 1);
   assert.equal(bridge.events().length, 1);
