@@ -42,6 +42,15 @@
 - keep provider receipts separate from host/game ledgers,
 - leave concrete provider SDKs and credentials out of the shared core.
 
+## v5.3.5 — Local Ollama Provider
+
+- add the first concrete Model Policy provider adapter,
+- translate provider-neutral requests to Ollama /api/chat,
+- require non-streaming structured JSON output,
+- normalize Ollama responses back into the provider-neutral envelope,
+- fail closed on transport/HTTP/response-shape errors,
+- keep live Ollama qualification optional and outside CI.
+
 ## v5.4 — Creator Onboarding Polish
 
 - one-command cartridge generator,
