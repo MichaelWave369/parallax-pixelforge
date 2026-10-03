@@ -211,6 +211,12 @@ export async function runAgentSessionV1({
       const decided = await client.decide(observation);
       const intents = normalizeIntents(decided);
 
+      if (signal?.aborted)
+        return finish("stopped", AGENT_SESSION_STOP_REASONS.ABORTED);
+
+      if (Date.now() - startedAt >= maxDurationMs)
+        return finish("stopped", AGENT_SESSION_STOP_REASONS.MAX_DURATION);
+
       if (totalIntents + intents.length > maxTotalIntents) {
         record("INTENT_BUDGET_BLOCKED", {
           turnNumber: turnCount + 1,
