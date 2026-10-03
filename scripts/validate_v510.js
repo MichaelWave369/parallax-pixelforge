@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 const errors=[];
-const required=['tile-studio.js','docs/TILE_STUDIO.md','docs/V5_10_TILE_STUDIO_MAP_COMPOSER.md','scripts/validate_tile_studio.js','BUILD_RECEIPT_v5.10.md'];
+const required=['tile-studio.js','docs/TILE_STUDIO.md','docs/V5_10_TILE_STUDIO_MAP_COMPOSER.md','scripts/validate_tile_studio.js','docs/build-receipts/BUILD_RECEIPT_v5.10.md'];
 for(const f of required) if(!fs.existsSync(f)) errors.push(`Missing v5.10 path: ${f}`);
 const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
 const [maj,min]=pkg.version.split('.').map(n=>parseInt(n,10)||0); if(maj<5||(maj===5&&min<10)) errors.push('package.json must retain v5.10+ Tile Studio capability.');

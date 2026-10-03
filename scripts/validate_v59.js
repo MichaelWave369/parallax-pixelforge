@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 const errors=[];
-const required=['sprite-studio.js','docs/SPRITE_STUDIO.md','scripts/validate_sprite_studio.js','BUILD_RECEIPT_v5.9.md'];
+const required=['sprite-studio.js','docs/SPRITE_STUDIO.md','scripts/validate_sprite_studio.js','docs/build-receipts/BUILD_RECEIPT_v5.9.md'];
 for(const f of required) if(!fs.existsSync(f)) errors.push(`Missing v5.9 path: ${f}`);
 const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
 const [maj,min]=pkg.version.split('.').map(n=>parseInt(n,10)||0); if(maj<5||(maj===5&&min<9)) errors.push('package.json must retain v5.9+ Sprite Studio capability.');

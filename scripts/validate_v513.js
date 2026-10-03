@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 const errors=[];
 const required=[
- 'docs/V5_13_WOBBLE_WOODS_ART_PASS.md','BUILD_RECEIPT_v5.13.md','scripts/build_legend_v513_preview.js','scripts/validate_legend_v513.js','scripts/validate_v513.js',
+ 'docs/V5_13_WOBBLE_WOODS_ART_PASS.md','docs/build-receipts/BUILD_RECEIPT_v5.13.md','scripts/build_legend_v513_preview.js','scripts/validate_legend_v513.js','scripts/validate_v513.js',
  'games/the-legend-of-more-bounce/assets/snes-v513/wobble-woods-tiles.v0.1.png','games/the-legend-of-more-bounce/assets/snes-v513/wobble-woods-layer-far.v0.1.png','games/the-legend-of-more-bounce/assets/snes-v513/wobble-woods-layer-mist.v0.1.png','games/the-legend-of-more-bounce/assets/snes-v513/wobble-woods-layer-near.v0.1.png','games/the-legend-of-more-bounce/assets/snes-v513/wobble-woods-layer-foreground.v0.1.png',
  'games/the-legend-of-more-bounce/world/wobble-woods.tile-studio-seed.v5.13.json','games/the-legend-of-more-bounce/runtime/bouncehome-grove.runtime-scene.v5.13.json','games/the-legend-of-more-bounce/runtime/wobble-woods.runtime-scene.v5.13.json','exports/legend-v513/wobble-art-receipt.v5.13.json'
 ];
