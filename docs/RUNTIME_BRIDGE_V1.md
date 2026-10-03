@@ -56,9 +56,10 @@ public perception boundary, not a reference to mutable engine state.
 
 ### submit(controllerId, intent, tick?)
 
-Submits one already-resolved intent. The runtime validates identity, action
-grammar, authority and game rules. The return value should at minimum report
-whether the intent was accepted and why.
+Queues one already-resolved intent for a deterministic tick. A return value may
+acknowledge that the root was queued, but it must not imply game acceptance
+before the simulation processes it. Identity, grammar, authority and game-rule
+acceptance are reported by the subsequent action decision/event stream.
 
 ### advance(roots?)
 
