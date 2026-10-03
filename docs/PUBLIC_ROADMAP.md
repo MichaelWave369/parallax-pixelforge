@@ -60,6 +60,17 @@
 - add asynchronous conformance validation,
 - prepare the existing Night Circuit P3 TCP seat as the first external consumer.
 
+## v5.3.7 — Bounded Agent Session
+
+- add a host-agnostic multi-turn session runner,
+- enforce total intent budgets before submission,
+- cap total turns and consecutive empty turns,
+- support cancellation before action submission,
+- support custom stop conditions,
+- work unchanged across RuntimeHostV1 and AsyncRuntimeHostV1,
+- keep session receipts separate from model/host/game evidence,
+- add no hidden retries or authority expansion.
+
 ## v5.4 — Creator Onboarding Polish
 
 - one-command cartridge generator,
