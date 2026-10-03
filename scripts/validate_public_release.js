@@ -13,7 +13,11 @@ const required = [
   'games/starter/README.md',
   'games/starter/package.json',
   'games/starter/src/main.jsx',
-  'pocketgames/templates/pocketgame_manifest.template.json'
+  'pocketgames/templates/pocketgame_manifest.template.json',
+  'docs/RUNTIME_BRIDGE_V1.md',
+  'runtime/bridge-v1.js',
+  'runtime/reference-counter.js',
+  'tests/runtime-bridge-v1.test.js'
 ];
 
 const missing = required.filter((path) => !fs.existsSync(path));
