@@ -1,0 +1,23 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.26",
+  "id": "undertow-bell",
+  "mode": "boss",
+  "environment": "assets/snes-v526/undertow-bell-arena.v0.1.png",
+  "musicCue": "undertow-bell",
+  "boss": {
+    "id": "undertow-bell",
+    "health": 5,
+    "requiredAbility": "galeMantle",
+    "mechanic": "dash-through-surge-then-bounce-strike"
+  },
+  "progression": {
+    "requires": [
+      "galeMantle",
+      "tideEngineSolved"
+    ],
+    "awards": [
+      "stormglassCompass",
+      "chapterFourComplete"
+    ]
+  }
+}

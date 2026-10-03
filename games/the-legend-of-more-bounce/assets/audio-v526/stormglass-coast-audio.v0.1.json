@@ -1,0 +1,37 @@
+{
+  "schema": "pixelforge.chapter-four-audio.v5.26",
+  "rightsStatus": "original",
+  "noExternalSamples": true,
+  "cues": [
+    {
+      "id": "stormglass-coast",
+      "file": "stormglass-coast-theme.v0.1.wav",
+      "sha256": "51835c91558c1ee7454818ea3fb51d98168869c9f1e511343e7165ae926924e3"
+    },
+    {
+      "id": "stormglass-cliffs",
+      "file": "stormglass-cliffs-theme.v0.1.wav",
+      "sha256": "1611e766ef809a2f5557d114e51d1731e1b2fd815ed514ceb5a3525bfedea324"
+    },
+    {
+      "id": "tide-engine",
+      "file": "tide-engine-theme.v0.1.wav",
+      "sha256": "f116ea7a99d307becb70de001dadd2dc171a63525b9639c68c55eb318f53bb2c"
+    },
+    {
+      "id": "undertow-bell",
+      "file": "undertow-bell-theme.v0.1.wav",
+      "sha256": "18ed6c17510dde6a21a79959f7b72099d6c727b3e25b44e033795b8768704e72"
+    },
+    {
+      "id": "gale-mantle",
+      "file": "gale-mantle-upgrade.v0.1.wav",
+      "sha256": "1de92b86d25eb4f7ffd04541843419c7524f3f39b0d5f49965bb874484e1796e"
+    },
+    {
+      "id": "stormglass-compass",
+      "file": "stormglass-compass-victory.v0.1.wav",
+      "sha256": "ee0981791b427bb8e8a282d27f3c68c07c6e890045ecf26e609318c2ea8f9f5e"
+    }
+  ]
+}

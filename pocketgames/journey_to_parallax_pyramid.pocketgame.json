@@ -1,0 +1,110 @@
+{
+  "manifestType": "369.pocketgame.manifest",
+  "manifestVersion": "0.1.0",
+  "pixelforgeVersionTarget": "5.2.0-alpha",
+  "id": "pocketgame-001-journey-to-parallax-pyramid",
+  "slug": "journey-to-parallax-pyramid",
+  "title": "Journey to the Parallax Pyramid",
+  "subtitle": "A tiny road-trip RPG about kindness, weird signs, and arriving together.",
+  "series": "369 PocketGames",
+  "candidateNumber": 1,
+  "sourceCartridge": "games/journey-to-parallax-pyramid",
+  "cartridgeManifest": "data/journey_to_parallax_pyramid.v5.1.cartridge.json",
+  "price": {
+    "model": "premium_paid_once",
+    "usdTarget": "3.69",
+    "saleFloorUsd": "0.99",
+    "bundleEligible": true,
+    "notes": "Signature price for complete handcrafted 369 PocketGames releases. Use $0.99 only for launch experiments, tiny minis, or limited sales."
+  },
+  "monetizationBoundary": {
+    "noAds": true,
+    "noPredatoryIap": true,
+    "noSubscriptions": true,
+    "noLootBoxes": true,
+    "noEnergyTimers": true,
+    "offlinePlayable": true
+  },
+  "mobileProfile": {
+    "orientation": "landscape-primary",
+    "minimumTapTargetPx": 44,
+    "readabilityTarget": "Readable on 6-inch phones without zoom.",
+    "sessionLengthMinutes": {
+      "firstSessionTarget": 5,
+      "completeRunTarget": 20,
+      "fullExperienceTarget": 60
+    },
+    "controls": [
+      "large touch buttons",
+      "scroll-safe panels",
+      "single-hand menu safety",
+      "no precision platforming required"
+    ]
+  },
+  "storePageSeed": {
+    "shortDescription": "A tiny premium road-trip RPG with no ads, no traps, and a lot of heart.",
+    "longDescription": "Journey to the Parallax Pyramid is a small handcrafted retro road-trip RPG about crossing strange regions, caring for your crew, reading weird signs carefully, and arriving at the mountain together. Built as a 369 PocketGames candidate: one honest price, offline play, no ads, no gem traps, no energy timers.",
+    "featureBullets": [
+      "A complete little road-trip adventure",
+      "Crew banter, camp moments, quests, badges, and local save/load",
+      "Body, mind, spirit, resources, and 369 virtue stats",
+      "Claim-safe symbolic weirdness: beautiful signs, grounded choices",
+      "Premium paid-once design with no ads or predatory in-app purchases"
+    ],
+    "contentNotes": [
+      "Mild surreal themes",
+      "No gambling mechanics",
+      "No online chat",
+      "No account required"
+    ],
+    "tagline": "Tiny world. Honest price. Complete fun."
+  },
+  "rightsAndSafety": {
+    "assetStatus": "placeholder_review_required",
+    "publicTextReviewRequired": true,
+    "claimBoundaryReviewRequired": true,
+    "thirdPartyIpAllowed": false,
+    "requiredRightsReceipt": "exports/qa/journey-to-parallax-pyramid.rights-receipt.md"
+  },
+  "releaseGates": [
+    {
+      "id": "gate-first-60-seconds",
+      "name": "First 60 Seconds Charm Gate",
+      "required": true,
+      "status": "open",
+      "criteria": "A new player understands the core action, smiles once, and trusts the no-ads/no-traps promise within the first minute."
+    },
+    {
+      "id": "gate-mobile-readability",
+      "name": "Mobile Readability Gate",
+      "required": true,
+      "status": "open",
+      "criteria": "Text, buttons, and panels remain readable and tappable on a small phone screen."
+    },
+    {
+      "id": "gate-local-save",
+      "name": "Local Save Gate",
+      "required": true,
+      "status": "open",
+      "criteria": "Save/load works locally after closing and reopening the mobile wrapper or browser session."
+    },
+    {
+      "id": "gate-price-worthiness",
+      "name": "$3.69 Worthiness Gate",
+      "required": true,
+      "status": "open",
+      "criteria": "A playtester can explain why the finished version feels worth the paid-once price."
+    }
+  ],
+  "communityTemplate": {
+    "canBeUsedAsExample": true,
+    "recommendedForNewCreators": true,
+    "doNotCloneAsYourOwnGame": true,
+    "lessonFocus": [
+      "small complete loop",
+      "crew identity",
+      "claim-safe surreal storytelling",
+      "premium mobile packaging"
+    ]
+  }
+}

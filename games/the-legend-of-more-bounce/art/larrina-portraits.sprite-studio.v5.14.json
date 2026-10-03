@@ -1,0 +1,18 @@
+{
+  "schema": "pixelforge.sprite-studio.portrait-seed.v5.14",
+  "name": "Princess Larrina Portraits",
+  "canvas": {
+    "width": 96,
+    "height": 96
+  },
+  "expressions": {
+    "neutral": 0,
+    "smile": 1,
+    "concern": 2,
+    "surprised": 3
+  },
+  "sourceAsset": "assets/snes-v514/larrina-portraits.v0.1.png",
+  "paletteId": "pf-tower-interior-v1",
+  "rightsStatus": "original",
+  "artStatus": "ready"
+}

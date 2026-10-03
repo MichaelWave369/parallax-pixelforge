@@ -1,0 +1,130 @@
+{
+  "schema": "pixelforge.ui-atlas.v1",
+  "version": "0.1.0",
+  "tileSize": 16,
+  "sheet": "shared-ui-frames.v0.1.png",
+  "size": [
+    256,
+    96
+  ],
+  "nineSlice": {
+    "dialogue": {
+      "x": 0,
+      "y": 0,
+      "w": 48,
+      "h": 48,
+      "slice": 16
+    },
+    "menu": {
+      "x": 48,
+      "y": 0,
+      "w": 48,
+      "h": 48,
+      "slice": 16
+    },
+    "status": {
+      "x": 96,
+      "y": 0,
+      "w": 48,
+      "h": 48,
+      "slice": 16
+    }
+  },
+  "icons": {
+    "rune": {
+      "x": 144,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "heart": {
+      "x": 160,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "key": {
+      "x": 176,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "bag": {
+      "x": 192,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "spark": {
+      "x": 208,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "arrow": {
+      "x": 224,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "talk": {
+      "x": 240,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "exclaim": {
+      "x": 144,
+      "y": 16,
+      "w": 16,
+      "h": 16
+    },
+    "check": {
+      "x": 160,
+      "y": 16,
+      "w": 16,
+      "h": 16
+    },
+    "lock": {
+      "x": 176,
+      "y": 16,
+      "w": 16,
+      "h": 16
+    },
+    "cursor": {
+      "x": 192,
+      "y": 16,
+      "w": 16,
+      "h": 16
+    },
+    "slot": {
+      "x": 208,
+      "y": 16,
+      "w": 16,
+      "h": 16
+    },
+    "star": {
+      "x": 224,
+      "y": 16,
+      "w": 16,
+      "h": 16
+    },
+    "pause": {
+      "x": 240,
+      "y": 16,
+      "w": 16,
+      "h": 16
+    }
+  },
+  "components": {
+    "dialogueFrame": "shared-ui-dialogue-frame.v0.1.png",
+    "menuFrame": "shared-ui-menu-frame.v0.1.png",
+    "statusFrame": "shared-ui-status-frame.v0.1.png",
+    "hudFrame": "shared-ui-hud-frame.v0.1.png",
+    "transitionCard": "shared-ui-transition-card.v0.1.png",
+    "runeChip": "shared-ui-rune-chip.v0.1.png",
+    "inventorySlot": "shared-ui-inventory-slot.v0.1.png"
+  },
+  "paletteId": "pf-ui-frame-v1",
+  "rightsStatus": "original"
+}

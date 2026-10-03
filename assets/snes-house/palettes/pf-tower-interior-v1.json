@@ -1,0 +1,26 @@
+{
+  "schema": "pixelforge.palette.v1",
+  "id": "pf-tower-interior-v1",
+  "name": "Larrina Tower",
+  "purpose": "Warm first-person interior, wood, stone, moonlight, and character accents",
+  "colors": [
+    "#080a12",
+    "#111323",
+    "#171329",
+    "#211832",
+    "#30203b",
+    "#4a354e",
+    "#553528",
+    "#714737",
+    "#6d3e7d",
+    "#834a98",
+    "#b56e82",
+    "#d17b8f",
+    "#dfaa82",
+    "#ffefb0",
+    "#ffd76c",
+    "#62efff"
+  ],
+  "colorCount": 16,
+  "rights": "Original PixelForge house palette definitions; color values alone are not claimed as exclusive creative property."
+}

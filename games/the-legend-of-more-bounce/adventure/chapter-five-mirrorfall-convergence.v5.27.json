@@ -1,0 +1,60 @@
+{
+  "schema": "pixelforge.adventure.chapter.v5.27",
+  "id": "mirrorfall-convergence",
+  "chapter": 5,
+  "title": "Mirrorfall Basin \u2014 Three-View Convergence",
+  "entryRequires": [
+    "stormglassCompass"
+  ],
+  "thesis": "One world. Three ways of seeing it. Each viewpoint changes the state of the other two.",
+  "topDown": {
+    "id": "mirrorfall-basin",
+    "prismPylons": 3,
+    "targetOrder": [
+      "cyan",
+      "magenta",
+      "gold"
+    ],
+    "reward": "worldBeamAligned",
+    "changes": "creates-reflected-platforms-in-side-view"
+  },
+  "sideView": {
+    "id": "splitlight-causeway",
+    "requires": "worldBeamAligned",
+    "pulseNodes": 3,
+    "reward": "pulseNodesPowered",
+    "changes": "powers-lens-shutters-in-first-person"
+  },
+  "firstPerson": {
+    "id": "triune-observatory",
+    "requires": "pulseNodesPowered",
+    "shutters": 3,
+    "targetOrder": [
+      "root",
+      "pulse",
+      "lens"
+    ],
+    "reward": "viewSigil",
+    "changes": "opens-hidden-overworld-route-to-boss"
+  },
+  "boss": {
+    "id": "blind-angle",
+    "phases": 3,
+    "phaseOrder": [
+      "top-down-prism",
+      "side-view-pulse",
+      "first-person-lens"
+    ],
+    "healthPerPhase": 1,
+    "reward": "convergenceCrown"
+  },
+  "travelLandmark": "mirrorfall-observatory",
+  "humanBoundaries": [
+    "cross-view-causality-clarity",
+    "view-switch-friction",
+    "boss-phase-readability",
+    "chapter-pacing",
+    "commercial-content-depth",
+    "price-worthiness"
+  ]
+}

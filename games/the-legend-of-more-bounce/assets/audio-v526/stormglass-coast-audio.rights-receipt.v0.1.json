@@ -1,0 +1,6 @@
+{
+  "schema": "pixelforge.audio-rights-receipt.v5.26",
+  "rightsStatus": "original",
+  "noExternalSamples": true,
+  "generator": "tools/generate_stormglass_coast_v526.py"
+}

@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+import { buildDemoTileStudio, normalizeTileStudio, validateTileStudio } from '../tile-studio.js';
+const errors=[];
+const demo=buildDemoTileStudio();
+const s=normalizeTileStudio(demo);
+validateTileStudio(s,errors);
+if(s.tileCanvas.width!==16||s.tileCanvas.height!==16) errors.push('Default Tile Studio tile canvas must be 16x16.');
+if(s.map.width!==24||s.map.height!==16) errors.push('Default Map Composer must be 24x16 cells.');
+if(s.map.layers.ground.length!==384||s.map.layers.decor.length!==384||s.map.layers.collision.length!==384) errors.push('Default map layers must contain 384 cells.');
+if(!s.tiles.length||s.tiles[0].pixels.length!==256) errors.push('Default tileset must contain at least one 256-pixel tile.');
+const code=fs.readFileSync('tile-studio.js','utf8');
+for(const token of ['pencil','eraser','fill','eyedropper','line','rect','Autotile group','Map Composer','Export Tileset PNG','Export Map JSON','Attach Tileset to Asset Forge','Attach Map to Project','collision','SHA-256']) if(!code.includes(token)) errors.push(`tile-studio.js missing feature marker: ${token}`);
+const html=fs.readFileSync('index.html','utf8');
+for(const token of ['id="tileStudioPanel"','id="tileStudioDialog"','id="openTileStudioBtn"']) if(!html.includes(token)) errors.push(`index.html missing Tile Studio mount marker: ${token}`);
+const app=fs.readFileSync('app.js','utf8');
+for(const token of ['buildDemoTileStudio','normalizeTileStudio','validateTileStudio','initTileStudio','renderTileStudio','attachTileset','attachMap']) if(!app.includes(token)) errors.push(`app.js missing Tile Studio integration: ${token}`);
+const schema=JSON.parse(fs.readFileSync('pixelforge.project.schema.json','utf8'));
+if(!schema.properties?.tileStudio) errors.push('Project schema missing optional tileStudio contract.');
+if(errors.length){console.error('Tile Studio validation failed:');errors.forEach(e=>console.error(`- ${e}`));process.exit(1)}
+console.log('PixelForge v5.10 Tile Studio validation passed: 16x16 art contract, layered map state, collision metadata, tileset/map export and Asset Forge markers present.');

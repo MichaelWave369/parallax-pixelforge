@@ -1,0 +1,38 @@
+{
+  "schema": "pixelforge.gold-standard-playtest-plan.v5.18",
+  "cartridge": "the-legend-of-more-bounce",
+  "status": "playtest-ready-human-evaluation-required",
+  "canonicalPlayable": "exports/runtime/legend-v5.18-gold-standard-playtest.html",
+  "controlProfile": {
+    "name": "snes-forgiving-v1",
+    "maxRunSpeed": 96,
+    "acceleration": 650,
+    "deceleration": 900,
+    "jumpVelocity": -250,
+    "gravity": 660,
+    "coyoteTimeMs": 100,
+    "jumpBufferMs": 120,
+    "variableJumpCut": 0.55
+  },
+  "humanReviewAxes": [
+    "controls",
+    "fun",
+    "clarity",
+    "visuals",
+    "pacing",
+    "replay",
+    "contentDepth",
+    "priceWorthiness"
+  ],
+  "goldStandardRequirements": {
+    "machineFinalArt": "8/8",
+    "completeRunState": true,
+    "localRunTelemetry": true,
+    "humanVisualApprovalRequired": true,
+    "humanControlFeelApprovalRequired": true,
+    "audioRequired": true,
+    "commercialContentDepthApprovalRequired": true,
+    "priceWorthinessApprovalRequired": true
+  },
+  "privacy": "All playtest telemetry is local-only and downloadable by the player. No network transmission is implemented."
+}

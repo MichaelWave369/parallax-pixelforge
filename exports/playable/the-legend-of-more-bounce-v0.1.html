@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#101226" />
+<title>The Legend of More Bounce — PixelForge Tri-View Proof</title>
+<style>:root {
+  color-scheme: dark;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: #090b14;
+  color: #fff4d2;
+  font-size: 16px;
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; background: #090b14; }
+body { margin: 0; min-width: 320px; }
+button { font: inherit; }
+button:focus-visible { outline: 4px solid #ffd76c; outline-offset: 3px; }
+
+.screen {
+  min-height: 100dvh;
+  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  background:
+    linear-gradient(rgba(9, 11, 20, .78), rgba(9, 11, 20, .93)),
+    repeating-linear-gradient(90deg, rgba(97,240,255,.035) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(0deg, rgba(255,211,110,.03) 0 1px, transparent 1px 32px),
+    #101226;
+}
+
+.game-shell { width: min(1040px, 100%); margin: 0 auto; display: grid; gap: 14px; }
+.game-header, .mode-panel, .proof-footer {
+  border: 3px solid #fff0c4;
+  background: #10121f;
+  box-shadow: 8px 8px 0 #02030a;
+}
+.game-header { border-radius: 18px; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 12px 18px; align-items: center; }
+.brand-lockup { display: flex; gap: 13px; align-items: center; min-width: 0; }
+.eyebrow, .version, .mode-kicker { margin: 0; text-transform: uppercase; letter-spacing: .12em; }
+.eyebrow { color: #62efff; font-size: .72rem; }
+.version { color: #a9a7b8; font-size: .67rem; margin-top: 5px; }
+h1 { margin: 2px 0 0; font-size: clamp(1.15rem, 4vw, 1.75rem); line-height: 1; overflow-wrap: anywhere; }
+.rune-chip { border: 2px solid #625b72; color: #8f899f; border-radius: 999px; padding: 8px 11px; font-size: .72rem; white-space: nowrap; }
+.rune-chip.earned { border-color: #ffd76c; color: #ffd76c; box-shadow: 0 0 18px rgba(255,215,108,.17); }
+.mode-rail { grid-column: 1/-1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.mode-step { min-width: 0; display: flex; gap: 6px; align-items: center; justify-content: center; padding: 7px 4px; border: 1px solid #35364a; color: #6e6d7c; font-size: .72rem; }
+.mode-step span { font-weight: 900; }.mode-step small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mode-step.active { color: #fff4d2; border-color: #62efff; background: rgba(98,239,255,.08); }
+
+.mode-panel { border-radius: 22px; overflow: hidden; }
+.panel-copy { padding: clamp(18px, 4vw, 28px); background: linear-gradient(90deg, #17192a, #111320); border-bottom: 2px solid #36374b; }
+.compact-copy { padding-block: 17px; }
+.mode-kicker { color: #ffd76c; font-size: .73rem; }
+h2 { margin: 8px 0 9px; font-size: clamp(1.7rem, 6vw, 3rem); line-height: 1; }
+.panel-copy p:last-child { max-width: 72ch; margin: 0; color: #c9c4b5; line-height: 1.55; }
+
+/* PIXEL AVATAR */
+.pixel-avatar { position: relative; width: 44px; height: 66px; flex: 0 0 auto; image-rendering: pixelated; }
+.pixel-avatar.small { width: 31px; height: 47px; transform: scale(.86); transform-origin: center; }
+.pixel-avatar span { position: absolute; display: block; }
+.pixel-avatar .head { width: 22px; height: 22px; left: 11px; top: 10px; background: #d99d74; border: 3px solid #27180f; }
+.hair { background: #352217; width: 8px; height: 29px; top: 5px; border: 2px solid #170d08; z-index: 2; }
+.hair-left { left: 7px; transform: skew(-8deg); }.hair-right { right: 7px; transform: skew(8deg); }
+.eye { width: 3px; height: 3px; top: 19px; background: #17131a; z-index: 4; }.eye-left { left: 16px; }.eye-right { right: 16px; }
+.beard { width: 12px; height: 21px; left: 16px; top: 27px; background: #332117; border: 2px solid #160e09; clip-path: polygon(0 0,100% 0,70% 100%,30% 100%); z-index: 5; }
+.body { width: 28px; height: 28px; left: 8px; top: 36px; background: #3b58a4; border: 3px solid #10162b; }
+.boot { width: 11px; height: 7px; top: 59px; background: #191520; }.boot-left { left: 8px; }.boot-right { right: 8px; }
+
+/* OVERWORLD */
+.world-map { position: relative; min-height: 430px; overflow: hidden; background: #2d673e; border-bottom: 2px solid #36374b; isolation: isolate; }
+.world-map::before { content:""; position:absolute; inset:0; opacity:.28; background: repeating-linear-gradient(0deg,transparent 0 31px,#173c25 31px 33px), repeating-linear-gradient(90deg,transparent 0 31px,#173c25 31px 33px); }
+.mountain { position:absolute; width:140px; height:110px; background:#596074; clip-path:polygon(50% 0,100% 100%,0 100%); opacity:.92; }.mountain::after { content:""; position:absolute; left:35px; top:17px; width:70px; height:52px; background:#e8e5dc; clip-path:polygon(50% 0,100% 100%,0 100%); }
+.mountain-a { right:4%; top:3%; }.mountain-b { right:19%; top:15%; transform:scale(.72); opacity:.72; }
+.river { position:absolute; width:120%; height:48px; left:-10%; bottom:12%; background:#2e86b8; transform:rotate(-8deg); border-block:6px solid #205f81; }
+.trail { position:absolute; height:12px; border-top:6px dotted #d5b06b; transform-origin:left center; z-index:1; }.trail-one { width:36%; left:20%; top:65%; transform:rotate(-28deg); }.trail-two { width:38%; left:51%; top:43%; transform:rotate(-24deg); }
+.world-node { position:absolute; transform:translate(-50%,-50%); z-index:4; border:2px solid #fff0c4; border-radius:9px; color:#fff4d2; background:#151728; padding:7px 9px; cursor:pointer; display:grid; justify-items:center; gap:2px; min-width:105px; box-shadow:4px 4px 0 rgba(0,0,0,.42); }
+.world-node.active { border-color:#62efff; color:#62efff; transform:translate(-50%,-50%) scale(1.04); }
+.node-icon { font-size:1.25rem; color:#ffd76c; }.world-node span:last-child { font-size:.67rem; }
+.map-hero { position:absolute; z-index:5; transition:left 180ms ease,top 180ms ease; pointer-events:none; filter:drop-shadow(3px 3px 0 rgba(0,0,0,.35)); }
+.map-readout { padding:14px 16px; display:flex; justify-content:space-between; gap:15px; align-items:center; }
+.map-readout div { display:grid; gap:3px; }.map-readout span { color:#9e9aa7; font-size:.8rem; }
+
+.primary-button, .secondary-button, .dialogue-actions button, .controls button { min-height:48px; border:2px solid #fff0c4; border-radius:10px; padding:10px 14px; color:#fff4d2; background:#191b2b; cursor:pointer; }
+.primary-button { background:#fff0c4; color:#171520; font-weight:900; box-shadow:4px 4px 0 #6c5529; }
+.primary-button:hover { background:#62efff; border-color:#62efff; box-shadow:4px 4px 0 #235766; }.secondary-button:hover, .dialogue-actions button:hover, .controls button:hover { border-color:#62efff; }
+
+/* SIDE VIEW */
+.side-stage { height:380px; position:relative; overflow:hidden; background:linear-gradient(#171933 0 52%,#203d32 52% 100%); border-bottom:2px solid #36374b; }
+.moon { position:absolute; width:58px; height:58px; border-radius:50%; right:11%; top:11%; background:#fff1b3; box-shadow:0 0 35px rgba(255,241,179,.22); }
+.tree { position:absolute; bottom:58px; width:26px; height:165px; background:#4b2c1a; border:4px solid #1c120c; }.tree::before,.tree::after { content:""; position:absolute; left:50%; transform:translateX(-50%); background:#194a30; border:4px solid #0f291c; clip-path:polygon(50% 0,100% 100%,0 100%); }.tree::before { width:100px; height:105px; top:-70px; }.tree::after { width:82px; height:90px; top:-30px; }.t1{left:8%}.t2{left:31%;transform:scale(.8);transform-origin:bottom}.t3{left:69%;transform:scale(.92);transform-origin:bottom}.t4{right:3%;transform:scale(.7);transform-origin:bottom}
+.hill { position:absolute; bottom:58px; border-radius:50% 50% 0 0; background:#2a5a38; border-top:5px solid #347249; }.h1{left:18%;width:180px;height:75px}.h2{right:17%;width:230px;height:96px}
+.ground { position:absolute; left:0;right:0;bottom:0;height:62px;background:#302319;border-top:7px solid #6a8f46;display:grid;grid-template-columns:repeat(8,1fr); }.ground span{border-right:2px solid #1c1713}.ground span:nth-child(odd){background:rgba(255,255,255,.018)}
+.side-hero { position:absolute; bottom:53px; transition:left 110ms linear,bottom 180ms ease; z-index:8; filter:drop-shadow(4px 4px 0 rgba(0,0,0,.4)); }.side-hero.jumping { bottom:125px; }
+.rune-pickup { position:absolute; left:60%; bottom:123px; z-index:7; font-size:2.2rem; color:#ffd76c; text-shadow:0 0 15px rgba(255,215,108,.5); animation:runeFloat 900ms ease-in-out infinite alternate; }.rune-pickup.collected { opacity:0; transform:scale(1.8); transition:all 220ms ease; }
+.echo-gate { position:absolute; right:4%; bottom:55px; width:80px; height:130px; border:7px solid #4b4165; border-bottom:0; border-radius:45px 45px 0 0; background:#0a0b14; z-index:6; display:grid; place-items:center;color:#746d85; }.echo-gate span{font-size:2.6rem}.echo-gate small{font-size:.65rem}.echo-gate.open{border-color:#62efff;color:#62efff;box-shadow:0 0 25px rgba(98,239,255,.18) inset,0 0 25px rgba(98,239,255,.13)}
+@keyframes runeFloat{to{transform:translateY(-9px)}}
+.side-hud { padding:14px 16px; display:grid; gap:10px; grid-template-columns:1fr auto; align-items:center; }.message-box { color:#c9c4b5; line-height:1.45; }.controls { display:flex; gap:7px; }.controls button { min-width:52px; }.gate-button { grid-column:1/-1; justify-self:end; }
+
+/* FIRST PERSON */
+.first-person-room { height:410px; position:relative; overflow:hidden; background:#171328; perspective:700px; border-bottom:2px solid #36374b; }
+.ceiling { position:absolute; inset:0 0 50%; background:linear-gradient(#0d0d18,#211933); clip-path:polygon(0 0,100% 0,82% 100%,18% 100%); }
+.floor-grid { position:absolute; inset:50% 0 0; background:linear-gradient(#251b2d,#0f1018); clip-path:polygon(18% 0,82% 0,100% 100%,0 100%); }
+.floor-grid::before { content:""; position:absolute; inset:0; background:repeating-linear-gradient(90deg,transparent 0 12%,rgba(98,239,255,.10) 12% 12.5%),repeating-linear-gradient(0deg,transparent 0 20%,rgba(98,239,255,.08) 20% 20.7%); transform:perspective(400px) rotateX(24deg); transform-origin:top; }
+.first-person-room::before,.first-person-room::after{content:"";position:absolute;top:0;bottom:0;width:30%;background:#241d34;z-index:1}.first-person-room::before{left:0;clip-path:polygon(0 0,100% 23%,100% 77%,0 100%)}.first-person-room::after{right:0;clip-path:polygon(0 23%,100% 0,100% 100%,0 77%)}
+.hotspot { position:absolute; z-index:7; border:2px dashed #62efff; background:rgba(10,12,22,.72); color:#62efff; padding:8px 10px; font-size:.68rem; cursor:pointer; }.window-hotspot{left:7%;top:21%}.record-hotspot{right:7%;top:61%}
+.fp-rune { position:absolute; left:50%; top:18%; transform:translateX(-50%); color:#ffd76c; font-size:2.4rem; z-index:6; text-shadow:0 0 21px rgba(255,215,108,.45); }
+.princess-wrap { position:absolute; left:50%; bottom:18px; transform:translateX(-50%) scale(1.28); z-index:5; }
+.larrina { width:105px; height:190px; position:relative; }.larrina span{position:absolute;display:block}.crown{left:38px;top:0;color:#ffd76c;font-size:2rem;z-index:6}.pigtail{top:47px;width:24px;height:86px;background:#573421;border:5px solid #26160e;border-radius:40%}.pigtail-left{left:4px;transform:rotate(8deg)}.pigtail-right{right:4px;transform:rotate(-8deg)}.larrina-hair{left:24px;top:32px;width:58px;height:70px;background:#573421;border:5px solid #26160e;border-radius:46% 46% 30% 30%;z-index:2}.larrina-face{left:31px;top:48px;width:44px;height:47px;background:#dfaa82;border:4px solid #3a2015;z-index:3}.larrina-eye{width:5px;height:5px;top:66px;background:#1d1720;z-index:4}.larrina-eye.left{left:42px}.larrina-eye.right{right:42px}.larrina-dress{left:22px;top:92px;width:62px;height:93px;background:#834a98;border:5px solid #351f45;clip-path:polygon(20% 0,80% 0,100% 100%,0 100%);z-index:2}
+.dialogue-box { min-height:132px; padding:16px 18px; border-bottom:1px solid #36374b; background:#0b0d17; }.dialogue-box p{margin:0;line-height:1.55}.speaker{color:#ffd76c;font-weight:900;margin-bottom:5px!important;text-transform:uppercase;font-size:.76rem;letter-spacing:.1em}.inspection{margin-top:10px!important;color:#62efff!important;font-size:.82rem}.dialogue-actions{padding:13px;display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.dialogue-actions button{text-align:left}
+
+/* ENDING */
+.ending-panel { min-height:570px; display:grid; justify-items:center; align-content:center; gap:14px; text-align:center; padding:clamp(26px,7vw,62px); background:radial-gradient(circle at 50% 22%,rgba(255,215,108,.15),transparent 35%),linear-gradient(#171328,#0e101c); }.ending-panel h2{font-size:clamp(2.3rem,8vw,5rem);margin:0}.ending-panel>p:not(.mode-kicker){max-width:720px;color:#c9c4b5;line-height:1.65}.ending-panel blockquote{font-size:clamp(1.1rem,4vw,1.7rem);color:#62efff;margin:4px 0 10px}.ending-stars{color:#ffd76c;letter-spacing:.5em}.proof-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:min(620px,100%)}.proof-grid span{border:1px solid #47485c;padding:9px;background:#111421;font-size:.78rem;text-align:left}
+
+.proof-footer { border-width:2px;border-radius:13px;padding:10px 13px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#8f8b99;font-size:.67rem;text-transform:uppercase;letter-spacing:.05em;box-shadow:5px 5px 0 #02030a; }
+.capture-mode .proof-footer{display:none}.capture-mode{min-height:100vh}
+
+@media (max-width: 700px) {
+  .game-header{grid-template-columns:1fr}.rune-chip{justify-self:start}.mode-step small{display:none}.world-map{min-height:380px}.world-node{min-width:82px;padding:6px}.world-node span:last-child{font-size:.58rem}.map-readout{align-items:stretch;flex-direction:column}.side-stage{height:330px}.side-hud{grid-template-columns:1fr}.controls{justify-content:center}.gate-button{justify-self:stretch}.dialogue-actions{grid-template-columns:1fr}.proof-grid{grid-template-columns:1fr}.first-person-room{height:350px}.proof-footer{display:grid;text-align:center;justify-content:center}
+}
+
+@media (max-width: 430px) {
+  .screen{padding:10px}.game-header,.mode-panel{border-width:2px;box-shadow:5px 5px 0 #02030a}.brand-lockup{align-items:flex-start}.brand-lockup>.pixel-avatar{display:none}.world-map{min-height:330px}.mountain{transform:scale(.72);transform-origin:top right}.mountain-b{display:none}.world-node{min-width:70px}.node-icon{font-size:1rem}.side-stage{height:300px}.controls button{min-width:0;flex:1;padding-inline:8px}.first-person-room{height:320px}.hotspot{font-size:.58rem;padding:6px}.princess-wrap{transform:translateX(-50%) scale(1.08)}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior:auto!important;transition:none!important;animation:none!important; }
+}
+</style>
+</head>
+<body><div id="root"></div><script>
+const nodes = {
+  grove: {label:'Bouncehome Grove', icon:'⌂', x:16, y:68, note:'Home. The road hums east.'},
+  woods: {label:'Wobble Woods', icon:'♣', x:48, y:43, note:'A side-view trail hides the Bounce Rune.'},
+  tower: {label:'Larrina Tower', icon:'♛', x:81, y:22, note:'The princess waits beyond the Echo Gate.'}
+};
+const dialogue = {
+  hello: ['Princess Larrina','You actually found the Bounce Rune. I told the castle council you would. They rolled their eyes. Very regal of them.'],
+  truth: ['More Bounce','I mostly followed the road, bounced over some stuff, and tried not to look like I knew what I was doing.'],
+  brag: ['Princess Larrina','Naturally. The heroic beard alone probably defeated three minor curses.'],
+  ask: ['Princess Larrina','The kingdom is losing its rhythm. Not music exactly — the little timing that makes people feel alive. That is why the rune called you.']
+};
+const state = { mode:'overworld', focus:'grove', x:7, jumping:false, rune:false, line:'hello', inspected:false, message:'Move right. The forest is keeping rhythm with you.' };
+const root = document.getElementById('root');
+const capture = new URLSearchParams(location.search).get('capture') === '1';
+
+function avatar(small=false){
+ return `<div class="pixel-avatar${small?' small':''}" aria-label="More Bounce pixel hero"><span class="hair hair-left"></span><span class="hair hair-right"></span><span class="head"></span><span class="eye eye-left"></span><span class="eye eye-right"></span><span class="beard"></span><span class="body"></span><span class="boot boot-left"></span><span class="boot boot-right"></span></div>`;
+}
+function larrina(){ return `<div class="larrina" aria-label="Princess Larrina pixel portrait"><span class="crown">♢</span><span class="pigtail pigtail-left"></span><span class="pigtail pigtail-right"></span><span class="larrina-hair"></span><span class="larrina-face"></span><span class="larrina-eye left"></span><span class="larrina-eye right"></span><span class="larrina-dress"></span></div>`; }
+function rail(){ return `<nav class="mode-rail" aria-label="Tri-view cartridge progress">${[['overworld','I','Overworld'],['side','II','Side View'],['first','III','First Person'],['ending','★','Legend']].map(([id,n,l])=>`<div class="mode-step ${state.mode===id?'active':''}"><span>${n}</span><small>${l}</small></div>`).join('')}</nav>`; }
+function header(){ return `<header class="game-header"><div class="brand-lockup">${avatar(true)}<div><p class="eyebrow">PixelForge Studio • Parallax Adventure</p><h1>The Legend of More Bounce</h1><p class="version">0.1.0 — Tri-View Proof Cartridge</p></div></div><div class="rune-chip ${state.rune?'earned':''}"><span>◈</span> ${state.rune?'RUNE FOUND':'RUNE ???'}</div>${rail()}</header>`; }
+
+function overworld(){
+ const n=nodes[state.focus];
+ return `<section class="mode-panel overworld-panel"><div class="panel-copy"><p class="mode-kicker">MODE I · TOP-DOWN OVERWORLD</p><h2>The road has three moods.</h2><p>More Bounce leaves home after a strange bass note rolls across the hills. Follow the dotted trail to Wobble Woods.</p></div><div class="world-map"><div class="mountain mountain-a"></div><div class="mountain mountain-b"></div><div class="river"></div><div class="trail trail-one"></div><div class="trail trail-two"></div>${Object.entries(nodes).map(([id,item])=>`<button class="world-node ${state.focus===id?'active':''}" data-node="${id}" style="left:${item.x}%;top:${item.y}%"><span class="node-icon">${item.icon}</span><span>${item.label}</span></button>`).join('')}<div class="map-hero" style="left:${n.x+2}%;top:${n.y-10}%">${avatar(true)}</div></div><div class="map-readout"><div><strong>${n.label}</strong><span>${n.note}</span></div>${state.focus==='woods'?'<button class="primary-button" id="enter-woods">Enter Wobble Woods →</button>':'<button class="secondary-button" id="follow-trail">Follow the trail</button>'}</div></section>`;
+}
+function side(){ return `<section class="mode-panel side-panel"><div class="panel-copy compact-copy"><p class="mode-kicker">MODE II · SIDE-VIEW ACTION</p><h2>Wobble Woods</h2><p>Walk, bounce, grab the rune, then reach the gate. Keyboard: A/D or arrows + W/↑/Space.</p></div><div class="side-stage"><div class="moon"></div><div class="tree t1"></div><div class="tree t2"></div><div class="tree t3"></div><div class="tree t4"></div><div class="hill h1"></div><div class="hill h2"></div><div class="rune-pickup ${state.rune?'collected':''}">◈</div><div class="echo-gate ${state.rune?'open':''}"><span>◫</span><small>${state.rune?'OPEN':'LOCKED'}</small></div><div class="side-hero ${state.jumping?'jumping':''}" style="left:${state.x}%">${avatar()}</div><div class="ground"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div><div class="side-hud"><div class="message-box">${state.message}</div><div class="controls"><button id="left">←</button><button id="bounce">BOUNCE</button><button id="right">→</button></div>${state.x>=84&&state.rune?'<button class="primary-button gate-button" id="enter-gate">Enter Echo Gate →</button>':''}</div></section>`; }
+function first(){ const [speaker,text]=dialogue[state.line]; return `<section class="mode-panel first-panel"><div class="panel-copy compact-copy"><p class="mode-kicker">MODE III · FIRST-PERSON INTERACTION</p><h2>Larrina Tower</h2><p>No combat here. Look, listen, choose a tone, and interact with the room.</p></div><div class="first-person-room"><div class="ceiling"></div><div class="floor-grid"></div><button class="hotspot window-hotspot" id="window">MOON WINDOW</button><button class="hotspot record-hotspot" id="record">RECORD PLAYER</button><div class="fp-rune">◈</div><div class="princess-wrap">${larrina()}</div></div><div class="dialogue-box"><p class="speaker">${speaker}</p><p>${text}</p>${state.inspected?'<p class="inspection">Outside, three paths glow at once. The world is hinting that one perspective will never be enough.</p>':''}</div><div class="dialogue-actions"><button data-line="truth">Tell the truth</button><button data-line="brag">Act extremely heroic</button><button data-line="ask">Ask what happened to the kingdom</button><button class="primary-button" id="finish">Raise the Bounce Rune ◈</button></div></section>`; }
+function ending(){ return `<section class="mode-panel ending-panel"><div class="ending-stars">✦ · ✧ · ✦ · ✧ · ✦</div>${avatar()}<p class="mode-kicker">TRI-VIEW PROOF COMPLETE</p><h2>The Legend Begins.</h2><p>The rune answers with one enormous bass note. The overworld, the side-view trail, and the first-person chamber all snap into the same living map.</p><blockquote>“One world. Three ways of seeing it.”</blockquote><div class="proof-grid"><span>✓ Top-down overworld</span><span>✓ Side-view traversal</span><span>✓ First-person interaction</span><span>✓ Shared cartridge state</span></div><button class="primary-button" id="restart">Play the proof again ↻</button></section>`; }
+
+function render(){
+ const body = state.mode==='overworld'?overworld():state.mode==='side'?side():state.mode==='first'?first():ending();
+ root.innerHTML = `<main class="screen ${capture?'capture-mode':''}"><div class="game-shell">${header()}${body}${capture?'':'<footer class="proof-footer"><span>Original PixelForge prototype</span><span>No ads · no tracking · no loot boxes</span><span>v0.1 tri-view proof</span></footer>'}</div></main>`;
+ bind();
+}
+function bind(){
+ document.querySelectorAll('[data-node]').forEach(b=>b.onclick=()=>{state.focus=b.dataset.node;render()});
+ const follow=document.getElementById('follow-trail'); if(follow) follow.onclick=()=>{state.focus='woods';render()};
+ const woods=document.getElementById('enter-woods'); if(woods) woods.onclick=()=>{state.mode='side';render()};
+ const left=document.getElementById('left'); if(left) left.onclick=()=>move(-7);
+ const right=document.getElementById('right'); if(right) right.onclick=()=>move(7);
+ const bounce=document.getElementById('bounce'); if(bounce) bounce.onclick=jump;
+ const gate=document.getElementById('enter-gate'); if(gate) gate.onclick=()=>{state.mode='first';render()};
+ const win=document.getElementById('window'); if(win) win.onclick=()=>{state.inspected=true;render()};
+ const record=document.getElementById('record'); if(record) record.onclick=()=>{state.line='ask';render()};
+ document.querySelectorAll('[data-line]').forEach(b=>b.onclick=()=>{state.line=b.dataset.line;render()});
+ const finish=document.getElementById('finish'); if(finish) finish.onclick=()=>{state.mode='ending';render()};
+ const restart=document.getElementById('restart'); if(restart) restart.onclick=()=>{Object.assign(state,{mode:'overworld',focus:'grove',x:7,jumping:false,rune:false,line:'hello',inspected:false,message:'Move right. The forest is keeping rhythm with you.'});render()};
+}
+function move(delta){ state.x=Math.max(4,Math.min(91,state.x+delta)); if(state.x>=58&&!state.rune){state.rune=true;state.message='BOING! The Bounce Rune snaps into your inventory.'} else if(state.x>=86&&state.rune){state.message='The Echo Gate recognizes the rune.'} render(); }
+function jump(){ if(state.jumping)return; state.jumping=true; state.message='More Bounce does, in fact, bounce.'; render(); setTimeout(()=>{state.jumping=false;render()},420); }
+window.addEventListener('keydown',e=>{ if(state.mode!=='side')return; if(['ArrowLeft','a','A'].includes(e.key))move(-7); if(['ArrowRight','d','D'].includes(e.key))move(7); if(['ArrowUp','w','W',' '].includes(e.key)){e.preventDefault();jump()} });
+render();
+</script></body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "schema": "pixelforge.legend-content-receipt.v5.14",
+  "generatedAt": "2026-10-03T20:46:16.055Z",
+  "cartridge": "the-legend-of-more-bounce",
+  "status": "larrina-character-portrait-original-art-pass",
+  "requiredFinalArt": {
+    "ready": 8,
+    "total": 8,
+    "pending": 0
+  },
+  "assets": {
+    "character": {
+      "path": "games/the-legend-of-more-bounce/assets/snes-v514/larrina-character.v0.1.png",
+      "sha256": "3f0a5a6bd3b080e2799259d5caf2a050e1338a4d292c09a76fa310c072913e70",
+      "dimensions": "768x48",
+      "frameSize": "32x48",
+      "frames": 24,
+      "rights": "original"
+    },
+    "portraits": {
+      "path": "games/the-legend-of-more-bounce/assets/snes-v514/larrina-portraits.v0.1.png",
+      "sha256": "5c55f6d81aafffddb2b1a6fca448f6cc760f7c06a054d1f2db35e02307788e45",
+      "dimensions": "384x96",
+      "frameSize": "96x96",
+      "frames": 4,
+      "rights": "original"
+    }
+  },
+  "runtime": {
+    "wobbleGate": "wobble-woods -> larrina-tower",
+    "tower": "first-person-real-larrina-art-v5.14-baseline-retained",
+    "standalonePreview": "exports/runtime/legend-v5.14-larrina-art-preview.html"
+  },
+  "boundary": "The v5.14 Larrina character + portrait baseline remains present. Later versions may legitimately promote the Tower interior and other roles; human visual-gold-standard approval remains separate."
+}

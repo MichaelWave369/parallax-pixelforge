@@ -1,0 +1,26 @@
+{
+  "schema": "pixelforge.art-receipt.v5.14",
+  "generatedAt": null,
+  "status": "original-art-generated",
+  "rightsStatus": "original",
+  "artist": "Parallax PixelForge content pass",
+  "assets": [
+    {
+      "slot": "larrina-character",
+      "path": "assets/snes-v514/larrina-character.v0.1.png",
+      "sha256": "3f0a5a6bd3b080e2799259d5caf2a050e1338a4d292c09a76fa310c072913e70",
+      "dimensions": "768x48",
+      "nativeFrame": "32x48",
+      "frameCount": 24
+    },
+    {
+      "slot": "larrina-portraits",
+      "path": "assets/snes-v514/larrina-portraits.v0.1.png",
+      "sha256": "5c55f6d81aafffddb2b1a6fca448f6cc760f7c06a054d1f2db35e02307788e45",
+      "dimensions": "384x96",
+      "nativeFrame": "96x96",
+      "frameCount": 4
+    }
+  ],
+  "boundary": "Original PixelForge character and portrait assets. Larrina Tower interior, shared UI and effects remain separate pending final-art roles."
+}

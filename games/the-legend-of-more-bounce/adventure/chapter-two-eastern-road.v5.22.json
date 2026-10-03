@@ -1,0 +1,17 @@
+{
+  "schema": "pixelforge.chapter-two-eastern-road.v5.22",
+  "title": "The Legend of More Bounce — Eastern Road / Chapter Two",
+  "status": "playable-chapter-two-human-depth-and-upgrade-review-pending",
+  "requires": ["rhythmCrest", "resonanceSeal", "larrinaChapterOneDialogue"],
+  "acts": [
+    {"id":"eastwind-clue","mode":"overworld","objectives":["meet-mira-reed","locate-glassgrass-pass"]},
+    {"id":"glassgrass-relay","mode":"side-view","objectives":["defeat-three-static-sprites","collect-three-relay-sparks","claim-echo-boots"]},
+    {"id":"high-road","mode":"overworld","objectives":["use-echo-boots-to-reach-signal-mill"]},
+    {"id":"signal-mill","mode":"first-person","objectives":["solve-sun-wind-rune-relay","restore-beacon-lens","complete-chapter-two"]}
+  ],
+  "permanentUpgrade": {"id":"echoBoots","displayName":"Echo Boots","effect":"second-bounce / high-route access","requiredFor":"signal-mill"},
+  "strongerEnemyTier": {"id":"static-sprite","count":3,"hitsPerEnemy":2,"rewardPerEnemy":"relaySpark"},
+  "progressionFlags": ["miraMet","relaySparks:3","echoBoots","beaconLens","eastComplete"],
+  "contentCounts": {"newOverworldRegions":1,"newOverworldNodes":5,"newNamedNpcEncounters":1,"newSideViewRoutes":1,"newStrongerEnemies":3,"newCollectibles":3,"newPermanentUpgrades":1,"newFirstPersonInteriors":1,"newPuzzleSteps":3,"newChapterRewards":1},
+  "claimBoundary": "v5.22 adds a second authored adventure chapter and a permanent movement-upgrade gate. Content depth, upgrade feel, pacing, difficulty, audio/visual quality, replay desire, and commercial value remain human judgments."
+}

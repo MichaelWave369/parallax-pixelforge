@@ -1,0 +1,35 @@
+{
+  "schema": "pixelforge.community-review.v5.5",
+  "slug": "the-legend-of-more-bounce",
+  "title": "The Legend of More Bounce",
+  "cartridge_path": "games\\the-legend-of-more-bounce",
+  "reviewed_at": "2026-10-03T20:46:10.516Z",
+  "passed": true,
+  "checks": {
+    "rights_declared": true,
+    "creator_credits": true,
+    "claim_boundary": true,
+    "mobile_ready": true,
+    "local_first": true,
+    "metadata_present": true,
+    "visual_profile": true,
+    "asset_contract": true
+  },
+  "badges": {
+    "rights": "declared",
+    "credits": "declared",
+    "claims": "bounded",
+    "mobile": "pass",
+    "runtime": "local-first",
+    "visual": "snes-source-pass",
+    "assets": "required-assets-ready"
+  },
+  "evidence": {
+    "rights": "games\\the-legend-of-more-bounce/RIGHTS.md",
+    "credits": "games\\the-legend-of-more-bounce/CREDITS.md",
+    "mobile_receipt": "exports\\qa\\the-legend-of-more-bounce.mobile-readability.v5.4.json",
+    "metadata": "games\\the-legend-of-more-bounce/cartridge.meta.json",
+    "visual_style_receipt": "exports\\style-reviews\\the-legend-of-more-bounce.visual-style.v5.7.json",
+    "asset_profile_receipt": "exports\\asset-reviews\\the-legend-of-more-bounce.asset-profile.v5.8.json"
+  }
+}

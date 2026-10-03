@@ -1,0 +1,48 @@
+{
+  "schema": "pixelforge.legend-save-inventory-audit.v5.24",
+  "status": "machine-save-contract-pass-human-save-menu-inventory-questlog-and-checkpoint-feel-review-pending",
+  "machineEvidence": {
+    "manualSlots": 3,
+    "autosave": true,
+    "networkSync": false,
+    "portableJson": true,
+    "checkpointDefinitions": 14,
+    "sampledCheckpoints": [
+      "bouncehome-start",
+      "bounce-rune",
+      "echo-boots",
+      "stormglass-coast"
+    ],
+    "equipmentSlots": 4,
+    "questChapters": 5,
+    "finalResumeMode": "stormglassCoast",
+    "bossRecords": 4
+  },
+  "blockers": [
+    {
+      "id": "human-save-menu-usability",
+      "label": "Human save-menu usability review"
+    },
+    {
+      "id": "human-checkpoint-placement-feel",
+      "label": "Human checkpoint placement / retry feel review"
+    },
+    {
+      "id": "human-inventory-readability",
+      "label": "Human inventory/equipment readability review"
+    },
+    {
+      "id": "human-quest-log-clarity",
+      "label": "Human quest-log clarity review"
+    },
+    {
+      "id": "commercial-content-depth",
+      "label": "Commercial content depth remains a human judgment"
+    },
+    {
+      "id": "price-worthiness",
+      "label": "$3.69 worthiness remains a human judgment"
+    }
+  ],
+  "privacy": "local browser storage only; no account, cloud sync, analytics, or network telemetry"
+}

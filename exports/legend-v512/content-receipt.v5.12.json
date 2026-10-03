@@ -1,0 +1,36 @@
+{
+  "schema": "pixelforge.legend-content-receipt.v5.12",
+  "generatedAt": "2026-10-03T20:46:14.401Z",
+  "cartridge": "the-legend-of-more-bounce",
+  "status": "snes-content-pass",
+  "requiredFinalArt": {
+    "ready": 8,
+    "total": 8,
+    "pending": 0
+  },
+  "assets": {
+    "hero": {
+      "path": "games/the-legend-of-more-bounce/assets/snes-v512/more-bounce-hero.v0.1.png",
+      "sha256": "0b8ae496533333ac66dab4dfee9fdfbd797f051f1104070bf1d9361d2f276cd7",
+      "dimensions": "736x48",
+      "frames": 23,
+      "frameSize": "32x48",
+      "rights": "original"
+    },
+    "bouncehomeTiles": {
+      "path": "games/the-legend-of-more-bounce/assets/snes-v512/bouncehome-grove-tiles.v0.1.png",
+      "sha256": "34a4f4ad888707edb48253cf15a03af5659c20a78c249ea20630185e30196be3",
+      "dimensions": "128x16",
+      "tileCount": 8,
+      "tileSize": "16x16",
+      "rights": "original"
+    }
+  },
+  "runtime": {
+    "bouncehome": "top-down-real-art",
+    "wobbleWoods": "side-view-layout-art-pending",
+    "transition": "bouncehome-grove -> wobble-woods",
+    "standalonePreview": "exports/runtime/legend-v5.12-snes-content-preview.html"
+  },
+  "boundary": "The v5.12 baseline assets remain present. Later versions may legitimately promote additional art slots; human visual-gold-standard approval remains separate."
+}

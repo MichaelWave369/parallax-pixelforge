@@ -1,0 +1,17 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.27",
+  "id": "splitlight-causeway",
+  "mode": "side-view",
+  "chapter": 5,
+  "contract": {
+    "requires": [
+      "worldBeamAligned"
+    ],
+    "pulseNodes": 3,
+    "outputs": [
+      "pulseNodesPowered"
+    ],
+    "crossViewEffect": "observatory-lenses-powered"
+  },
+  "rightsStatus": "original"
+}

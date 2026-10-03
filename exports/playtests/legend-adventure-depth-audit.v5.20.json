@@ -1,0 +1,49 @@
+{
+  "schema": "pixelforge.adventure-depth-audit.v5.20",
+  "generatedAt": "2026-10-03T20:46:22.246Z",
+  "status": "expanded-adventure-human-commercial-depth-review-pending",
+  "machineEvidence": {
+    "overworldNodes": 6,
+    "sideViewRoutes": 2,
+    "firstPersonInteriors": 2,
+    "namedNpcEncounters": 1,
+    "enemyEncounters": 3,
+    "collectibleShards": 3,
+    "puzzleSteps": 3,
+    "majorQuestItems": 3,
+    "requiredProgressionFlags": 6,
+    "distinctPlayableSceneFamilies": 10,
+    "minimumAuthoredInteractionBeats": 16,
+    "hasNpcClueChain": true,
+    "hasEnemyLoop": true,
+    "hasCollectibleLoop": true,
+    "hasPuzzleLoop": true
+  },
+  "blockers": [
+    {
+      "id": "human-control-feel-review",
+      "reason": "Encounter and traversal feel must be played by a human."
+    },
+    {
+      "id": "human-visual-review",
+      "reason": "SNES visual-gold-standard approval remains human-only."
+    },
+    {
+      "id": "human-audio-review",
+      "reason": "The v5.19 audio pack exists, but mix/composition quality still needs listening review."
+    },
+    {
+      "id": "commercial-content-depth",
+      "reason": "Content counts prove expansion, not sufficient value or satisfying duration."
+    },
+    {
+      "id": "price-worthiness",
+      "reason": "A human must decide whether the finished adventure earns the $3.69 target."
+    },
+    {
+      "id": "store-art-signoff",
+      "reason": "Final storefront presentation requires named human approval."
+    }
+  ],
+  "claimBoundary": "v5.20 expands the playable adventure structure and adds original NPC/enemy/item/environment art. Commercial content depth remains a human judgment and is not automatically approved by these counts."
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "pixelforge.visual-style-review.v5.7",
+  "slug": "the-legend-of-more-bounce",
+  "title": "The Legend of More Bounce",
+  "reviewed_at": "2026-10-03T20:46:09.132Z",
+  "declared_profile": {
+    "visualEra": "16-bit",
+    "styleProfile": "snes-adventure",
+    "presentationTier": "expressive-pixel",
+    "environmentDensity": "layered",
+    "uiProfile": "framed-16bit",
+    "heroSpriteTarget": "32x48"
+  },
+  "passed": true,
+  "status": "source-contract-pass-human-visual-review-pending",
+  "human_visual_signoff": false,
+  "checks": {
+    "visual_profile_declared": true,
+    "expressive_presentation_declared": true,
+    "layered_environment_declared": true,
+    "framed_ui_declared": true,
+    "tile_contract_declared": true,
+    "hero_scale_declared": true,
+    "palette_breadth_source": true,
+    "layered_background_source": true,
+    "framed_ui_source": true,
+    "animation_language_source": true,
+    "rendered_hero_footprint": true,
+    "responsive_mobile_source": true,
+    "reduced_motion_source": true,
+    "gold_standard_identity": true
+  },
+  "measurements": {
+    "unique_hex_colors": 207,
+    "gradient_layers": 23,
+    "pseudo_layers": 19,
+    "keyframes": 3,
+    "scene_depth_markers": 15,
+    "rendered_hero_footprint": "32x48"
+  },
+  "boundary": "Source audit only. This receipt does not claim that the finished art is beautiful, cohesive, original, or commercially ready; human visual review remains authoritative."
+}

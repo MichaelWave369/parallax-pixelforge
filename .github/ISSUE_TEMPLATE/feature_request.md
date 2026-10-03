@@ -1,39 +1,31 @@
 ---
 name: Feature request
-about: Suggest a PixelForge Studio feature, cartridge system improvement, or PocketGames export idea
-title: "Feature: "
+about: Suggest an improvement for PixelForge Studio or the creator workflow
+title: "[Feature]: "
 labels: enhancement
-assignees: ""
 ---
 
-## What should PixelForge do?
+## What do you want to build or improve?
 
-Describe the feature or improvement.
+Describe the feature.
 
-## Who is it for?
+## Who does it help?
 
-- [ ] First-time cartridge creators
-- [ ] Experienced game developers
-- [ ] Artists / writers / musicians
-- [ ] Players
+- [ ] New creators
+- [ ] Cartridge makers
+- [ ] Playtesters
 - [ ] Maintainers
-- [ ] 369 PocketGames export/release flow
+- [ ] 369 PocketGames mobile export
+- [ ] Other
 
-## Why does it matter?
+## Why does it fit PixelForge?
 
-Explain the value in plain language.
+Explain how it helps people make tiny finished games with soul.
 
-## Suggested behavior
+## Smallest useful version
 
-How should it work?
+What is the smallest version that would already be useful?
 
-## Acceptance checklist
+## Boundaries
 
-- [ ] Clear enough for a newcomer to understand
-- [ ] Fits the small cartridge-style game direction
-- [ ] Does not require ads, dark patterns, or predatory monetization
-- [ ] Respects content/license boundaries
-
-## Extra notes
-
-Mockups, examples, links, or related ideas.
+Does this involve networking, accounts, chat, tracking, monetization, app-store publishing, AI generation, or third-party assets?

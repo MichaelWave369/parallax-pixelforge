@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Pixel cartridge</title>
+  <rect x="10" y="8" width="44" height="48" rx="6" fill="#241631" stroke="#f7f0d8" stroke-width="4"/>
+  <rect x="17" y="16" width="30" height="20" rx="3" fill="#61f0ff"/>
+  <path d="M20 44h24v8H20z" fill="#ffd36e"/>
+  <path d="M25 44v8M32 44v8M39 44v8" stroke="#241631" stroke-width="2"/>
+  <circle cx="25" cy="26" r="4" fill="#ff7aa2"/>
+  <path d="M31 29l6-6 5 5" fill="none" stroke="#241631" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

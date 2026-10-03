@@ -1,0 +1,33 @@
+{
+  "schema": "pixelforge.chapter-two-art-receipt.v5.22",
+  "cartridge": "the-legend-of-more-bounce",
+  "rightsStatus": "original",
+  "source": "Original PixelForge pixel art generated locally for v5.22 Eastern Road / Chapter Two",
+  "assets": [
+    {
+      "file": "mira-reed-npc.v0.1.png",
+      "sha256": "6e3720742c285e50a4129faab2b026678252544e572263f23f46b2d79adbed8d"
+    },
+    {
+      "file": "static-sprite-enemy.v0.1.png",
+      "sha256": "5cd8285ee2914b9789f9e46cc22a056bc4e3e2529684b49a5d78f8a896b183d5"
+    },
+    {
+      "file": "chapter-two-items.v0.1.png",
+      "sha256": "7b668b73f2891aba99ba75417914f5c50d015e397a9a206df6ea4a2a5c91cd30"
+    },
+    {
+      "file": "eastwind-road.map.v0.1.png",
+      "sha256": "782c4a134636c2be3b601b0130303a1f6673314d3cbb92688ba2adbed724b4fd"
+    },
+    {
+      "file": "glassgrass-pass.stage.v0.1.png",
+      "sha256": "543d20016399ab7a9a82164eaf78fc676254db92b96df99c0bcc23fbf4f2fb49"
+    },
+    {
+      "file": "signal-mill-room.v0.1.png",
+      "sha256": "7dfa85e0a6e23e85a2fd9bb296314a44d7d8e64d63c7389c4fecf169943fccce"
+    }
+  ],
+  "humanVisualApproval": "pending"
+}

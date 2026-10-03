@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+import fs from 'node:fs';import crypto from 'node:crypto';
+const game='games/the-legend-of-more-bounce', dir=`${game}/assets/audio-v519`, errors=[];
+const manifest=JSON.parse(fs.readFileSync(`${dir}/legend-audio-cues.v0.1.json`,'utf8'));const profile=JSON.parse(fs.readFileSync(`${game}/asset-profile.json`,'utf8'));const slot=profile.slots.find(s=>s.id==='snes-audio-cues');
+for(const c of manifest.cues){const p=`${dir}/${c.file}`;if(!fs.existsSync(p)){errors.push(`missing ${c.id}`);continue}const sha=crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');if(sha!==c.sha256)errors.push(`hash mismatch ${c.id}`)}
+const remaining=[
+ {id:'human-control-feel-review',stage:'gold-standard',reason:'Control quality still requires a human play session.'},
+ {id:'human-visual-review',stage:'gold-standard',reason:'Machine-ready art still requires human aesthetic approval.'},
+ {id:'human-audio-review',stage:'gold-standard',reason:'File integrity cannot prove that the music/SFX sound good or mix well.'},
+ {id:'commercial-content-depth',stage:'retail',reason:'Current cartridge remains a compact vertical slice; sufficient $3.69 depth requires human judgment and likely expansion.'},
+ {id:'price-worthiness',stage:'retail',reason:'No human $3.69 worthiness receipt exists.'},
+ {id:'store-art-signoff',stage:'retail',reason:'Final store-art human approval remains separate.'}
+];
+const out={schema:'pixelforge.gold-standard-audit.v5.19',generated_at:new Date().toISOString(),cartridge:'the-legend-of-more-bounce',status:errors.length?'audio-integration-failed':'audio-ready-human-gold-review-pending',audio:{cueCount:manifest.cues.length,loopingMusicCues:manifest.cues.filter(c=>c.loop).length,sfxCues:manifest.cues.filter(c=>!c.loop).length,profileStatus:slot?.status,format:manifest.format,sampleRate:manifest.sampleRate,errors},machineMedia:{finalArtReady:profile.slots.filter(s=>s.required&&['ready','approved'].includes(s.status)).length,audioReady:slot?.status==='ready'},blockers:remaining,authorityBoundary:'This audit proves audio files, hashes, declarations, and runtime bindings. It cannot prove musical quality, mix quality, fun, beauty, content depth, price worthiness, or store readiness.'};
+fs.mkdirSync('exports/playtests',{recursive:true});fs.writeFileSync('exports/playtests/legend-gold-standard-audit.v5.19.json',JSON.stringify(out,null,2)+'\n');fs.writeFileSync('exports/playtests/legend-gold-standard-audit.v5.19.md',`# Legend Gold Standard Audit v5.19\n\nStatus: **${out.status}**\n\n- Audio cues: ${manifest.cues.length}\n- Looping music: ${out.audio.loopingMusicCues}\n- SFX: ${out.audio.sfxCues}\n- Required final art: ${out.machineMedia.finalArtReady}/8\n- Audio slot: ${out.audio.profileStatus}\n\n## Remaining human gates\n${remaining.map(b=>`- **${b.id}** — ${b.reason}`).join('\n')}\n\n> ${out.authorityBoundary}\n`);if(errors.length){console.error(errors.join('\n'));process.exit(1)}console.log(`Legend v5.19 audio audit passed: ${manifest.cues.length} cues, human Gold review still pending.`);

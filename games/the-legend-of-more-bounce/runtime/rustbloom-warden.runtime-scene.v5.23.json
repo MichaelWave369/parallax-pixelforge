@@ -1,0 +1,24 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.23",
+  "id": "rustbloom-warden",
+  "mode": "boss",
+  "environment": "assets/snes-v523/rustbloom-warden-arena.v0.1.png",
+  "musicCue": "rustbloom-boss",
+  "boss": {
+    "id": "rustbloom-warden",
+    "health": 4,
+    "guardCycles": 4,
+    "guardBreakAbility": "resonanceBracer",
+    "damageAbility": "bounceStrike"
+  },
+  "progression": {
+    "requires": [
+      "resonanceBracer",
+      "orchardSigil"
+    ],
+    "awards": [
+      "ironBlossom",
+      "chapterThreeComplete"
+    ]
+  }
+}

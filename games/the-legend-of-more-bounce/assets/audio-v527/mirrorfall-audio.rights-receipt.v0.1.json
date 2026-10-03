@@ -1,0 +1,31 @@
+{
+  "schema": "pixelforge.audio-rights.v5.27",
+  "rightsStatus": "original",
+  "source": "deterministic-local-synthesis",
+  "files": [
+    {
+      "file": "mirrorfall-basin-theme.v0.1.wav",
+      "sha256": "e18eaa16ab540d92dc2bc4869608f48750e4aa3889de6aeb4c7a29f67365c701"
+    },
+    {
+      "file": "splitlight-causeway-theme.v0.1.wav",
+      "sha256": "10e4cefe9ceba70d221f742363b8eec2ebad96133bdeb17cbded19e996f48e23"
+    },
+    {
+      "file": "triune-observatory-theme.v0.1.wav",
+      "sha256": "0d3465f0bd8350ada5244ecdc341a1679c62e4ef29684a3067b54253404fbd37"
+    },
+    {
+      "file": "blind-angle-theme.v0.1.wav",
+      "sha256": "b4047481fc80e5ee4ae73f59a42fb50dbba5c65b6def160d4b10185e633836b1"
+    },
+    {
+      "file": "view-shift.v0.1.wav",
+      "sha256": "0dc6dfec2868d065d761108df6ebc8fb0ea8322fb02a1377e7da4d14c0986176"
+    },
+    {
+      "file": "convergence-victory.v0.1.wav",
+      "sha256": "ad3bcdadf86fccd6832d87b2ee3473f6ce572573a6161e5a09b6b21c9904a2d7"
+    }
+  ]
+}

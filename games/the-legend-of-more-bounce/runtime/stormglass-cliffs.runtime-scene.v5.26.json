@@ -1,0 +1,20 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.26",
+  "id": "stormglass-cliffs",
+  "mode": "side-view",
+  "environment": "assets/snes-v526/stormglass-cliffs.stage.v0.1.png",
+  "musicCue": "stormglass-cliffs",
+  "movement": {
+    "requires": "galeMantle",
+    "ability": "midair-dash",
+    "dashGaps": 3
+  },
+  "progression": {
+    "requires": [
+      "galeMantle"
+    ],
+    "awards": [
+      "pressurePrism"
+    ]
+  }
+}

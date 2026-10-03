@@ -1,0 +1,14 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.27",
+  "id": "mirrorfall-basin",
+  "mode": "top-down",
+  "chapter": 5,
+  "contract": {
+    "prismPylons": 3,
+    "outputs": [
+      "worldBeamAligned"
+    ],
+    "crossViewEffect": "reflected-platforms"
+  },
+  "rightsStatus": "original"
+}

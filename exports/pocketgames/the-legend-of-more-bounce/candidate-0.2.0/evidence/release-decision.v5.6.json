@@ -1,0 +1,130 @@
+{
+  "schema": "pixelforge.pocketgame-release-decision.v5.6",
+  "generated_at": "2026-10-03T20:46:11.064Z",
+  "manifest": "pocketgames/the_legend_of_more_bounce.pocketgame.json",
+  "slug": "the-legend-of-more-bounce",
+  "title": "The Legend of More Bounce",
+  "target_price_usd": "3.69",
+  "production_candidate": true,
+  "retail_release_ready": false,
+  "status": "production-candidate-human-signoff-pending",
+  "checks": [
+    {
+      "id": "rights-and-credits",
+      "label": "Rights and creator credits declared",
+      "requiredForProductionCandidate": true,
+      "passed": true,
+      "evidence": [
+        "games/the-legend-of-more-bounce/RIGHTS.md",
+        "games/the-legend-of-more-bounce/CREDITS.md",
+        "exports/qa/the-legend-of-more-bounce.rights-declaration.v5.6.json"
+      ]
+    },
+    {
+      "id": "community-review",
+      "label": "v5.5 community review passed",
+      "requiredForProductionCandidate": true,
+      "passed": true,
+      "evidence": [
+        "exports/reviews/the-legend-of-more-bounce.community-review.v5.5.json"
+      ]
+    },
+    {
+      "id": "mobile-readability",
+      "label": "Mobile readability passed with zero errors",
+      "requiredForProductionCandidate": true,
+      "passed": true,
+      "evidence": [
+        "exports/qa/the-legend-of-more-bounce.mobile-readability.v5.4.json"
+      ]
+    },
+    {
+      "id": "browser-playthrough",
+      "label": "Automated browser proof reached a passing state with zero page errors",
+      "requiredForProductionCandidate": true,
+      "passed": true,
+      "evidence": [
+        "community/playtests/the-legend-of-more-bounce.automated-browser-proof.v5.5.json"
+      ]
+    },
+    {
+      "id": "offline-playable",
+      "label": "Standalone offline playable exists",
+      "requiredForProductionCandidate": true,
+      "passed": true,
+      "evidence": [
+        "exports/playable/the-legend-of-more-bounce-v0.1.html"
+      ]
+    },
+    {
+      "id": "four-screenshots",
+      "label": "At least four production screenshots exist",
+      "requiredForProductionCandidate": true,
+      "passed": true,
+      "evidence": [
+        "exports/playable/screenshots/01-overworld.png",
+        "exports/playable/screenshots/02-side-view.png",
+        "exports/playable/screenshots/03-first-person.png",
+        "exports/playable/screenshots/04-ending.png"
+      ]
+    },
+    {
+      "id": "asset-contract",
+      "label": "SNES asset contract is complete and audited",
+      "requiredForProductionCandidate": true,
+      "passed": true,
+      "evidence": [
+        "games/the-legend-of-more-bounce/asset-profile.json",
+        "exports/asset-reviews/the-legend-of-more-bounce.asset-profile.v5.8.json"
+      ]
+    },
+    {
+      "id": "required-asset-content",
+      "label": "Every required final asset slot is ready",
+      "requiredForProductionCandidate": false,
+      "requiredForRetailRelease": true,
+      "passed": true,
+      "evidence": [
+        "exports/asset-reviews/the-legend-of-more-bounce.asset-profile.v5.8.json"
+      ]
+    },
+    {
+      "id": "clean-monetization-boundary",
+      "label": "369 paid-once monetization boundary is intact",
+      "requiredForProductionCandidate": true,
+      "passed": true,
+      "evidence": [
+        "pocketgames/the_legend_of_more_bounce.pocketgame.json"
+      ]
+    },
+    {
+      "id": "human-price-worthiness",
+      "label": "$3.69 human worthiness signoff",
+      "requiredForProductionCandidate": false,
+      "requiredForRetailRelease": true,
+      "passed": false,
+      "evidence": []
+    },
+    {
+      "id": "final-store-art",
+      "label": "Final store art human approval",
+      "requiredForProductionCandidate": false,
+      "requiredForRetailRelease": true,
+      "passed": false,
+      "evidence": []
+    }
+  ],
+  "blockers": [
+    {
+      "id": "human-price-worthiness",
+      "label": "$3.69 human worthiness signoff",
+      "stage": "retail-release"
+    },
+    {
+      "id": "final-store-art",
+      "label": "Final store art human approval",
+      "stage": "retail-release"
+    }
+  ],
+  "authority_boundary": "Automated evidence may promote to production candidate after the asset contract passes. Paid public retail release additionally requires all required final asset slots ready, explicit human price-worthiness, and final store-art approval."
+}

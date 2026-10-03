@@ -1,0 +1,135 @@
+:root {
+  color-scheme: dark;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: #111;
+  color: #f7f0d8;
+  font-size: 16px;
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; }
+body { margin: 0; min-width: 320px; }
+button { font: inherit; }
+
+.screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding:
+    max(18px, env(safe-area-inset-top))
+    max(18px, env(safe-area-inset-right))
+    max(18px, env(safe-area-inset-bottom))
+    max(18px, env(safe-area-inset-left));
+  background:
+    radial-gradient(circle at 20% 0%, rgba(97, 240, 255, 0.14), transparent 34%),
+    radial-gradient(circle at 80% 12%, rgba(255, 122, 162, 0.12), transparent 30%),
+    linear-gradient(135deg, #171717, #241631 55%, #13131d);
+}
+
+.cartridge-shell {
+  width: min(720px, 100%);
+  display: grid;
+  gap: 16px;
+}
+
+.cartridge-header,
+.story-card,
+.creator-tip,
+.cartridge-footer {
+  border: 2px solid rgba(247, 240, 216, 0.92);
+  background: rgba(10, 9, 15, 0.78);
+  box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.38);
+}
+
+.cartridge-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 16px;
+}
+
+.brand-line { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand-line img { width: 42px; height: 42px; flex: 0 0 auto; }
+.eyebrow {
+  margin: 0 0 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.72;
+  font-size: 0.75rem;
+}
+.game-title { margin: 0; font-weight: 800; overflow-wrap: anywhere; }
+
+.progress { display: flex; gap: 7px; flex: 0 0 auto; }
+.dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #f7f0d8; opacity: 0.42; }
+.dot.active { background: #ffd36e; opacity: 1; box-shadow: 0 0 0 3px rgba(255, 211, 110, 0.16); }
+
+.story-card {
+  border-width: 3px;
+  border-radius: 20px;
+  padding: clamp(22px, 5vw, 36px);
+}
+.scene-label { margin: 0 0 10px; color: #61f0ff; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.12em; }
+h1 { margin: 0; font-size: clamp(1.8rem, 7vw, 3.1rem); line-height: 1.04; text-wrap: balance; }
+.story-copy { margin: 18px 0 0; max-width: 66ch; font-size: clamp(1rem, 2.7vw, 1.12rem); line-height: 1.68; color: rgba(247, 240, 216, 0.9); }
+
+.actions { display: grid; gap: 12px; margin-top: 28px; }
+.action-button {
+  min-height: 52px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 2px solid #f7f0d8;
+  border-radius: 13px;
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.02);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+.action-button:hover { background: rgba(97, 240, 255, 0.09); border-color: #61f0ff; transform: translateY(-1px); }
+.action-button:focus-visible { outline: 4px solid #ffd36e; outline-offset: 3px; }
+
+.creator-tip {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  padding: 15px 16px;
+  border-radius: 15px;
+  border-color: rgba(255, 211, 110, 0.72);
+}
+.creator-tip img { width: 34px; height: 34px; flex: 0 0 auto; }
+.creator-tip strong { color: #ffd36e; }
+.creator-tip p { margin: 4px 0 0; line-height: 1.5; color: rgba(247, 240, 216, 0.82); }
+
+.cartridge-footer {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.cartridge-footer span { padding: 10px 6px; background: rgba(255, 255, 255, 0.035); }
+
+.capture-mode { min-height: 100vh; }
+.capture-mode .cartridge-shell { width: min(760px, 100%); }
+
+@media (max-width: 560px) {
+  .screen { place-items: start center; }
+  .cartridge-header { align-items: flex-start; }
+  .brand-line img { width: 36px; height: 36px; }
+  .cartridge-footer { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .action-button { min-height: 56px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "pixelforge.legend-stormglass-coast-audit.v5.26",
+  "status": "machine-chapter-four-contract-pass-human-air-dash-cliff-readability-puzzle-boss-pacing-and-commercial-depth-review-pending",
+  "machineEvidence": {
+    "chapter": 4,
+    "newRegion": "Stormglass Coast",
+    "namedNpc": "Sable Current",
+    "collectibles": 3,
+    "permanentUpgrade": "Gale Mantle",
+    "upgradeMechanic": "midair-dash",
+    "requiredDashGaps": 3,
+    "firstPersonPuzzleSteps": 4,
+    "boss": "The Undertow Bell",
+    "bossHealth": 5,
+    "bossRequiredAbility": "galeMantle",
+    "chapterReward": "Stormglass Compass",
+    "travelLandmarks": 5,
+    "audioCues": 6,
+    "minimumAuthoredInteractionBeats": 24,
+    "saveSchema": "pixelforge.legend-save.v5.26",
+    "saveSchemaVersion": 3,
+    "legacySaveSchemas": [
+      "pixelforge.legend-save.v5.24",
+      "pixelforge.legend-save.v5.25"
+    ],
+    "networkSync": false
+  },
+  "blockers": [
+    {
+      "id": "human-air-dash-feel",
+      "label": "Human Gale Mantle / air-dash feel review"
+    },
+    {
+      "id": "human-cliff-readability",
+      "label": "Human Stormglass Cliffs readability / gap telegraphing review"
+    },
+    {
+      "id": "human-tide-puzzle-clarity",
+      "label": "Human Tide Engine puzzle clarity review"
+    },
+    {
+      "id": "human-undertow-boss-fairness",
+      "label": "Human Undertow Bell timing / fairness review"
+    },
+    {
+      "id": "human-chapter-four-pacing",
+      "label": "Human Chapter Four pacing review"
+    },
+    {
+      "id": "commercial-content-depth",
+      "label": "Commercial content depth remains a human judgment"
+    },
+    {
+      "id": "price-worthiness",
+      "label": "$3.69 worthiness remains a human judgment"
+    }
+  ],
+  "privacy": "Chapter Four progress, saves and travel state remain local-only; no network telemetry or cloud sync."
+}

@@ -1,0 +1,34 @@
+{
+  "schema": "pixelforge.legend-content-receipt.v5.17",
+  "generatedAt": "2026-10-03T20:46:18.533Z",
+  "cartridge": "the-legend-of-more-bounce",
+  "status": "all-required-machine-art-ready",
+  "requiredFinalArt": {
+    "ready": 8,
+    "total": 8,
+    "pending": 0
+  },
+  "assets": {
+    "effects": {
+      "path": "games/the-legend-of-more-bounce/assets/snes-v517/bounce-effects.v0.1.png",
+      "sha256": "f63a5f315f649e524db46b419f0d7e4776fea845f11c6afb8aeef21b3841d025",
+      "dimensions": "640x32",
+      "frameSize": "32x32",
+      "frames": 20,
+      "states": {
+        "bounce-impact": 4,
+        "rune-pickup": 4,
+        "gate-open": 5,
+        "sparkle": 4,
+        "hit": 3
+      },
+      "rights": "original"
+    }
+  },
+  "runtime": {
+    "wobble": "all-five-effects-trigger-bound",
+    "tower": "sparkle-and-transition-effects-bound",
+    "standalonePreview": "exports/runtime/legend-v5.17-bounce-effects-preview.html"
+  },
+  "boundary": "All eight required final-art roles are machine-ready. Human visual-gold-standard approval, fun/value playtest, store-art signoff, and physical-device QA remain separate gates."
+}

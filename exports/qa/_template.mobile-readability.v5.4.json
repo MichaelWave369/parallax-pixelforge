@@ -1,0 +1,58 @@
+{
+  "schema": "pixelforge.mobile-readability.v5.4",
+  "target": "games\\_template",
+  "checked_at": "2026-10-03T20:46:08.318Z",
+  "passed": true,
+  "error_count": 0,
+  "warning_count": 0,
+  "checks": [
+    {
+      "id": "viewport-meta",
+      "ok": true,
+      "severity": "error",
+      "detail": "index.html declares a responsive viewport."
+    },
+    {
+      "id": "touch-target",
+      "ok": true,
+      "severity": "error",
+      "detail": "CSS contains a minimum touch target of at least 44px."
+    },
+    {
+      "id": "responsive-width",
+      "ok": true,
+      "severity": "error",
+      "detail": "CSS contains a responsive width/max-width rule."
+    },
+    {
+      "id": "small-screen-media",
+      "ok": true,
+      "severity": "warning",
+      "detail": "CSS includes a small-screen media query."
+    },
+    {
+      "id": "focus-visible",
+      "ok": true,
+      "severity": "warning",
+      "detail": "CSS includes visible keyboard focus styling."
+    },
+    {
+      "id": "reduced-motion",
+      "ok": true,
+      "severity": "warning",
+      "detail": "CSS respects reduced-motion preference."
+    },
+    {
+      "id": "safe-area",
+      "ok": true,
+      "severity": "warning",
+      "detail": "CSS accounts for phone safe areas."
+    },
+    {
+      "id": "readable-line-length",
+      "ok": true,
+      "severity": "warning",
+      "detail": "Primary content width is bounded for readable line length."
+    }
+  ]
+}

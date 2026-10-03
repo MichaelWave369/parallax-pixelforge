@@ -1,0 +1,13 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.20",
+  "sceneId": "beat-shrine",
+  "mode": "first-person",
+  "status": "playable-expansion",
+  "puzzle": {"sequence":["moon","rune","bounce"],"wrongInput":"reset-sequence","reward":"rhythmCrest"},
+  "progression": {"requires":["bounceRune","echoShards:3"],"awards":"rhythmCrest","nextScene":"bouncehome-grove"},
+  "artBindings": {
+    "room":"../assets/snes-v520/beat-shrine-room.v0.1.png",
+    "itemAtlas":"../assets/snes-v520/adventure-items.v0.1.png",
+    "uiFrame":"../assets/snes-v516/shared-ui-dialogue-frame.v0.1.png"
+  }
+}

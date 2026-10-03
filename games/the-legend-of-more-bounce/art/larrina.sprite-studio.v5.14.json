@@ -1,0 +1,70 @@
+{
+  "schema": "pixelforge.sprite-studio.seed.v5.14",
+  "name": "Princess Larrina",
+  "canvas": {
+    "width": 32,
+    "height": 48
+  },
+  "fps": 6,
+  "states": {
+    "idle": {
+      "frames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "loop": true
+    },
+    "talk": {
+      "frames": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "loop": true
+    },
+    "blink": {
+      "frames": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "loop": true
+    },
+    "smile": {
+      "frames": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "loop": true
+    },
+    "concern": {
+      "frames": [
+        16,
+        17,
+        18,
+        19
+      ],
+      "loop": false
+    },
+    "celebrate": {
+      "frames": [
+        20,
+        21,
+        22,
+        23
+      ],
+      "loop": true
+    }
+  },
+  "frameCount": 24,
+  "sourceAsset": "assets/snes-v514/larrina-character.v0.1.png",
+  "paletteId": "pf-tower-interior-v1",
+  "rightsStatus": "original",
+  "artStatus": "ready"
+}

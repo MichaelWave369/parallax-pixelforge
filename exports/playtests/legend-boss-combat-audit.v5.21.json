@@ -1,0 +1,48 @@
+{
+  "schema": "pixelforge.boss-combat-audit.v5.21",
+  "generatedAt": "2026-10-03T20:46:24.074Z",
+  "status": "boss-loop-machine-pass-human-combat-review-pending",
+  "machineEvidence": {
+    "bossHealth": 6,
+    "playerHearts": 4,
+    "beatStepMs": 700,
+    "beatCycleMs": 2800,
+    "vulnerabilityDutyCycle": 0.25,
+    "vulnerabilityWindowMs": 700,
+    "minimumApproachInputs": 5,
+    "minimumPerfectBossSeconds": 16.8,
+    "bossSpecificReward": true,
+    "bossSpecificMusic": true
+  },
+  "blockers": [
+    {
+      "id": "human-combat-feel-review",
+      "reason": "A human must judge whether timing, movement, recovery and hit feedback feel satisfying."
+    },
+    {
+      "id": "human-boss-difficulty-review",
+      "reason": "A machine can prove the window exists, not that six hits and four hearts create fair difficulty."
+    },
+    {
+      "id": "human-boss-visual-review",
+      "reason": "Boss readability and memorability remain aesthetic judgments."
+    },
+    {
+      "id": "human-boss-audio-review",
+      "reason": "Boss music and SFX integrity can be verified, but musical quality/mix require listening."
+    },
+    {
+      "id": "commercial-content-depth",
+      "reason": "Adding a boss materially expands the adventure but does not prove $3.69 value."
+    },
+    {
+      "id": "price-worthiness",
+      "reason": "Price worthiness remains a named human signoff."
+    },
+    {
+      "id": "store-art-signoff",
+      "reason": "Final storefront art approval remains separate."
+    }
+  ],
+  "authorityBoundary": "v5.21 proves a playable timing-gated boss loop, boss reward, and progression binding. Difficulty, fairness, readability, fun, memorability, musical quality, and commercial value remain human judgments."
+}

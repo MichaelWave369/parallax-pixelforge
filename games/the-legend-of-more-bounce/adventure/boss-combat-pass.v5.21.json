@@ -1,0 +1,35 @@
+{
+  "schema": "pixelforge.boss-combat-pass.v5.21",
+  "title": "The Legend of More Bounce — The Flat Note Boss + Combat Pass",
+  "status": "playable-boss-human-combat-review-pending",
+  "boss": {
+    "id": "the-flat-note",
+    "displayName": "The Flat Note",
+    "mode": "side-view-rhythm-boss",
+    "health": 6,
+    "playerHearts": 4,
+    "beatCycleMs": 2800,
+    "beatStepMs": 700,
+    "vulnerableBeat": 0,
+    "vulnerabilityDutyCycle": 0.25,
+    "attack": "bounce-strike",
+    "offBeatPenalty": "lose-heart",
+    "defeatReward": "resonanceSeal"
+  },
+  "progression": {
+    "requires": ["rhythmCrest"],
+    "awards": ["resonanceSeal", "bossDefeated"],
+    "towerRequires": ["rhythmCrest", "resonanceSeal"]
+  },
+  "combatExpansion": {
+    "namedBossEncounters": 1,
+    "bossPhases": 1,
+    "bossHitRequirement": 6,
+    "timedVulnerability": true,
+    "playerHealthState": true,
+    "bossSpecificReward": true,
+    "bossSpecificMusic": true,
+    "bossSpecificSfx": 2
+  },
+  "claimBoundary": "v5.21 proves a playable timing-gated boss loop, boss reward, and progression binding. Difficulty, fairness, readability, fun, memorability, musical quality, and commercial value remain human judgments."
+}

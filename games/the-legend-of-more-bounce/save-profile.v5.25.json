@@ -1,0 +1,16 @@
+{
+  "schema": "pixelforge.legend-save-profile.v5.25",
+  "game": "the-legend-of-more-bounce",
+  "saveSchema": "pixelforge.legend-save.v5.25",
+  "schemaVersion": 2,
+  "manualSlots": 3,
+  "autosave": true,
+  "storage": "local-browser-first",
+  "networkSync": false,
+  "resumePolicy": "safe-checkpoint",
+  "portableJson": true,
+  "migrationPolicy": "accept-v5.24-and-add-travel-network-defaults",
+  "records": ["progress","inventory","equipment","questLog","discoveredLocations","travelNetwork","bossRecords","checkpoint","playtimeSeconds"],
+  "travelNetwork": {"schema":"pixelforge.legend-travel.v5.25","startingActivatedLandmarks":["bouncehome-shrine"],"fastTravel":"activated-landmarks-only"},
+  "humanBoundaries": ["save-menu-usability","checkpoint-placement-feel","world-map-readability","fast-travel-balance"]
+}

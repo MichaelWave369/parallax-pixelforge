@@ -1,0 +1,52 @@
+{
+  "schema": "pixelforge.gold-standard-audit.v5.19",
+  "generated_at": "2026-10-03T20:46:21.109Z",
+  "cartridge": "the-legend-of-more-bounce",
+  "status": "audio-ready-human-gold-review-pending",
+  "audio": {
+    "cueCount": 10,
+    "loopingMusicCues": 4,
+    "sfxCues": 6,
+    "profileStatus": "ready",
+    "format": "PCM16 WAV",
+    "sampleRate": 22050,
+    "errors": []
+  },
+  "machineMedia": {
+    "finalArtReady": 8,
+    "audioReady": true
+  },
+  "blockers": [
+    {
+      "id": "human-control-feel-review",
+      "stage": "gold-standard",
+      "reason": "Control quality still requires a human play session."
+    },
+    {
+      "id": "human-visual-review",
+      "stage": "gold-standard",
+      "reason": "Machine-ready art still requires human aesthetic approval."
+    },
+    {
+      "id": "human-audio-review",
+      "stage": "gold-standard",
+      "reason": "File integrity cannot prove that the music/SFX sound good or mix well."
+    },
+    {
+      "id": "commercial-content-depth",
+      "stage": "retail",
+      "reason": "Current cartridge remains a compact vertical slice; sufficient $3.69 depth requires human judgment and likely expansion."
+    },
+    {
+      "id": "price-worthiness",
+      "stage": "retail",
+      "reason": "No human $3.69 worthiness receipt exists."
+    },
+    {
+      "id": "store-art-signoff",
+      "stage": "retail",
+      "reason": "Final store-art human approval remains separate."
+    }
+  ],
+  "authorityBoundary": "This audit proves audio files, hashes, declarations, and runtime bindings. It cannot prove musical quality, mix quality, fun, beauty, content depth, price worthiness, or store readiness."
+}

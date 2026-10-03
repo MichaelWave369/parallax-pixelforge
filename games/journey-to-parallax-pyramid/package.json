@@ -1,0 +1,25 @@
+{
+  "name": "journey-to-parallax-pyramid-demo-cartridge",
+  "version": "0.1.0-public-demo-candidate",
+  "private": true,
+  "type": "module",
+  "description": "Journey to the Parallax Pyramid — a bundled React/Vite demo cartridge for Parallax PixelForge.",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "lucide-react": "latest"
+  },
+  "devDependencies": {
+    "tailwindcss": "latest",
+    "postcss": "latest",
+    "autoprefixer": "latest"
+  },
+  "license": "MIT"
+}

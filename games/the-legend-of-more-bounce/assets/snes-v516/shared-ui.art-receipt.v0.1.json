@@ -1,0 +1,50 @@
+{
+  "schema": "pixelforge.art-receipt.v1",
+  "assetSlotId": "shared-ui-frames",
+  "status": "original-art-generated",
+  "rightsStatus": "original",
+  "paletteId": "pf-ui-frame-v1",
+  "files": [
+    {
+      "file": "shared-ui-dialogue-frame.v0.1.png",
+      "sha256": "8a4cbb23e614203f5b85f9063e4ed0d2ff6e7fc74e96e02dcf03ee23c86cd09f",
+      "bytes": 450
+    },
+    {
+      "file": "shared-ui-frames.v0.1.png",
+      "sha256": "49bf57ba1f979030b67e12c7e829dc79716dc8edf36b9124b609b6494894f7f2",
+      "bytes": 2069
+    },
+    {
+      "file": "shared-ui-hud-frame.v0.1.png",
+      "sha256": "e8fbdd0baed913ef88b1df5c778049d87fc4f0d1b7bcc116881ae53d8d234ca0",
+      "bytes": 466
+    },
+    {
+      "file": "shared-ui-inventory-slot.v0.1.png",
+      "sha256": "d2483bd9092e9b31f5e812e4a7169b9c6f1b2b99b61f3361ad57f559d8d2fea0",
+      "bytes": 143
+    },
+    {
+      "file": "shared-ui-menu-frame.v0.1.png",
+      "sha256": "e83164257f72ff38154353234ed323f486b7cb17e5516fbc5ea107cb3a1f5af3",
+      "bytes": 460
+    },
+    {
+      "file": "shared-ui-rune-chip.v0.1.png",
+      "sha256": "ee077e084a1de19984fc160c10569b0f38158c5a150a10e6be7de38957deb181",
+      "bytes": 616
+    },
+    {
+      "file": "shared-ui-status-frame.v0.1.png",
+      "sha256": "a401bc28e9a5a7ab244874b72f8bbbdfb006f65de1aaaa540ec386590081bec2",
+      "bytes": 457
+    },
+    {
+      "file": "shared-ui-transition-card.v0.1.png",
+      "sha256": "31e7e20db06d63a413e7f5ce748c1f9eb4eed96fdff8abae759c20f07d210506",
+      "bytes": 548
+    }
+  ],
+  "notes": "Original PixelForge SNES-style reusable UI kit: dialogue/menu/status nine-slice frames, HUD, rune counter, transition card, inventory slot, icon atlas."
+}

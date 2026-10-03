@@ -1,0 +1,222 @@
+{
+  "schema": "pixelforge.asset-catalog.v5.8",
+  "generated_at": "2026-10-03T20:46:09.960Z",
+  "pack": {
+    "schema": "pixelforge.asset-pack.v1",
+    "id": "pf-snes-house-foundation-v1",
+    "name": "PixelForge SNES House Foundation",
+    "version": "1.0.0",
+    "visualEra": "16-bit",
+    "styleProfile": "snes-adventure",
+    "status": "contract-ready-art-slots-open",
+    "purpose": "Reusable contracts, palettes, frame targets, and rights boundaries for expressive 16-bit PixelForge cartridges.",
+    "defaultTileSize": 16,
+    "defaultHeroFrame": "32x48",
+    "acceptedImageFormats": [
+      "png",
+      "webp",
+      "svg"
+    ],
+    "palettes": [
+      "pf-overworld-grove-v1",
+      "pf-wobble-woods-v1",
+      "pf-tower-interior-v1",
+      "pf-ui-frame-v1"
+    ],
+    "slotTypes": [
+      {
+        "id": "hero-spritesheet",
+        "requiredFields": [
+          "frameSize",
+          "states",
+          "paletteId",
+          "rightsStatus"
+        ],
+        "recommendedFrameSize": "32x48"
+      },
+      {
+        "id": "npc-spritesheet",
+        "requiredFields": [
+          "frameSize",
+          "states",
+          "paletteId",
+          "rightsStatus"
+        ],
+        "recommendedFrameSize": "32x48"
+      },
+      {
+        "id": "tileset",
+        "requiredFields": [
+          "tileSize",
+          "regions",
+          "paletteId",
+          "rightsStatus"
+        ],
+        "recommendedTileSize": 16
+      },
+      {
+        "id": "interior-kit",
+        "requiredFields": [
+          "tileSize",
+          "regions",
+          "paletteId",
+          "rightsStatus"
+        ],
+        "recommendedTileSize": 16
+      },
+      {
+        "id": "ui-frame-kit",
+        "requiredFields": [
+          "nineSlice",
+          "paletteId",
+          "rightsStatus"
+        ]
+      },
+      {
+        "id": "effects-sheet",
+        "requiredFields": [
+          "frameSize",
+          "states",
+          "paletteId",
+          "rightsStatus"
+        ]
+      },
+      {
+        "id": "portrait-set",
+        "requiredFields": [
+          "frameSize",
+          "states",
+          "paletteId",
+          "rightsStatus"
+        ]
+      },
+      {
+        "id": "audio-cue-pack",
+        "requiredFields": [
+          "cueIds",
+          "rightsStatus"
+        ]
+      }
+    ],
+    "authorityBoundary": "The pack defines structure and house direction. It does not claim that missing artwork exists or that automated checks can certify beauty, originality, licensing, or commercial quality."
+  },
+  "palettes": [
+    {
+      "schema": "pixelforge.palette.v1",
+      "id": "pf-overworld-grove-v1",
+      "name": "Bouncehome Grove",
+      "purpose": "Top-down overworld nature and path palette",
+      "colors": [
+        "#100d1a",
+        "#fff0c4",
+        "#ffd76c",
+        "#62efff",
+        "#123522",
+        "#237348",
+        "#55a75f",
+        "#8cc99b",
+        "#c7d87b",
+        "#6b4d2f",
+        "#a87943",
+        "#d7bd7a",
+        "#20265a",
+        "#555ca0",
+        "#d17b8f",
+        "#f2b6a0"
+      ],
+      "colorCount": 16,
+      "rights": "Original PixelForge house palette definitions; color values alone are not claimed as exclusive creative property."
+    },
+    {
+      "schema": "pixelforge.palette.v1",
+      "id": "pf-tower-interior-v1",
+      "name": "Larrina Tower",
+      "purpose": "Warm first-person interior, wood, stone, moonlight, and character accents",
+      "colors": [
+        "#080a12",
+        "#111323",
+        "#171329",
+        "#211832",
+        "#30203b",
+        "#4a354e",
+        "#553528",
+        "#714737",
+        "#6d3e7d",
+        "#834a98",
+        "#b56e82",
+        "#d17b8f",
+        "#dfaa82",
+        "#ffefb0",
+        "#ffd76c",
+        "#62efff"
+      ],
+      "colorCount": 16,
+      "rights": "Original PixelForge house palette definitions; color values alone are not claimed as exclusive creative property."
+    },
+    {
+      "schema": "pixelforge.palette.v1",
+      "id": "pf-ui-frame-v1",
+      "name": "PixelForge Framed UI",
+      "purpose": "Shared SNES-style UI frames, text, highlight, danger, and inactive states",
+      "colors": [
+        "#02030a",
+        "#080a12",
+        "#0d0f1b",
+        "#111421",
+        "#17172a",
+        "#302947",
+        "#47485c",
+        "#7e7b8a",
+        "#c9c4b5",
+        "#fff0c4",
+        "#ffd76c",
+        "#62efff",
+        "#d17b8f",
+        "#89dba1",
+        "#40254c",
+        "#6f458a"
+      ],
+      "colorCount": 16,
+      "rights": "Original PixelForge house palette definitions; color values alone are not claimed as exclusive creative property."
+    },
+    {
+      "schema": "pixelforge.palette.v1",
+      "id": "pf-wobble-woods-v1",
+      "name": "Wobble Woods",
+      "purpose": "Side-view forest depth, mist, ruins, and magic",
+      "colors": [
+        "#0b1110",
+        "#153a2e",
+        "#184c31",
+        "#255f39",
+        "#37663d",
+        "#2b5c42",
+        "#3f5870",
+        "#24275d",
+        "#6e5c8f",
+        "#9bc85e",
+        "#b9d6d0",
+        "#62efff",
+        "#ffd76c",
+        "#7b8579",
+        "#d9d0b0",
+        "#e990a5"
+      ],
+      "colorCount": 16,
+      "rights": "Original PixelForge house palette definitions; color values alone are not claimed as exclusive creative property."
+    }
+  ],
+  "cartridges": [
+    {
+      "slug": "the-legend-of-more-bounce",
+      "title": "The Legend of More Bounce",
+      "status": "all-required-final-art-and-audio-ready-human-review-pending",
+      "packId": "pf-snes-house-foundation-v1",
+      "required_slots": 8,
+      "required_ready": 8,
+      "required_pending": 0,
+      "profile_path": "games\\the-legend-of-more-bounce\\asset-profile.json"
+    }
+  ],
+  "boundary": "Catalog indexes contracts and declared readiness. It does not generate or certify finished art."
+}

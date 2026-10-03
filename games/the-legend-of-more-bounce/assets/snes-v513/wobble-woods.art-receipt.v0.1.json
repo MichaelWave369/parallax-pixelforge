@@ -1,0 +1,34 @@
+{
+  "schema": "pixelforge.wobble-art-receipt.v5.13",
+  "status": "original-art-generated",
+  "rightsStatus": "original",
+  "tiles": {
+    "path": "assets/snes-v513/wobble-woods-tiles.v0.1.png",
+    "tileSize": 16,
+    "tileCount": 16,
+    "sha256": "fc28d6230620aa5f01f29e423fe23460ccf902029777e272f64e94814e0f59c0"
+  },
+  "layers": [
+    {
+      "path": "assets/snes-v513/wobble-woods-layer-far.v0.1.png",
+      "sha256": "564c492440ea43ad6c3fc9f3a6454b8ebe226824297816eea38e6a6b8a3db0cd",
+      "dimensions": "672x180"
+    },
+    {
+      "path": "assets/snes-v513/wobble-woods-layer-mist.v0.1.png",
+      "sha256": "3522e262fd472a23b0a2091c2d010c6975365a894a0ee5359c3bb08f518e4f8d",
+      "dimensions": "672x180"
+    },
+    {
+      "path": "assets/snes-v513/wobble-woods-layer-near.v0.1.png",
+      "sha256": "e98d9c47ae8516b8a09a419c10cca8d048bfdc332e971bbca063fb5ff9b79d87",
+      "dimensions": "672x180"
+    },
+    {
+      "path": "assets/snes-v513/wobble-woods-layer-foreground.v0.1.png",
+      "sha256": "b6b6801decc03a8ba945e50ab14643e5389611e84e6ba5b8d684b8c94ae7e4a5",
+      "dimensions": "672x180"
+    }
+  ],
+  "boundary": "Original repository pixel art exists for Wobble Woods. Human visual review remains pending."
+}

@@ -1,0 +1,35 @@
+{
+  "schema": "pixelforge.community-review.v5.5",
+  "slug": "journey-to-parallax-pyramid",
+  "title": "Journey to the Parallax Pyramid",
+  "cartridge_path": "games\\journey-to-parallax-pyramid",
+  "reviewed_at": "2026-10-03T20:46:10.241Z",
+  "passed": true,
+  "checks": {
+    "rights_declared": true,
+    "creator_credits": true,
+    "claim_boundary": true,
+    "mobile_ready": true,
+    "local_first": true,
+    "metadata_present": true,
+    "visual_profile": true,
+    "asset_contract": true
+  },
+  "badges": {
+    "rights": "declared",
+    "credits": "declared",
+    "claims": "bounded",
+    "mobile": "pass",
+    "runtime": "local-first",
+    "visual": "lane-not-required",
+    "assets": "lane-not-required"
+  },
+  "evidence": {
+    "rights": "games\\journey-to-parallax-pyramid/RIGHTS.md",
+    "credits": "games\\journey-to-parallax-pyramid/CREDITS.md",
+    "mobile_receipt": "exports\\qa\\journey-to-parallax-pyramid.mobile-readability.v5.4.json",
+    "metadata": "games\\journey-to-parallax-pyramid/cartridge.meta.json",
+    "visual_style_receipt": null,
+    "asset_profile_receipt": null
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "schema": "pixelforge.legend-save-profile.v5.26",
+  "game": "the-legend-of-more-bounce",
+  "saveSchema": "pixelforge.legend-save.v5.26",
+  "schemaVersion": 3,
+  "manualSlots": 3,
+  "autosave": true,
+  "storage": "local-browser-first",
+  "networkSync": false,
+  "resumePolicy": "safe-checkpoint",
+  "portableJson": true,
+  "migrationPolicy": "accept-v5.24-v5.25-and-add-chapter-four-plus-stormglass-travel-defaults",
+  "records": [
+    "progress",
+    "inventory",
+    "equipment",
+    "questLog",
+    "discoveredLocations",
+    "travelNetwork",
+    "bossRecords",
+    "checkpoint",
+    "playtimeSeconds"
+  ],
+  "travelNetwork": {
+    "schema": "pixelforge.legend-travel.v5.26",
+    "startingActivatedLandmarks": [
+      "bouncehome-shrine"
+    ],
+    "fastTravel": "activated-landmarks-only",
+    "chapterFourLandmark": "stormglass-lighthouse"
+  },
+  "humanBoundaries": [
+    "save-menu-usability",
+    "checkpoint-placement-feel",
+    "world-map-readability",
+    "fast-travel-balance",
+    "air-dash-feel"
+  ]
+}

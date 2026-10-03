@@ -1,0 +1,281 @@
+{
+  "schema": "pixelforge.asset-production-briefs.v5.8",
+  "generated_at": "2026-10-03T20:46:09.692Z",
+  "slug": "the-legend-of-more-bounce",
+  "title": "The Legend of More Bounce",
+  "visualEra": "16-bit",
+  "styleProfile": "snes-adventure",
+  "packId": "pf-snes-house-foundation-v1",
+  "briefs": [
+    {
+      "order": 1,
+      "id": "more-bounce-hero",
+      "type": "hero-spritesheet",
+      "required": true,
+      "status": "ready",
+      "frameSize": "32x48",
+      "tileSize": null,
+      "sheetGrid": "8x6",
+      "nineSlice": null,
+      "states": [
+        "idle",
+        "walk",
+        "run",
+        "jump-bounce",
+        "interact",
+        "damage",
+        "victory",
+        "view-transition"
+      ],
+      "regions": null,
+      "cueIds": null,
+      "paletteId": "pf-overworld-grove-v1",
+      "artDirection": "Original 23-frame 32x48 PixelForge hero sheet. Long wavy hair and long chin beard remain readable at gameplay scale.",
+      "rightsRequirement": "original",
+      "acceptance": [
+        "Must fit the declared PixelForge 16-bit lane without copying protected franchise art.",
+        "Frames must be authored for 32x48 target readability.",
+        "Required states: idle, walk, run, jump-bounce, interact, damage, victory, view-transition.",
+        "Final file must be attached with explicit rights status and pass the asset-profile validator."
+      ]
+    },
+    {
+      "order": 2,
+      "id": "larrina-character",
+      "type": "npc-spritesheet",
+      "required": true,
+      "status": "ready",
+      "frameSize": "32x48",
+      "tileSize": null,
+      "sheetGrid": "6x4",
+      "nineSlice": null,
+      "states": [
+        "idle",
+        "talk",
+        "blink",
+        "smile",
+        "concern",
+        "celebrate"
+      ],
+      "regions": null,
+      "cueIds": null,
+      "paletteId": "pf-tower-interior-v1",
+      "artDirection": "Original 24-frame 32x48 PixelForge Princess Larrina gameplay sheet with long brown pigtails and six expression/action states.",
+      "rightsRequirement": "original",
+      "acceptance": [
+        "Must fit the declared PixelForge 16-bit lane without copying protected franchise art.",
+        "Frames must be authored for 32x48 target readability.",
+        "Required states: idle, talk, blink, smile, concern, celebrate.",
+        "Final file must be attached with explicit rights status and pass the asset-profile validator."
+      ]
+    },
+    {
+      "order": 3,
+      "id": "larrina-portraits",
+      "type": "portrait-set",
+      "required": true,
+      "status": "ready",
+      "frameSize": "96x96",
+      "tileSize": null,
+      "sheetGrid": null,
+      "nineSlice": null,
+      "states": [
+        "neutral",
+        "smile",
+        "concern",
+        "surprised"
+      ],
+      "regions": null,
+      "cueIds": null,
+      "paletteId": "pf-tower-interior-v1",
+      "artDirection": "Original four-expression 96x96 portrait set: neutral, smile, concern, surprised.",
+      "rightsRequirement": "original",
+      "acceptance": [
+        "Must fit the declared PixelForge 16-bit lane without copying protected franchise art.",
+        "Frames must be authored for 96x96 target readability.",
+        "Required states: neutral, smile, concern, surprised.",
+        "Final file must be attached with explicit rights status and pass the asset-profile validator."
+      ]
+    },
+    {
+      "order": 4,
+      "id": "bouncehome-overworld",
+      "type": "tileset",
+      "required": true,
+      "status": "ready",
+      "frameSize": null,
+      "tileSize": 16,
+      "sheetGrid": null,
+      "nineSlice": null,
+      "states": null,
+      "regions": [
+        "grass",
+        "paths",
+        "trees",
+        "water",
+        "ruins",
+        "flowers",
+        "signage",
+        "tower-exterior"
+      ],
+      "cueIds": null,
+      "paletteId": "pf-overworld-grove-v1",
+      "artDirection": null,
+      "rightsRequirement": "original",
+      "acceptance": [
+        "Must fit the declared PixelForge 16-bit lane without copying protected franchise art.",
+        "Tiles must compose cleanly on a 16x16 grid.",
+        "Required regions/elements: grass, paths, trees, water, ruins, flowers, signage, tower-exterior.",
+        "Final file must be attached with explicit rights status and pass the asset-profile validator."
+      ]
+    },
+    {
+      "order": 5,
+      "id": "wobble-woods-stage",
+      "type": "tileset",
+      "required": true,
+      "status": "ready",
+      "frameSize": null,
+      "tileSize": 16,
+      "sheetGrid": null,
+      "nineSlice": null,
+      "states": null,
+      "regions": [
+        "ground",
+        "platforms",
+        "trees-far",
+        "trees-near",
+        "mist",
+        "bounce-flora",
+        "ruins",
+        "echo-gate"
+      ],
+      "cueIds": null,
+      "paletteId": "pf-wobble-woods-v1",
+      "artDirection": "Original 16x16 side-view forest tiles plus four native 672x180 parallax layers. Platform geometry remains authored runtime data.",
+      "rightsRequirement": "original",
+      "acceptance": [
+        "Must fit the declared PixelForge 16-bit lane without copying protected franchise art.",
+        "Tiles must compose cleanly on a 16x16 grid.",
+        "Required regions/elements: ground, platforms, trees-far, trees-near, mist, bounce-flora, ruins, echo-gate.",
+        "Final file must be attached with explicit rights status and pass the asset-profile validator."
+      ]
+    },
+    {
+      "order": 6,
+      "id": "larrina-tower-interior",
+      "type": "interior-kit",
+      "required": true,
+      "status": "ready",
+      "frameSize": null,
+      "tileSize": 16,
+      "sheetGrid": null,
+      "nineSlice": null,
+      "states": null,
+      "regions": [
+        "stone-wall",
+        "wood-floor",
+        "window",
+        "banner",
+        "bookshelf",
+        "lamp",
+        "record-table",
+        "door",
+        "props"
+      ],
+      "cueIds": null,
+      "paletteId": "pf-tower-interior-v1",
+      "artDirection": "Original 16x16 reusable interior kit plus composed 320x180 first-person room: stone, wood, moon window, banner, bookshelf, lamp, record-player table, door, rug and props.",
+      "rightsRequirement": "original",
+      "acceptance": [
+        "Must fit the declared PixelForge 16-bit lane without copying protected franchise art.",
+        "Tiles must compose cleanly on a 16x16 grid.",
+        "Required regions/elements: stone-wall, wood-floor, window, banner, bookshelf, lamp, record-table, door, props.",
+        "Final file must be attached with explicit rights status and pass the asset-profile validator."
+      ]
+    },
+    {
+      "order": 7,
+      "id": "shared-ui-frames",
+      "type": "ui-frame-kit",
+      "required": true,
+      "status": "ready",
+      "frameSize": null,
+      "tileSize": null,
+      "sheetGrid": null,
+      "nineSlice": "16,16,16,16",
+      "states": null,
+      "regions": null,
+      "cueIds": null,
+      "paletteId": "pf-ui-frame-v1",
+      "artDirection": "Original PixelForge SNES UI kit: three 16px nine-slice frame families, dialogue/HUD/rune/menu/transition/inventory components and 14 native 16x16 icons.",
+      "rightsRequirement": "original",
+      "acceptance": [
+        "Must fit the declared PixelForge 16-bit lane without copying protected franchise art.",
+        "Final file must be attached with explicit rights status and pass the asset-profile validator."
+      ]
+    },
+    {
+      "order": 8,
+      "id": "bounce-effects",
+      "type": "effects-sheet",
+      "required": true,
+      "status": "ready",
+      "frameSize": "32x32",
+      "tileSize": null,
+      "sheetGrid": "20x1",
+      "nineSlice": null,
+      "states": [
+        "bounce-impact",
+        "rune-pickup",
+        "gate-open",
+        "sparkle",
+        "hit"
+      ],
+      "regions": null,
+      "cueIds": null,
+      "paletteId": "pf-wobble-woods-v1",
+      "artDirection": "Original 20-frame 32x32 PixelForge effects sheet: bounce impact, Rune pickup, Echo Gate opening, sparkle, and hit bursts.",
+      "rightsRequirement": "original",
+      "acceptance": [
+        "Must fit the declared PixelForge 16-bit lane without copying protected franchise art.",
+        "Frames must be authored for 32x32 target readability.",
+        "Required states: bounce-impact, rune-pickup, gate-open, sparkle, hit.",
+        "Final file must be attached with explicit rights status and pass the asset-profile validator."
+      ]
+    },
+    {
+      "order": 9,
+      "id": "snes-audio-cues",
+      "type": "audio-cue-pack",
+      "required": false,
+      "status": "ready",
+      "frameSize": null,
+      "tileSize": null,
+      "sheetGrid": null,
+      "nineSlice": null,
+      "states": null,
+      "regions": null,
+      "cueIds": [
+        "title",
+        "overworld",
+        "woods",
+        "tower",
+        "bounce-impact",
+        "rune-pickup",
+        "gate-open",
+        "dialogue-blip",
+        "hit",
+        "ending"
+      ],
+      "paletteId": null,
+      "artDirection": "Original local-first SNES-inspired audio pack: four loopable themes plus six gameplay SFX. Deterministic synthesis source included; no external samples.",
+      "rightsRequirement": "original",
+      "acceptance": [
+        "Must fit the declared PixelForge 16-bit lane without copying protected franchise art.",
+        "Final file must be attached with explicit rights status and pass the asset-profile validator."
+      ]
+    }
+  ],
+  "boundary": "These are production specifications, not claims that the art exists. Human art direction and rights review remain required."
+}

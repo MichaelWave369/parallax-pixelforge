@@ -1,0 +1,22 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.21",
+  "sceneId": "flat-note-boss",
+  "mode": "side-view-rhythm-boss",
+  "status": "playable-human-combat-review-pending",
+  "arena": {"width":672,"height":180,"floorY":148},
+  "player": {"spawnPercent":18,"strikeRangePercent":53,"hearts":4,"moveStepPercent":7,"attack":"bounce-strike"},
+  "boss": {"id":"the-flat-note","health":6,"beatStepMs":700,"beatCount":4,"vulnerableBeat":0,"offBeatPenalty":"lose-heart"},
+  "progression": {"requires":["rhythmCrest"],"awards":"resonanceSeal","nextScene":"bouncehome-grove"},
+  "artBindings": {
+    "arena":"../assets/snes-v521/flat-note-arena.v0.1.png",
+    "bossSheet":"../assets/snes-v521/flat-note-boss.v0.1.png",
+    "rewardAtlas":"../assets/snes-v521/boss-items.v0.1.png",
+    "heroSheet":"../assets/snes-v512/more-bounce-hero.v0.1.png"
+  },
+  "audioBinding": {
+    "status":"ready",
+    "musicCue":"boss",
+    "eventCues":{"weakPointBreak":"boss-break","defeat":"boss-defeat","offBeatHit":"hit"}
+  },
+  "humanReview": {"combatFeel":"pending","difficulty":"pending","visualReadability":"pending","audioMix":"pending"}
+}

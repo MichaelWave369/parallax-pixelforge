@@ -1,0 +1,23 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.23",
+  "id": "iron-orchard",
+  "mode": "overworld-hub",
+  "environment": "assets/snes-v523/iron-orchard.map.v0.1.png",
+  "musicCue": "iron-orchard",
+  "nodes": [
+    "rivet-row",
+    "gearapple-grove",
+    "rustroot-cavern",
+    "warden-gate"
+  ],
+  "progression": {
+    "requires": [
+      "beaconLens"
+    ],
+    "awards": [
+      "gearApples:3",
+      "tessaMet",
+      "bramMet"
+    ]
+  }
+}

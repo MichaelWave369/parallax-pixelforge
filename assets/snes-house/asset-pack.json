@@ -1,0 +1,99 @@
+{
+  "schema": "pixelforge.asset-pack.v1",
+  "id": "pf-snes-house-foundation-v1",
+  "name": "PixelForge SNES House Foundation",
+  "version": "1.0.0",
+  "visualEra": "16-bit",
+  "styleProfile": "snes-adventure",
+  "status": "contract-ready-art-slots-open",
+  "purpose": "Reusable contracts, palettes, frame targets, and rights boundaries for expressive 16-bit PixelForge cartridges.",
+  "defaultTileSize": 16,
+  "defaultHeroFrame": "32x48",
+  "acceptedImageFormats": [
+    "png",
+    "webp",
+    "svg"
+  ],
+  "palettes": [
+    "pf-overworld-grove-v1",
+    "pf-wobble-woods-v1",
+    "pf-tower-interior-v1",
+    "pf-ui-frame-v1"
+  ],
+  "slotTypes": [
+    {
+      "id": "hero-spritesheet",
+      "requiredFields": [
+        "frameSize",
+        "states",
+        "paletteId",
+        "rightsStatus"
+      ],
+      "recommendedFrameSize": "32x48"
+    },
+    {
+      "id": "npc-spritesheet",
+      "requiredFields": [
+        "frameSize",
+        "states",
+        "paletteId",
+        "rightsStatus"
+      ],
+      "recommendedFrameSize": "32x48"
+    },
+    {
+      "id": "tileset",
+      "requiredFields": [
+        "tileSize",
+        "regions",
+        "paletteId",
+        "rightsStatus"
+      ],
+      "recommendedTileSize": 16
+    },
+    {
+      "id": "interior-kit",
+      "requiredFields": [
+        "tileSize",
+        "regions",
+        "paletteId",
+        "rightsStatus"
+      ],
+      "recommendedTileSize": 16
+    },
+    {
+      "id": "ui-frame-kit",
+      "requiredFields": [
+        "nineSlice",
+        "paletteId",
+        "rightsStatus"
+      ]
+    },
+    {
+      "id": "effects-sheet",
+      "requiredFields": [
+        "frameSize",
+        "states",
+        "paletteId",
+        "rightsStatus"
+      ]
+    },
+    {
+      "id": "portrait-set",
+      "requiredFields": [
+        "frameSize",
+        "states",
+        "paletteId",
+        "rightsStatus"
+      ]
+    },
+    {
+      "id": "audio-cue-pack",
+      "requiredFields": [
+        "cueIds",
+        "rightsStatus"
+      ]
+    }
+  ],
+  "authorityBoundary": "The pack defines structure and house direction. It does not claim that missing artwork exists or that automated checks can certify beauty, originality, licensing, or commercial quality."
+}

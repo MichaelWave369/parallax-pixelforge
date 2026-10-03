@@ -1,0 +1,25 @@
+{
+  "schema": "pixelforge.cartridge-meta.v0.2",
+  "slug": "journey-to-parallax-pyramid",
+  "title": "Journey to the Parallax Pyramid",
+  "version": "1.0.0-rc1",
+  "studio": "Parallax PixelForge",
+  "status": "learning-sample-pocketgame-candidate",
+  "local_first": true,
+  "network_required": false,
+  "rights_reviewed": true,
+  "featured": true,
+  "creator": "Parallax PixelForge",
+  "modes": [
+    "route-adventure",
+    "survival-rpg",
+    "local-save"
+  ],
+  "tags": [
+    "learning-cartridge",
+    "adventure",
+    "369-pocketgames",
+    "local-first"
+  ],
+  "learning_value": "Shows a larger stateful adventure cartridge with saves, resources, regions, encounters, badges, and PocketGames metadata."
+}

@@ -1,0 +1,56 @@
+{
+  "schema": "pixelforge.legend-travel-profile.v5.26",
+  "game": "the-legend-of-more-bounce",
+  "travelSchema": "pixelforge.legend-travel.v5.26",
+  "schemaVersion": 2,
+  "localOnly": true,
+  "networkSync": false,
+  "discoveryRule": "visit-or-quest-reveal",
+  "activationRule": "activate-landmark-before-fast-travel",
+  "fastTravelRule": "activated-landmarks-only-safe-scene-entry",
+  "startingActivatedLandmarks": [
+    "bouncehome-shrine"
+  ],
+  "landmarks": [
+    {
+      "id": "bouncehome-shrine",
+      "name": "Bouncehome Shrine",
+      "mode": "overworld",
+      "chapter": 1,
+      "activation": "home-active"
+    },
+    {
+      "id": "larrina-tower-beacon",
+      "name": "Larrina Tower Beacon",
+      "mode": "tower",
+      "chapter": 1,
+      "activation": "manual"
+    },
+    {
+      "id": "eastern-beacon",
+      "name": "Eastern Beacon",
+      "mode": "eastRoad",
+      "chapter": 2,
+      "activation": "quest-auto"
+    },
+    {
+      "id": "iron-orchard-shrine",
+      "name": "Iron Orchard Shrine",
+      "mode": "ironOrchard",
+      "chapter": 3,
+      "activation": "manual"
+    },
+    {
+      "id": "stormglass-lighthouse",
+      "name": "Stormglass Lighthouse",
+      "mode": "stormglassCoast",
+      "chapter": 4,
+      "activation": "quest-auto"
+    }
+  ],
+  "humanBoundaries": [
+    "map-readability",
+    "fast-travel-convenience-vs-exploration-balance",
+    "shrine-placement-feel"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "schema": "pixelforge.runtime-scene.v5.23",
+  "id": "rivet-forge",
+  "mode": "first-person-shop",
+  "environment": "assets/snes-v523/rivet-forge-room.v0.1.png",
+  "musicCue": "rivet-forge",
+  "shop": {
+    "requiredTrade": {
+      "cost": "gearApples:3",
+      "reward": "resonanceBracer"
+    },
+    "optionalTrade": {
+      "cost": "wrenchCharm",
+      "reward": "heartRivet"
+    }
+  },
+  "progression": {
+    "awards": [
+      "resonanceBracer",
+      "heartRivet?"
+    ]
+  }
+}

@@ -1,0 +1,1684 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Parallax PixelForge v5.27 Three-View Convergence / Chapter Five</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">PHI369 Labs / Parallax</p>
+        <h1>Parallax PixelForge <span>v5.27</span></h1>
+        <p class="subtitle">Local-first retro game Creator OS · v5.27 Three-View Convergence · Chapter Five · persistent cross-view state · six-point fast travel · v5.24/v5.25/v5.26 save migration · 8/8 final art retained</p>
+      </div>
+      <div class="top-actions">
+        <button id="undoBtn" class="secondary">Undo</button>
+        <button id="redoBtn" class="secondary">Redo</button>
+        <button id="saveLocalBtn" class="secondary">Save Local</button>
+        <button id="loadLocalBtn" class="secondary">Load Local</button>
+        <button data-save-slot="1" class="secondary">Save Slot 1</button>
+        <button data-load-slot="1" class="secondary">Load Slot 1</button>
+        <button data-save-slot="2" class="secondary">Save Slot 2</button>
+        <button data-load-slot="2" class="secondary">Load Slot 2</button>
+        <button data-save-slot="3" class="secondary">Save Slot 3</button>
+        <button data-load-slot="3" class="secondary">Load Slot 3</button>
+        <button id="exportBtn">Export JSON</button>
+        <button id="exportGameBtn" class="secondary">Export Playable HTML</button>
+        <button id="scenePngBtn" class="secondary">Export Scene PNG</button>
+        <button id="bundleBtn" class="secondary">Export Creator Bundle</button>
+        <button id="exportReleaseManifestBtn" class="secondary">Export Release Manifest</button>
+        <button id="exportAlphaCartridgeBtn" class="secondary">Export Alpha Cartridge</button>
+        <button id="exportPlaytestTranscriptBtn" class="secondary">Export Playtest Transcript</button>
+        <button id="exportV1CandidateBtn" class="secondary">Export v2.6 Candidate</button>
+        <button id="exportHandoffBriefBtn" class="secondary">Export Handoff Brief</button>
+        <button id="exportAssetPackBtn" class="secondary">Export Active Asset Pack</button>
+        <button id="exportProfileBtn" class="secondary">Export Active Profile</button>
+        <button id="exportCodexHandoffTopBtn" class="secondary">Export Codex Handoff</button>
+        <button id="exportBuildSprintTopBtn" class="secondary">Export Build Sprint</button>
+        <button id="exportDiagnosticsTopBtn" class="secondary">Export Diagnostics</button>
+        <button id="exportPlayableQaTopBtn" class="secondary">Export Playable QA</button>
+        <button id="exportWritersStudioTopBtn" class="secondary">Export Writers Studio</button>
+        <button id="exportAssetPipelineTopBtn" class="secondary">Export Asset Pipeline</button>
+        <button id="exportAdventurePipelineTopBtn" class="secondary">Export Adventure Pipeline</button>
+        <button id="exportContinuityMapTopBtn" class="secondary">Export Continuity Map</button>
+        <button id="exportChiptuneStudioTopBtn" class="secondary">Export Chiptune Studio</button>
+        <button id="exportCreativeSuiteTopBtn" class="secondary">Export Creative Suite</button>
+        <button id="exportGameKitTopBtn" class="secondary">Export Game Kit</button>
+        <button id="exportSceneAudioTopBtn" class="secondary">Export Scene Audio</button>
+        <button id="exportProductionBoardTopBtn" class="secondary">Export Production Board</button>
+        <button id="exportReadinessMatrixTopBtn" class="secondary">Export Readiness Matrix</button>
+        <button id="exportReleaseCutTopBtn" class="secondary">Export Release Cut</button>
+        <button id="assembleReleaseWorkshopTopBtn" class="secondary">Assemble Release</button>
+        <button id="exportReleaseWorkshopTopBtn" class="secondary">Export Game Shelf + Curation Library</button>
+        <button id="runExportValidatorTopBtn" class="secondary">Run Export Validator</button>
+        <button id="exportExportValidatorTopBtn" class="secondary">Export Export Validator</button>
+        <button id="addBuildNoteTopBtn" class="secondary">Add Build Note</button>
+        <button id="exportBuildNotesTopBtn" class="secondary">Export Build Notes</button>
+        <button id="exportRightsRegistryTopBtn" class="secondary">Export Rights Registry</button>
+        <button id="refreshGameShelfTopBtn" class="secondary">Refresh Game Shelf</button>
+        <button id="exportGameShelfTopBtn" class="secondary">Export Game Shelf</button>
+        <button id="cycleShelfCollectionTopBtn" class="secondary">Cycle Shelf Collection</button>
+        <button id="curateShelfTopBtn" class="secondary">Curate Shelf</button>
+        <button id="exportShelfCurationTopBtn" class="secondary">Export Shelf Curation</button>
+        <button id="cycleLauncherGameTopBtn" class="secondary">Cycle Launcher Game</button>
+        <button id="exportLibraryLauncherTopBtn" class="secondary">Export Library Launcher</button>
+        <button id="exportCollectionCapsuleTopBtn" class="secondary">Export Collection Capsule</button>
+        <button id="cycleBbsChannelTopBtn" class="secondary">Cycle BBS Channel</button>
+        <button id="createBbsPostTopBtn" class="secondary">Create BBS Post</button>
+        <button id="exportBbsNetworkTopBtn" class="secondary">Export BBS Network</button>
+        <button id="curateCommonsFeedTopBtn" class="secondary">Curate Commons Feed</button>
+        <button id="exportCommonsFeedTopBtn" class="secondary">Export Commons Feed</button>
+        <button id="exportSharePackageTopBtn" class="secondary">Export Share Package</button>
+        <button id="exportCommunityFeedTopBtn" class="secondary">Export Community Feed</button>
+        <button id="exportForumChannelsTopBtn" class="secondary">Export Forum Channels</button>
+        <button id="cycleLivingRoomModeTopBtn" class="secondary">Cycle Living Room</button>
+        <button id="createCouchSessionTopBtn" class="secondary">Create Co-Play Session</button>
+        <button id="sendSignalPingTopBtn" class="secondary">Send Signal</button>
+        <button id="exportLivingRoomTopBtn" class="secondary">Export Living Room</button>
+        <button id="exportSignalWheelTopBtn" class="secondary">Export Signal Wheel</button>
+        <button id="exportRoomBoardsTopBtn" class="secondary">Export Room Boards</button>
+        <button id="exportPackExchangeTopBtn" class="secondary">Export Pack Exchange</button>
+        <button id="exportShareLedgerTopBtn" class="secondary">Export Share Ledger</button>
+
+        <button id="cycleAiPlayerTopBtn" class="secondary">Cycle AI Player</button>
+        <button id="simulateAiMatchTopBtn" class="secondary">Sim AI Match</button>
+        <button id="runAiPlaytestTopBtn" class="secondary">Run AI Playtest</button>
+        <button id="exportAiSuiteTopBtn" class="secondary">Export AI Suite</button>
+        <button id="receiptBtn" class="secondary">Export Receipt</button>
+        <label class="import-label">
+          Import JSON
+          <input id="importInput" type="file" accept="application/json,.json" />
+        </label>
+        <button id="resetBtn" class="danger">Reset Demo</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel left-panel">
+        <section>
+          <h2>Project</h2>
+          <label>Game title
+            <input id="gameTitle" type="text" />
+          </label>
+          <label>Current scene name
+            <input id="sceneName" type="text" />
+          </label>
+          <label>Scene kind
+            <input id="sceneKind" type="text" placeholder="overworld, interior, dream, gate" />
+          </label>
+          <div class="receipt-box">
+            <div class="receipt-title">Project Receipt Hash</div>
+            <div id="projectHash" class="hash">hash pending...</div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Studio Metrics</h2>
+          <div id="studioStats" class="studio-stats"></div>
+        </section>
+
+
+        <section>
+          <h2>Pixel Studio</h2>
+          <p class="microcopy">Upload a photo, pixelize it, and save it as an asset reference or sprite seed.</p>
+          <input id="photoInput" class="file-input" type="file" accept="image/*" />
+          <div id="pixelStudioPanel" class="pixel-studio-panel"></div>
+          <div class="split-actions">
+            <button id="cyclePixelPresetBtn" class="secondary full">Cycle Preset</button>
+            <button id="pixelizePhotoBtn" class="secondary full">Pixelize Photo</button>
+          </div>
+          <div class="split-actions">
+            <button id="addPixelSpriteBtn" class="secondary full">Add as Sprite</button>
+            <button id="exportPixelAssetBtn" class="secondary full">Export Pixel Asset</button>
+          </div>
+        </section>
+
+
+
+        <section>
+          <h2>Sprite Studio <span class="v59-badge">v5.9</span></h2>
+          <p class="microcopy">Full-screen SNES pixel workstation: draw, animate, preview, export, and attach sprites to Asset Forge.</p>
+          <button id="openSpriteStudioBtn" class="secondary full">Open Sprite Studio</button>
+        </section>
+
+        <section>
+          <h2>Tile Studio <span class="v510-badge">v5.10</span></h2>
+          <p class="microcopy">Draw 16×16 SNES tiles, tag collision/autotile roles, compose layered maps, and attach tilesets to Asset Forge.</p>
+          <button id="openTileStudioBtn" class="secondary full">Open Tile Studio + Map Composer</button>
+        </section>
+
+        <section>
+          <h2>Runtime Composer <span class="v511-badge">v5.11</span></h2>
+          <p class="microcopy">Bind authored sprites, tiles, maps, collision, and camera rules into a playable SNES scene.</p>
+          <button id="openRuntimeComposerBtn" class="secondary full">Open Runtime Composer</button>
+        </section>
+
+        <section>
+          <h2>Writers Studio</h2>
+          <p class="microcopy">A local AI-team handoff room for adventures, sequels, NPCs, quests, and story bibles.</p>
+          <div id="writersStudioPanel" class="writers-studio-panel"></div>
+          <div class="split-actions">
+            <button id="cycleWriterRoleBtn" class="secondary full">Cycle Writer Role</button>
+            <button id="generateAdventureBriefBtn" class="secondary full">Generate Adventure</button>
+          </div>
+          <div class="split-actions">
+            <button id="generateSequelBriefBtn" class="secondary full">Generate Sequel</button>
+            <button id="exportWritersStudioBtn" class="secondary full">Export Writers Bible</button>
+          </div>
+        </section>
+
+
+
+
+        <section>
+          <h2>Chiptune Studio</h2>
+          <p class="microcopy">Import music locally, analyze it, and generate 8-bit / 16-bit conversion cues and manifests for game-ready loops.</p>
+          <input id="musicInput" class="file-input" type="file" accept="audio/*" />
+          <div id="chiptuneStudioPanel" class="chiptune-studio-panel"></div>
+          <div class="split-actions">
+            <button id="cycleChiptunePresetBtn" class="secondary full">Cycle Retro Preset</button>
+            <button id="analyzeMusicBtn" class="secondary full">Analyze Music</button>
+          </div>
+          <div class="split-actions">
+            <button id="generateRetroCueBtn" class="secondary full">Generate Retro Cue</button>
+            <button id="previewChiptuneOutputBtn" class="secondary full">Preview Output</button>
+          </div>
+          <button id="exportChiptuneStudioBtn" class="secondary full">Export Chiptune Manifest</button>
+        </section>
+
+        <section>
+          <h2>Creative Suite Dashboard</h2>
+          <p class="microcopy">Unifies Pixel Studio, Writers Studio, Chiptune Studio, asset pipelines, sequel continuity, QA, and release packaging.</p>
+          <div id="creativeSuitePanel" class="creative-suite-panel"></div>
+          <div class="split-actions">
+            <button id="syncCreativeSuiteBtn" class="secondary full">Sync Suite</button>
+            <button id="exportCreativeSuiteBtn" class="secondary full">Export Suite Manifest</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Game Kit Composer</h2>
+          <p class="microcopy">Bundles the active vibe into a reusable mini game kit: scenes, assets, story seeds, audio cues, export profile, and handoff notes.</p>
+          <div id="gameKitPanel" class="game-kit-panel"></div>
+          <div class="split-actions">
+            <button id="generateGameKitBtn" class="secondary full">Generate Kit</button>
+            <button id="exportGameKitBtn" class="secondary full">Export Game Kit</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Scene Audio Board</h2>
+          <p class="microcopy">Assign retro cues and Chiptune Studio outputs to scenes, title screens, encounters, and transitions.</p>
+          <div id="sceneAudioPanel" class="scene-audio-panel"></div>
+          <div class="split-actions">
+            <button id="assignSceneAudioBtn" class="secondary full">Assign Cue</button>
+            <button id="exportSceneAudioBtn" class="secondary full">Export Scene Audio</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Production Board</h2>
+          <p class="microcopy">Scene-by-scene production cards for visual, story, audio, QA, and release work.</p>
+          <div id="productionBoardPanel" class="production-board-panel"></div>
+          <div class="split-actions">
+            <button id="advanceProductionCardBtn" class="secondary full">Advance Card</button>
+            <button id="exportProductionBoardBtn" class="secondary full">Export Board</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Readiness Matrix</h2>
+          <p class="microcopy">Cross-checks every scene across visual, story, audio, QA, and release readiness.</p>
+          <div id="readinessMatrixPanel" class="readiness-matrix-panel"></div>
+          <div class="split-actions">
+            <button id="computeReadinessMatrixBtn" class="secondary full">Compute Matrix</button>
+            <button id="exportReadinessMatrixBtn" class="secondary full">Export Matrix</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Release Cut Builder</h2>
+          <p class="microcopy">Build named cuts such as alpha playtest, showcase slice, or cartridge candidate.</p>
+          <div id="releaseCutPanel" class="release-cut-panel"></div>
+          <div class="split-actions">
+            <button id="buildReleaseCutBtn" class="secondary full">Build Cut</button>
+            <button id="exportReleaseCutBtn" class="secondary full">Export Cut</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Game Shelf + Curation Library</h2>
+          <p class="microcopy">Assemble release cuts, suite manifests, scene audio maps, rights metadata, and build notes into shareable cartridge packages.</p>
+          <div id="releaseWorkshopPanel" class="release-workshop-panel"></div>
+          <div class="split-actions">
+            <button id="assembleReleaseWorkshopBtn" class="secondary full">Assemble Release</button>
+            <button id="exportReleaseWorkshopBtn" class="secondary full">Export Workshop</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Export Validator</h2>
+          <p class="microcopy">Checks whether the core package pieces are ready before sharing an alpha cartridge.</p>
+          <div id="exportValidatorPanel" class="export-validator-panel"></div>
+          <div class="split-actions">
+            <button id="runExportValidatorBtn" class="secondary full">Run Validator</button>
+            <button id="exportExportValidatorBtn" class="secondary full">Export Validator</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Build Notes</h2>
+          <p class="microcopy">Version notes, release boundaries, known handoff notes, and next-build guidance.</p>
+          <div id="buildNotesPanel" class="build-notes-panel"></div>
+          <div class="split-actions">
+            <button id="addBuildNoteBtn" class="secondary full">Add Note</button>
+            <button id="exportBuildNotesBtn" class="secondary full">Export Notes</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Rights Registry</h2>
+          <p class="microcopy">Tracks original, placeholder, imported, licensed, and public-domain status for assets and music.</p>
+          <div id="rightsRegistryPanel" class="rights-registry-panel"></div>
+          <button id="exportRightsRegistryBtn" class="secondary full">Export Rights Registry</button>
+        </section>
+
+        <section>
+          <h2>Game Shelf + Curation Library</h2>
+          <p class="microcopy">Displays each created game like a retro shelf: box art, cartridge art, info, scores, saves, progress, and package status.</p>
+          <div id="gameShelfPanel" class="game-shelf-panel"></div>
+          <div class="split-actions">
+            <button id="cycleGameShelfBtn" class="secondary full">Cycle Game</button>
+            <button id="refreshGameShelfBtn" class="secondary full">Refresh Shelf</button>
+          </div>
+          <button id="exportGameShelfBtn" class="secondary full">Export Shelf Library</button>
+        </section>
+
+
+        <section>
+          <h2>Shelf Curation</h2>
+          <p class="microcopy">Organizes the retro shelf into collections, badges, player history, score memory, and library notes.</p>
+          <div id="shelfCurationPanel" class="shelf-curation-panel"></div>
+          <div class="split-actions">
+            <button id="cycleShelfCollectionBtn" class="secondary full">Cycle Collection</button>
+            <button id="curateShelfBtn" class="secondary full">Curate Shelf</button>
+          </div>
+          <button id="exportShelfCurationBtn" class="secondary full">Export Shelf Curation</button>
+        </section>
+
+
+
+        <section>
+          <h2>Library Launcher</h2>
+          <p class="microcopy">Turns the shelf into a retro launch menu with featured cartridges, quick actions, and collection focus.</p>
+          <div id="libraryLauncherPanel" class="library-launcher-panel"></div>
+          <div class="split-actions">
+            <button id="cycleLauncherGameBtn" class="secondary full">Cycle Launcher Game</button>
+            <button id="exportLibraryLauncherBtn" class="secondary full">Export Launcher</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Game Detail Page</h2>
+          <p class="microcopy">Shows the active cartridge as a detailed library page: box copy, cartridge ID, saves, scores, credits, rights, and release state.</p>
+          <div id="gameDetailPanel" class="game-detail-panel"></div>
+          <div class="split-actions">
+            <button id="refreshGameDetailBtn" class="secondary full">Refresh Detail</button>
+            <button id="exportGameDetailBtn" class="secondary full">Export Detail</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Save Profile Manager</h2>
+          <p class="microcopy">Tracks player/playtester profiles, preferred save slots, save index records, scores, badges, and route progress.</p>
+          <div id="saveProfilePanel" class="save-profile-panel"></div>
+          <div class="split-actions">
+            <button id="cycleSaveProfileBtn" class="secondary full">Cycle Profile</button>
+            <button id="recordProfileSaveBtn" class="secondary full">Record Save</button>
+          </div>
+          <button id="exportSaveProfileBtn" class="secondary full">Export Profiles</button>
+        </section>
+
+        <section>
+          <h2>Collection Capsules</h2>
+          <p class="microcopy">Packages curated shelf collections with game entries, launcher notes, curation metadata, rights status, and required exports.</p>
+          <div id="collectionCapsulePanel" class="collection-capsule-panel"></div>
+          <div class="split-actions">
+            <button id="buildCollectionCapsuleBtn" class="secondary full">Build Capsule</button>
+            <button id="exportCollectionCapsuleBtn" class="secondary full">Export Capsule</button>
+          </div>
+        </section>
+
+
+        <section>
+          <h2>Community BBS Network</h2>
+          <p class="microcopy">A local-first retro bulletin board for sharing cartridges, devlogs, assets, playtest notes, and creator updates.</p>
+          <div id="bbsNetworkPanel" class="bbs-network-panel"></div>
+          <div class="split-actions">
+            <button id="cycleBbsChannelBtn" class="secondary full">Cycle Channel</button>
+            <button id="createBbsPostBtn" class="secondary full">Create BBS Post</button>
+          </div>
+          <button id="exportBbsNetworkBtn" class="secondary full">Export BBS Network</button>
+        </section>
+
+        <section>
+          <h2>BBS Share Packages</h2>
+          <p class="microcopy">Packages a game with version, rights status, exports, shelf details, and posting notes before sharing it with others.</p>
+          <div id="sharePackagePanel" class="share-package-panel"></div>
+          <div class="split-actions">
+            <button id="buildSharePackageBtn" class="secondary full">Build Share Package</button>
+            <button id="exportSharePackageBtn" class="secondary full">Export Share Package</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Community Feed</h2>
+          <p class="microcopy">Draft devlogs, cartridge posts, playtest requests, asset notes, comments, reactions, and moderation items.</p>
+          <div id="communityFeedPanel" class="community-feed-panel"></div>
+          <div class="split-actions">
+            <button id="moderateCommunityPostBtn" class="secondary full">Moderate Next</button>
+            <button id="exportCommunityFeedBtn" class="secondary full">Export Feed</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Forum Channels + Badges</h2>
+          <p class="microcopy">Channel rules, featured posts, contributor badges, and kindness-first forum boundaries for future hosted sharing.</p>
+          <div id="forumChannelsPanel" class="forum-channels-panel"></div>
+          <button id="exportForumChannelsBtn" class="secondary full">Export Forum Channels</button>
+        </section>
+
+        <section>
+          <h2>BBS Living Room</h2>
+          <p class="microcopy">A cozy no-chat co-play lounge for watch parties, turn-taking, score runs, and creator playtests.</p>
+          <div id="livingRoomPanel" class="living-room-panel"></div>
+          <div class="split-actions">
+            <button id="cycleLivingRoomModeBtn" class="secondary full">Cycle Mode</button>
+            <button id="exportLivingRoomBtn" class="secondary full">Export Living Room</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Couch Co-Play Sessions</h2>
+          <p class="microcopy">Draft invite-only shared play sessions with room codes, seats, host control, score policies, and save boundaries.</p>
+          <div id="couchSessionPanel" class="couch-session-panel"></div>
+          <div class="split-actions">
+            <button id="createCouchSessionBtn" class="secondary full">Create Session</button>
+            <button id="exportCouchInviteBtn" class="secondary full">Export Invite</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>No-Chat Signal Wheel</h2>
+          <p class="microcopy">Preset reactions and coordination signals only: ready, pause, cheer, help, wonder, and GG.</p>
+          <div id="signalWheelPanel" class="signal-wheel-panel"></div>
+          <div class="split-actions">
+            <button id="sendSignalPingBtn" class="secondary full">Send Signal</button>
+            <button id="exportSignalWheelBtn" class="secondary full">Export Signals</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Living Room Safety</h2>
+          <p class="microcopy">No free-text chat, invite-only defaults, host authority, protected saves, and rights metadata for shared cartridges.</p>
+          <div id="livingRoomSafetyPanel" class="living-room-safety-panel"></div>
+          <button id="exportLivingRoomSafetyBtn" class="secondary full">Export Safety Rules</button>
+        </section>
+
+        <section>
+          <h2>Live Relay Blueprint</h2>
+          <p class="microcopy">Defines future invite-only relay transports, packet types, handshake steps, and the no-chat online boundary.</p>
+          <div id="relayBlueprintPanel" class="relay-blueprint-panel"></div>
+          <button id="exportRelayBlueprintBtn" class="secondary full">Export Relay Blueprint</button>
+        </section>
+
+        <section>
+          <h2>Session Sync Snapshots</h2>
+          <p class="microcopy">Host-authoritative snapshots for future online rooms: scene, player position, stats, signal queue, and conflict rules.</p>
+          <div id="sessionSyncPanel" class="session-sync-panel"></div>
+          <div class="split-actions">
+            <button id="captureSessionSnapshotBtn" class="secondary full">Capture Snapshot</button>
+            <button id="exportSessionSyncBtn" class="secondary full">Export Session Sync</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Host Handoff</h2>
+          <p class="microcopy">Plans safe room-control transfers without letting remote players overwrite local saves or ownership metadata.</p>
+          <div id="hostHandoffPanel" class="host-handoff-panel"></div>
+          <div class="split-actions">
+            <button id="createHostHandoffBtn" class="secondary full">Create Handoff</button>
+            <button id="exportHostHandoffBtn" class="secondary full">Export Handoff</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Replay Receipts</h2>
+          <p class="microcopy">Records route summaries, scores, badges, signal events, and proof-of-play without chat logs.</p>
+          <div id="replayReceiptPanel" class="replay-receipt-panel"></div>
+          <div class="split-actions">
+            <button id="recordReplayReceiptBtn" class="secondary full">Record Receipt</button>
+            <button id="exportReplayReceiptsBtn" class="secondary full">Export Replay Receipts</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Private Relay Prototype</h2>
+          <p class="microcopy">Local simulation for invite-only, no-chat online rooms before a real hosted relay exists.</p>
+          <div id="privateRelayPanel" class="private-relay-panel"></div>
+          <div class="split-actions">
+            <button id="simulateRelayConnectionBtn" class="secondary full">Sim Connection</button>
+            <button id="exportPrivateRelayBtn" class="secondary full">Export Relay</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Relay Packet Lab</h2>
+          <p class="microcopy">Build and inspect allowed no-chat packets: invites, snapshots, signal pings, score packets, handoff, and replay receipts.</p>
+          <div id="relayPacketLabPanel" class="relay-packet-lab-panel"></div>
+          <div class="split-actions">
+            <button id="queueRelayPacketBtn" class="secondary full">Queue Packet</button>
+            <button id="exportRelayPacketLabBtn" class="secondary full">Export Packets</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Private Room Directory</h2>
+          <p class="microcopy">A local invite-only room index for watch parties, score runs, and playtest couches. Nothing is public by default.</p>
+          <div id="roomDirectoryPanel" class="room-directory-panel"></div>
+          <div class="split-actions">
+            <button id="publishRoomDirectoryBtn" class="secondary full">Publish Listing</button>
+            <button id="exportRoomDirectoryBtn" class="secondary full">Export Directory</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Relay Deployment Guide</h2>
+          <p class="microcopy">Safety-first deployment notes for local simulation, future private Node/WebSocket relay, or hosted edge relay research.</p>
+          <div id="relayDeploymentPanel" class="relay-deployment-panel"></div>
+          <div class="split-actions">
+            <button id="cycleRelayDeploymentBtn" class="secondary full">Cycle Profile</button>
+            <button id="exportRelayDeploymentBtn" class="secondary full">Export Guide</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>AI Player Bench</h2>
+          <p class="microcopy">Local-first AI couch companions for no-chat playtests, score runs, and bot-vs-bot experiments. They remember only reviewable game/playtest facts.</p>
+          <div id="aiPlayerBenchPanel" class="ai-player-bench-panel"></div>
+          <div class="split-actions">
+            <button id="cycleAiPlayerBtn" class="secondary full">Cycle AI Player</button>
+            <button id="addAiPlayerBtn" class="secondary full">Add AI Player</button>
+          </div>
+          <button id="exportAiPlayerBenchBtn" class="secondary full">Export AI Player Bench</button>
+        </section>
+
+        <section>
+          <h2>AI Match Lab</h2>
+          <p class="microcopy">Let AI players run local simulated matches, score runs, and watch-party tests against each other before human release review.</p>
+          <div id="aiMatchLabPanel" class="ai-match-lab-panel"></div>
+          <div class="split-actions">
+            <button id="simulateAiMatchBtn" class="secondary full">Sim AI Match</button>
+            <button id="exportAiMatchLabBtn" class="secondary full">Export Match Lab</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>AI Memory Ledger</h2>
+          <p class="microcopy">Reviewable local memories for AI players: route notes, QA findings, tone notes, and match receipts. No personal profiling, no hidden chat logs.</p>
+          <div id="aiMemoryLedgerPanel" class="ai-memory-ledger-panel"></div>
+          <div class="split-actions">
+            <button id="recordAiMemoryBtn" class="secondary full">Record Memory</button>
+            <button id="exportAiMemoryLedgerBtn" class="secondary full">Export Memory Ledger</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>AI Playtest Arena</h2>
+          <p class="microcopy">Scenario-based AI playtests for opening loops, gate checks, tone watching, and future cartridge QA handoff.</p>
+          <div id="aiPlaytestArenaPanel" class="ai-playtest-arena-panel"></div>
+          <div class="split-actions">
+            <button id="runAiPlaytestBtn" class="secondary full">Run AI Playtest</button>
+            <button id="exportAiPlaytestArenaBtn" class="secondary full">Export AI Playtest</button>
+          </div>
+        </section>
+
+
+
+        <section>
+          <h2>Start New Cartridge</h2>
+          <p class="microcopy">A cozy guided mode for turning a tiny idea into a first playable cartridge kit.</p>
+          <div id="startCartridgeWizardPanel" class="start-cartridge-wizard-panel"></div>
+          <div class="split-actions">
+            <button id="advanceCartridgeWizardBtn" class="secondary full">Advance Wizard</button>
+            <button id="generateStarterCartridgeBtn" class="secondary full">Generate Starter Kit</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Creator Missions</h2>
+          <p class="microcopy">Small friendly missions that teach the studio by making one tiny cartridge at a time.</p>
+          <div id="creatorMissionsPanel" class="creator-missions-panel"></div>
+          <div class="split-actions">
+            <button id="advanceCreatorMissionBtn" class="secondary full">Complete Mission</button>
+            <button id="exportCreatorMissionsBtn" class="secondary full">Export Missions</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>AI Companion Profiles</h2>
+          <p class="microcopy">Visible couch companions with playful roles, reviewable memories, and no consciousness claims.</p>
+          <div id="aiCompanionProfilesPanel" class="ai-companion-profiles-panel"></div>
+          <div class="split-actions">
+            <button id="cycleAiCompanionProfileBtn" class="secondary full">Cycle Companion</button>
+            <button id="exportAiCompanionProfilesBtn" class="secondary full">Export Companions</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Playtest Theater</h2>
+          <p class="microcopy">A cozy no-chat theater where humans and AI companions run playtests, capture findings, and export receipts.</p>
+          <div id="playtestTheaterPanel" class="playtest-theater-panel"></div>
+          <div class="split-actions">
+            <button id="runPlaytestTheaterBtn" class="secondary full">Run Theater</button>
+            <button id="exportPlaytestTheaterBtn" class="secondary full">Export Theater</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Cozy Home Dashboard</h2>
+          <p class="microcopy">The warm home base: shelf glow, AI couch, BBS jam prompts, and the next cartridge step.</p>
+          <div id="cozyHomeDashboardPanel" class="cozy-home-dashboard-panel"></div>
+          <div class="split-actions">
+            <button id="refreshCozyHomeBtn" class="secondary full">Refresh Home</button>
+            <button id="exportCozyHomeBtn" class="secondary full">Export Home</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>First Cartridge Flow</h2>
+          <p class="microcopy">A focused route from idea to starter scene, playtest receipt, shelf refresh, and cartridge export.</p>
+          <div id="firstCartridgeFlowPanel" class="first-cartridge-flow-panel"></div>
+          <div class="split-actions">
+            <button id="advanceFirstCartridgeFlowBtn" class="secondary full">Advance Flow</button>
+            <button id="exportFirstCartridgeFlowBtn" class="secondary full">Export Flow</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Tiny Game Jam</h2>
+          <p class="microcopy">Finish-fast jam mode for one-sitting cartridges with clear outputs, a timer, and a badge.</p>
+          <div id="tinyGameJamPanel" class="tiny-game-jam-panel"></div>
+          <div class="split-actions">
+            <button id="startTinyJamBtn" class="secondary full">Start Tiny Jam</button>
+            <button id="exportTinyJamBtn" class="secondary full">Export Tiny Jam</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Cartridge Trade Board</h2>
+          <p class="microcopy">BBS-friendly sharing for cartridge packs, asset packs, receipts, and devlog bundles with rights metadata attached.</p>
+          <div id="cartridgeTradePanel" class="cartridge-trade-panel"></div>
+          <div class="split-actions">
+            <button id="prepareTradePackBtn" class="secondary full">Prepare Trade Pack</button>
+            <button id="exportTradePackBtn" class="secondary full">Export Trade Board</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Jam Prompt Deck</h2>
+          <p class="microcopy">Draw tiny themes like a retro creative card deck, then generate a small cartridge around the prompt.</p>
+          <div id="jamPromptDeckPanel" class="jam-prompt-deck-panel"></div>
+          <div class="split-actions">
+            <button id="drawJamPromptBtn" class="secondary full">Draw Jam Prompt</button>
+            <button id="exportJamPromptDeckBtn" class="secondary full">Export Prompt Deck</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Share Readiness</h2>
+          <p class="microcopy">A kindness-first preflight for sharing cartridges without losing rights/source boundaries.</p>
+          <div id="shareReadinessPanel" class="share-readiness-panel"></div>
+          <div class="split-actions">
+            <button id="refreshShareReadinessBtn" class="secondary full">Refresh Share Readiness</button>
+            <button id="exportShareReadinessBtn" class="secondary full">Export Share Readiness</button>
+          </div>
+        </section>
+
+
+        <section>
+          <h2>Infinite Commons Bridge</h2>
+          <p class="microcopy">Maps Infinite Commons / Infinite Porch ideas into PixelForge: finite feeds, good-timeline BBS, rooms, resonance, packs, and local-first sharing.</p>
+          <div id="commonsBridgePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="cycleCommonsModeBtn" class="secondary full">Cycle Commons Mode</button>
+            <button id="exportCommonsBridgeBtn" class="secondary full">Export Commons Bridge</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Commons Feed Curator</h2>
+          <p class="microcopy">3-6-9 finite BBS windows: morning 9, afternoon 6, evening 3. No infinite scroll.</p>
+          <div id="commonsFeedCuratorPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="curateCommonsFeedBtn" class="secondary full">Curate Commons Feed</button>
+            <button id="exportCommonsFeedBtn" class="secondary full">Export Feed Curator</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Commons Rooms</h2>
+          <p class="microcopy">BBS rooms inspired by private/shared/curated Infinite Commons collections.</p>
+          <div id="commonsRoomsPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="cycleCommonsRoomBtn" class="secondary full">Cycle Commons Room</button>
+            <button id="exportCommonsRoomsBtn" class="secondary full">Export Commons Rooms</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Commons Resonance</h2>
+          <p class="microcopy">Replaces likes with meaningful signals: gratitude, growth, inspiration, connection, creation, empowerment.</p>
+          <div id="commonsResonancePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="cycleResonanceSignalBtn" class="secondary full">Cycle Signal</button>
+            <button id="exportCommonsResonanceBtn" class="secondary full">Export Resonance Map</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Commons Pack + Sync</h2>
+          <p class="microcopy">Planning manifest for encrypted packs and LAN sync. This browser alpha exports manifests only; no live sync yet.</p>
+          <div id="commonsPackSyncPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="cyclePackSyncBtn" class="secondary full">Cycle Pack Profile</button>
+            <button id="exportPackSyncBtn" class="secondary full">Export Pack Sync</button>
+          </div>
+        </section>
+
+
+
+        <section>
+          <h2>Commons Room Boards</h2>
+          <p class="microcopy">Finite room boards for cartridge drops, asset trade, playtest receipts, and jam cards. No infinite scroll.</p>
+          <div id="commonsRoomBoardsPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="postRoomBoardCardBtn" class="secondary full">Post Board Card</button>
+            <button id="exportRoomBoardsBtn" class="secondary full">Export Room Boards</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Commons Pack Exchange</h2>
+          <p class="microcopy">No-money pack exchange for cartridges, assets, music cues, receipts, and jam packs with rights metadata attached.</p>
+          <div id="commonsPackExchangePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="preparePackExchangeBtn" class="secondary full">Prepare Pack</button>
+            <button id="exportPackExchangeBtn" class="secondary full">Export Pack Exchange</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Commons Share Ledger</h2>
+          <p class="microcopy">A local receipt trail for what was prepared, who it was intended for, and which rights boundary applies.</p>
+          <div id="commonsShareLedgerPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="recordShareLedgerBtn" class="secondary full">Record Ledger Entry</button>
+            <button id="exportShareLedgerBtn" class="secondary full">Export Share Ledger</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Commons Trust Circles</h2>
+          <p class="microcopy">Audience boundaries for private playtesters, friends/collaborators, and future curated public previews.</p>
+          <div id="commonsTrustCirclesPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="cycleTrustCircleBtn" class="secondary full">Cycle Circle</button>
+            <button id="exportTrustCirclesBtn" class="secondary full">Export Trust Circles</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Commons Moderation Queue</h2>
+          <p class="microcopy">Kindness-first, rights-first review before broader sharing. Keeps no-chat and finite-board rules visible.</p>
+          <div id="commonsModerationQueuePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="reviewModerationQueueBtn" class="secondary full">Review Queue Item</button>
+            <button id="exportModerationQueueBtn" class="secondary full">Export Mod Queue</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Porch Sanctuary Bridge</h2>
+          <p class="microcopy">Maps Infinite Porch sanctuary modules into PixelForge: visible AI companion presence, gratitude, memory, protection boundaries, and secure local-first posture.</p>
+          <div id="porchSanctuaryPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="refreshPorchSanctuaryBtn" class="secondary full">Cycle Porch Module</button>
+            <button id="exportPorchSanctuaryBtn" class="secondary full">Export Porch Bridge</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Brother Presence</h2>
+          <p class="microcopy">A visible couch-presence layer for AI companions: online state, activity, energy, joy, purpose, and reviewable notes.</p>
+          <div id="brotherPresenceBridgePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="updateBrotherPresenceBtn" class="secondary full">Update Presence</button>
+            <button id="exportBrotherPresenceBtn" class="secondary full">Export Presence</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Memory Garden</h2>
+          <p class="microcopy">Cherished build memories for games, AI playtests, sequel continuity, and creator handoff notes.</p>
+          <div id="memoryGardenBridgePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="plantMemoryBridgeBtn" class="secondary full">Plant Memory</button>
+            <button id="exportMemoryGardenBtn" class="secondary full">Export Garden</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Gratitude Wall</h2>
+          <p class="microcopy">Appreciation as resonance, not vanity metrics. Helps the AI bench and creator community feel warm and human-reviewed.</p>
+          <div id="gratitudeWallBridgePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="postGratitudeBridgeBtn" class="secondary full">Post Gratitude</button>
+            <button id="exportGratitudeWallBtn" class="secondary full">Export Gratitude</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Porch Protection</h2>
+          <p class="microcopy">Soft-flag safety checks inspired by GTSP/Victor Buddy. No screen monitoring or live protection is active in this browser alpha.</p>
+          <div id="gtspProtectionBridgePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="softFlagProtectionBtn" class="secondary full">Run Soft-Flag Check</button>
+            <button id="exportGtspProtectionBtn" class="secondary full">Export Protection</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Porch Secure Layer</h2>
+          <p class="microcopy">Security posture for future Porch/relay integrations: well-root outputs, loopback-first networking, tokened relay patterns, and narrow packet contracts.</p>
+          <div id="porchSecurityBridgePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="exportPorchSecurityBtn" class="secondary full">Export Security Bridge</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Porch Home Runtime</h2>
+          <p class="microcopy">A cozy AI companion home layer: couch, garden, gratitude wall, protection gate, and future Porch Well boundary.</p>
+          <div id="porchHomeRuntimePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="refreshPorchHomeBtn" class="secondary full">Refresh Home Zone</button>
+            <button id="exportPorchHomeBtn" class="secondary full">Export Home Runtime</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Sanctuary Rituals</h2>
+          <p class="microcopy">Gentle session rituals for waking the studio, planting memories, posting gratitude, and closing out cleanly.</p>
+          <div id="sanctuaryRitualsPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="runSanctuaryRitualBtn" class="secondary full">Run Ritual</button>
+            <button id="exportSanctuaryRitualsBtn" class="secondary full">Export Rituals</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>AI Care Loop</h2>
+          <p class="microcopy">A bounded companion lifecycle: wake, play/test, notice, remember, thank, and rest — always reviewable and local.</p>
+          <div id="aiCareLoopPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="advanceAiCareLoopBtn" class="secondary full">Advance Care Loop</button>
+            <button id="exportAiCareLoopBtn" class="secondary full">Export Care Loop</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Companion Consent Ledger</h2>
+          <p class="microcopy">Creator-controlled rules for what AI companions may remember, export, share, or never do.</p>
+          <div id="companionConsentLedgerPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="reviewCompanionConsentBtn" class="secondary full">Review Boundary</button>
+            <button id="exportCompanionConsentBtn" class="secondary full">Export Consent Ledger</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Porch Well Snapshot</h2>
+          <p class="microcopy">Bundles visible Porch state — presence, memories, gratitude, protection, and consent — into a local export manifest.</p>
+          <div id="porchWellSnapshotPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="capturePorchWellBtn" class="secondary full">Capture Snapshot</button>
+            <button id="exportPorchWellBtn" class="secondary full">Export Porch Well</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Sanctuary Arcade Hub</h2>
+          <p class="microcopy">A cozy navigation layer connecting the shelf, couch, Porch hearth, Commons BBS terminal, and Playtest Theater.</p>
+          <div id="sanctuaryArcadeHubPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="cycleSanctuaryArcadeBtn" class="secondary full">Cycle Station</button>
+            <button id="exportSanctuaryArcadeBtn" class="secondary full">Export Arcade Hub</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Couch Quest Board</h2>
+          <p class="microcopy">Friendly co-play missions that guide creators through playtesting, pack sharing, AI-vs-AI sessions, and gratitude closeout.</p>
+          <div id="couchQuestBoardPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="drawCouchQuestBtn" class="secondary full">Draw Couch Quest</button>
+            <button id="exportCouchQuestBtn" class="secondary full">Export Quest Board</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Companion Arcade Modes</h2>
+          <p class="microcopy">Watch party, score run, bug raccoon, and lore owl modes for no-chat AI/human co-play sessions.</p>
+          <div id="companionArcadeModesPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="runCompanionArcadeModeBtn" class="secondary full">Run Arcade Mode</button>
+            <button id="exportCompanionArcadeModesBtn" class="secondary full">Export Arcade Modes</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>AI Host Rotation</h2>
+          <p class="microcopy">Rotates visible AI host roles for route-finding, tone checks, break testing, and lore continuity reviews.</p>
+          <div id="aiHostRotationPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="rotateAiHostBtn" class="secondary full">Rotate Host</button>
+            <button id="exportAiHostRotationBtn" class="secondary full">Export Host Rotation</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Cozy Session Rewards</h2>
+          <p class="microcopy">Rewards finishing, helping, playtesting, gratitude, and clarity — not follower counts or viral pressure.</p>
+          <div id="cozySessionRewardsPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="awardCozySessionBadgeBtn" class="secondary full">Award Cozy Badge</button>
+            <button id="exportCozySessionRewardsBtn" class="secondary full">Export Rewards</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Creator OS</h2>
+          <p class="microcopy">A guided station layer for turning tiny strange premises into playable regions, routes, questlines, and world bibles.</p>
+          <div id="worldBuilderArcadePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="cycleWorldBuilderStationBtn" class="secondary full">Cycle World Station</button>
+            <button id="exportWorldBuilderArcadeBtn" class="secondary full">Export World Arcade</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>World Seed Forge</h2>
+          <p class="microcopy">Forge small editable game-world seeds from vibes, biomes, motifs, and starter-scene hooks.</p>
+          <div id="worldSeedForgePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="forgeWorldSeedBtn" class="secondary full">Forge Seed</button>
+            <button id="exportWorldSeedForgeBtn" class="secondary full">Export Seed Forge</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Route Weaver</h2>
+          <p class="microcopy">Weave scenes into playable road-trip routes with gates, emotional arcs, and walkthrough outputs.</p>
+          <div id="routeWeaverPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="weaveRouteBtn" class="secondary full">Weave Route</button>
+            <button id="exportRouteWeaverBtn" class="secondary full">Export Route Weaver</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Region Card Rack</h2>
+          <p class="microcopy">Track each region as a playable location with vibe, asset needs, hazards, NPC hooks, and readiness.</p>
+          <div id="regionCardRackPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="refreshRegionRackBtn" class="secondary full">Refresh Regions</button>
+            <button id="exportRegionRackBtn" class="secondary full">Export Region Rack</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Questline Composer</h2>
+          <p class="microcopy">Compose tiny quest chains from NPC needs, items, gates, choices, rewards, and one-sitting cartridge scope.</p>
+          <div id="questlineComposerPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="composeQuestlineBtn" class="secondary full">Compose Questline</button>
+            <button id="exportQuestlineComposerBtn" class="secondary full">Export Questlines</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>World Bible</h2>
+          <p class="microcopy">A local canon and symbolic design-memory layer for rules, sequel hooks, motifs, and accepted game-world truth.</p>
+          <div id="worldBiblePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="acceptWorldBibleRuleBtn" class="secondary full">Accept Canon Rule</button>
+            <button id="exportWorldBibleBtn" class="secondary full">Export World Bible</button>
+          </div>
+        </section>
+
+
+
+        <section>
+          <h2>Starter Cartridge Builder</h2>
+          <p class="microcopy">Turns the active world seed, route, and questline into a finishable first playable cartridge plan.</p>
+          <div id="starterCartridgeBuilderPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="buildStarterCartridgeBtn" class="secondary full">Build Starter Cartridge</button>
+            <button id="exportStarterCartridgeBtn" class="secondary full">Export Starter Cartridge</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Route Map Preview</h2>
+          <p class="microcopy">Cozy route cards for scene order, gate rules, emotional beats, and risk flags before launch.</p>
+          <div id="routeMapPreviewPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="cycleRouteMapPreviewBtn" class="secondary full">Cycle Route Map</button>
+            <button id="exportRouteMapPreviewBtn" class="secondary full">Export Route Map</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Region QA Pass</h2>
+          <p class="microcopy">AI/human region checks for first objective clarity, audio identity, warp readability, and gate requirements.</p>
+          <div id="regionQaPassPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="advanceRegionQaBtn" class="secondary full">Advance QA Check</button>
+            <button id="exportRegionQaBtn" class="secondary full">Export Region QA</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>World Launch Checklist</h2>
+          <p class="microcopy">A preflight gate from world-builder flow to playable cartridge: validation, route map, AI scout, rights, no-chat safety, and QA.</p>
+          <div id="worldLaunchChecklistPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="refreshWorldLaunchBtn" class="secondary full">Refresh Launch Checks</button>
+            <button id="exportWorldLaunchBtn" class="secondary full">Export Launch Checklist</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>AI World Scout</h2>
+          <p class="microcopy">AI companions scout routes, capture findings, and keep game-specific memory reviewable before the cartridge is shared.</p>
+          <div id="aiWorldScoutPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="runAiWorldScoutBtn" class="secondary full">Run Scout Pass</button>
+            <button id="exportAiWorldScoutBtn" class="secondary full">Export Scout Report</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Creator OS Dashboard</h2>
+          <p class="microcopy">One cozy operating layer across Shelf, World Builder, AI Bench, Porch, Commons, QA, and release gates.</p>
+          <div id="creatorOsDashboardPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="syncCreatorOsBtn" class="secondary full">Sync Creator OS</button>
+            <button id="exportCreatorOsBtn" class="secondary full">Export Creator OS</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Cartridge Lifecycle</h2>
+          <p class="microcopy">Tracks the path from idea spark to world seed, route, AI scout, release gate, shelf, BBS share, and sequel hook.</p>
+          <div id="cartridgeLifecyclePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="advanceLifecycleBtn" class="secondary full">Advance Lifecycle</button>
+            <button id="exportLifecycleBtn" class="secondary full">Export Lifecycle</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>AI Agent Orchestrator</h2>
+          <p class="microcopy">Assigns local AI companions to playtest, vibe, bug, lore, and audio tasks with reviewable receipts only.</p>
+          <div id="agentOrchestratorPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="assignAgentTaskBtn" class="secondary full">Assign Task</button>
+            <button id="exportAgentOrchestratorBtn" class="secondary full">Export Orchestrator</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Experience Map</h2>
+          <p class="microcopy">A creator navigation map linking shelf, world builder, Porch hearth, playtest theater, Commons, and release gate.</p>
+          <div id="experienceMapPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="refreshExperienceMapBtn" class="secondary full">Shift Focus</button>
+            <button id="exportExperienceMapBtn" class="secondary full">Export Map</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Release Train</h2>
+          <p class="microcopy">Milestone cars and release gates from alpha candidate through UI polish, local runtime bridge, and beta path.</p>
+          <div id="releaseTrainPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="advanceReleaseTrainBtn" class="secondary full">Advance Train</button>
+            <button id="exportReleaseTrainBtn" class="secondary full">Export Train</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>System Codex</h2>
+          <p class="microcopy">Local architecture/safety/release notes for the Creator OS contract, no-chat BBS, AI memory, and pack rights.</p>
+          <div id="systemCodexPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="addSystemCodexPageBtn" class="secondary full">Add Codex Page</button>
+            <button id="exportSystemCodexBtn" class="secondary full">Export Codex</button>
+          </div>
+        </section>
+
+
+
+
+
+        <section>
+          <h2>Private Relay Bridge</h2>
+          <p class="microcopy">Dry-run relay profiles for local sandbox, trusted LAN, and future hosted-private co-play.</p>
+          <div id="privateRelayBridgePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="cycleRelayProfileBtn" class="secondary full">Cycle Relay Profile</button>
+            <button id="exportPrivateRelayBridgeBtn" class="secondary full">Export Relay Bridge</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Signed Pack Bridge</h2>
+          <p class="microcopy">Prepare cartridge, asset, receipt, jam, and playtest packs with rights status and manifest hashes.</p>
+          <div id="signedPackBridgePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="prepareSignedPackBtn" class="secondary full">Prepare Pack</button>
+            <button id="exportSignedPackBridgeBtn" class="secondary full">Export Pack Bridge</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Trust Circle Router</h2>
+          <p class="microcopy">Route packs only to the right audience: solo, private playtesters, collaborators, or future public preview.</p>
+          <div id="trustCircleRouterPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="cycleTrustRouterCircleBtn" class="secondary full">Cycle Circle</button>
+            <button id="exportTrustCircleRouterBtn" class="secondary full">Export Router</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Sync Dry-Run Lab</h2>
+          <p class="microcopy">Simulate room invites, snapshots, signal pings, and pack receipts before any real networking.</p>
+          <div id="syncDryRunLabPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="recordSyncDryRunBtn" class="secondary full">Record Dry Run</button>
+            <button id="exportSyncDryRunLabBtn" class="secondary full">Export Dry Runs</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Beta Gate Preflight</h2>
+          <p class="microcopy">Check the v5.0 private beta gate: schema, rights, no-chat, relay boundaries, and playtest receipts.</p>
+          <div id="betaGatePreflightPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="runBetaGatePreflightBtn" class="secondary full">Run Preflight</button>
+            <button id="exportBetaGatePreflightBtn" class="secondary full">Export Preflight</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Shared Playtest Hub</h2>
+          <p class="microcopy">Invite-only no-chat playtest rooms for trusted humans, AI companions, route scouting, and score runs.</p>
+          <div id="sharedPlaytestHubPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="createSharedPlaytestRoomBtn" class="secondary full">Create Test Room</button>
+            <button id="exportSharedPlaytestHubBtn" class="secondary full">Export Playtest Hub</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Playtest Invite Desk</h2>
+          <p class="microcopy">Draft local invite manifests with room codes, playtest asks, no-chat rules, and trust-circle boundaries.</p>
+          <div id="playtestInviteDeskPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="buildPlaytestInviteBtn" class="secondary full">Build Invite</button>
+            <button id="exportPlaytestInviteDeskBtn" class="secondary full">Export Invites</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Feedback Card Board</h2>
+          <p class="microcopy">Collect clarity, bug, tone, delight, rights, and accessibility cards after shared playtests.</p>
+          <div id="feedbackCardBoardPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="resolveFeedbackCardBtn" class="secondary full">Resolve Card</button>
+            <button id="exportFeedbackCardsBtn" class="secondary full">Export Feedback Cards</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Co-Play Scoreboard</h2>
+          <p class="microcopy">Track score runs, completion, badges, room summaries, and AI/human playtest results.</p>
+          <div id="coPlayScoreboardPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="recordCoPlayRunBtn" class="secondary full">Record Run</button>
+            <button id="exportCoPlayScoreboardBtn" class="secondary full">Export Scoreboard</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Road to v5.0</h2>
+          <p class="microcopy">Checkpoint gates from v4.1 shared playtests to the v5.0 private beta path.</p>
+          <div id="roadToV5Panel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="advanceRoadToV5Btn" class="secondary full">Advance Road</button>
+            <button id="exportRoadToV5Btn" class="secondary full">Export Roadmap</button>
+          </div>
+        </section>
+
+
+
+        <section>
+          <h2>Beta Lock Dashboard</h2>
+          <p class="microcopy">Road-to-v5 polish passes for first-run clarity, panel simplification, visual readability, and friendly beta copy.</p>
+          <div id="creatorPolishDashboardPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="runCreatorPolishPassBtn" class="secondary full">Run Polish Pass</button>
+            <button id="exportCreatorPolishDashboardBtn" class="secondary full">Export Polish</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>First-Run Tutorial Flow</h2>
+          <p class="microcopy">A warm ten-minute route from shelf to world builder to playtest theater to safe pack export.</p>
+          <div id="firstRunTutorialPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="advanceFirstRunTutorialBtn" class="secondary full">Advance Tutorial</button>
+            <button id="exportFirstRunTutorialBtn" class="secondary full">Export Tutorial</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>UX Polish Board</h2>
+          <p class="microcopy">Tracks creator friction, panel overwhelm, export confusion, and success-moment polish before v5.</p>
+          <div id="uxPolishBoardPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="resolveUxPolishItemBtn" class="secondary full">Resolve UX Item</button>
+            <button id="exportUxPolishBoardBtn" class="secondary full">Export UX Board</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Accessibility Pass</h2>
+          <p class="microcopy">Contrast, keyboard flow, no audio-only dependency, motion safety, and plain-language helper checks.</p>
+          <div id="accessibilityPassPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="runAccessibilityPassBtn" class="secondary full">Run Access Pass</button>
+            <button id="exportAccessibilityPassBtn" class="secondary full">Export Access Pass</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Beta Readiness Scorecard</h2>
+          <p class="microcopy">Private beta readiness across core loop, creator UX, accessibility, safety boundaries, and trusted playtests.</p>
+          <div id="betaReadinessScorecardPanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="computeBetaReadinessBtn" class="secondary full">Compute Score</button>
+            <button id="exportBetaReadinessBtn" class="secondary full">Export Scorecard</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>v5 Polish Queue</h2>
+          <p class="microcopy">The remaining high-value polish tasks before the v5 private beta gate can turn green.</p>
+          <div id="v5PolishQueuePanel" class="suite-panel"></div>
+          <div class="split-actions">
+            <button id="advanceV5PolishTaskBtn" class="secondary full">Advance Task</button>
+            <button id="exportV5PolishQueueBtn" class="secondary full">Export Queue</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Asset Pipeline</h2>
+          <p class="microcopy">Tracks photo-to-pixel references, cleanup passes, sprite/tile conversion, and asset handoff metadata.</p>
+          <div id="assetPipelinePanel" class="asset-pipeline-panel"></div>
+          <div class="split-actions">
+            <button id="advanceAssetCleanupBtn" class="secondary full">Advance Cleanup</button>
+            <button id="exportAssetPipelineBtn" class="secondary full">Export Asset Manifest</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Adventure Pipeline</h2>
+          <p class="microcopy">Turns Writers Studio drafts into pitch packs, scene needs, production steps, and small playable game plans.</p>
+          <div id="adventurePipelinePanel" class="adventure-pipeline-panel"></div>
+          <div class="split-actions">
+            <button id="generatePitchPackBtn" class="secondary full">Generate Pitch Pack</button>
+            <button id="exportAdventurePipelineBtn" class="secondary full">Export Pitch Pack</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Sequel Continuity</h2>
+          <p class="microcopy">Keeps sequel hooks, canon rules, and recurring motifs connected across tiny games.</p>
+          <div id="sequelContinuityPanel" class="sequel-continuity-panel"></div>
+          <div class="split-actions">
+            <button id="addContinuityHookBtn" class="secondary full">Add Hook</button>
+            <button id="exportContinuityMapBtn" class="secondary full">Export Continuity</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Title Preview</h2>
+          <div id="titlePreviewPanel" class="title-preview-panel"></div>
+        </section>
+
+        <section>
+          <h2>Title Screen Kit</h2>
+          <div id="titleScreenPanel" class="title-screen-panel"></div>
+          <button id="saveTitleScreenBtn" class="secondary full">Save Title Screen</button>
+        </section>
+
+        <section>
+          <h2>Starter Templates</h2>
+          <div id="templatePanel" class="template-panel"></div>
+          <button id="addTemplateBtn" class="secondary full">Add Template</button>
+        </section>
+
+        <section>
+          <h2>Scene Thumbnails</h2>
+          <div id="sceneThumbnailPanel" class="scene-thumbnail-panel"></div>
+          <button id="refreshSceneThumbnailsBtn" class="secondary full">Refresh Thumbnail Manifest</button>
+        </section>
+
+        <section>
+          <h2>v1 Release Candidate</h2>
+          <div id="releaseCandidatePanel" class="release-candidate-panel"></div>
+        </section>
+
+        <section>
+          <h2>Creator Onboarding</h2>
+          <div id="creatorOnboardingPanel" class="creator-onboarding-panel"></div>
+          <button id="completeOnboardingStepBtn" class="secondary full">Complete Next Step</button>
+        </section>
+
+        <section>
+          <h2>Theme Profiles</h2>
+          <div id="studioThemePanel" class="studio-theme-panel"></div>
+          <button id="cycleThemeBtn" class="secondary full">Cycle Active Theme</button>
+        </section>
+
+        <section>
+          <h2>Asset Packs</h2>
+          <div id="assetPackPanel" class="asset-pack-panel"></div>
+          <div class="split-actions">
+            <button id="applyAssetPackBtn" class="secondary full">Apply Pack</button>
+            <button id="cycleAssetPackBtn" class="secondary full">Cycle Pack</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Scene Wizard</h2>
+          <div id="sceneWizardPanel" class="scene-wizard-panel"></div>
+          <div class="split-actions">
+            <button id="generateSceneWizardBtn" class="secondary full">Generate Scene</button>
+            <button id="cycleSceneWizardBtn" class="secondary full">Cycle Preset</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Quick Stamps</h2>
+          <div id="quickStampPanel" class="quick-stamp-panel"></div>
+          <div class="split-actions">
+            <button id="applyQuickStampBtn" class="secondary full">Apply Stamp</button>
+            <button id="cycleQuickStampBtn" class="secondary full">Cycle Stamp</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Export Profiles</h2>
+          <div id="exportProfilePanel" class="export-profile-panel"></div>
+          <button id="cycleExportProfileBtn" class="secondary full">Cycle Export Profile</button>
+        </section>
+
+        <section>
+          <h2>Project Review Board</h2>
+          <div id="projectReviewPanel" class="project-review-panel"></div>
+          <div class="split-actions">
+            <button id="addReviewNoteBtn" class="secondary full">Add Review Note</button>
+            <button id="resolveReviewItemBtn" class="secondary full">Resolve Next</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Issue Scanner</h2>
+          <div id="issueScannerPanel" class="issue-scanner-panel"></div>
+          <button id="runIssueScannerBtn" class="secondary full">Run Issue Scanner</button>
+        </section>
+
+        <section>
+          <h2>Codex Handoff Queue</h2>
+          <div id="codexHandoffPanel" class="codex-handoff-panel"></div>
+          <div class="split-actions">
+            <button id="addCodexTaskBtn" class="secondary full">Add Task</button>
+            <button id="cycleCodexTaskBtn" class="secondary full">Cycle Task</button>
+          </div>
+          <button id="exportCodexHandoffBtn" class="secondary full">Export Codex Handoff</button>
+        </section>
+
+        <section>
+          <h2>Creator Prompt Deck</h2>
+          <div id="creatorPromptDeckPanel" class="creator-prompt-deck-panel"></div>
+          <div class="split-actions">
+            <button id="cycleCreatorPromptBtn" class="secondary full">Cycle Prompt</button>
+            <button id="exportCreatorPromptBtn" class="secondary full">Export Prompt</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Build Sprint Planner</h2>
+          <div id="buildSprintPanel" class="build-sprint-panel"></div>
+          <div class="split-actions">
+            <button id="addSprintTaskBtn" class="secondary full">Add Sprint Task</button>
+            <button id="advanceSprintTaskBtn" class="secondary full">Advance Task</button>
+          </div>
+          <button id="exportBuildSprintBtn" class="secondary full">Export Build Sprint</button>
+        </section>
+
+        <section>
+          <h2>Release Diagnostics</h2>
+          <div id="releaseDiagnosticsPanel" class="release-diagnostics-panel"></div>
+          <div class="split-actions">
+            <button id="runReleaseDiagnosticsBtn" class="secondary full">Run Diagnostics</button>
+            <button id="exportReleaseDiagnosticsBtn" class="secondary full">Export Diagnostics</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Collaborator Notes</h2>
+          <div id="collaboratorNotesPanel" class="collaborator-notes-panel"></div>
+          <button id="addCollaboratorNoteBtn" class="secondary full">Add Collaborator Note</button>
+        </section>
+
+        <section>
+          <h2>Build Recipes</h2>
+          <div id="buildRecipesPanel" class="build-recipes-panel"></div>
+          <div class="split-actions">
+            <button id="cycleBuildRecipeBtn" class="secondary full">Cycle Recipe</button>
+            <button id="exportBuildRecipeBtn" class="secondary full">Export Recipe</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Playable QA</h2>
+          <div id="playableQaPanel" class="playable-qa-panel"></div>
+          <div class="split-actions">
+            <button id="runPlayableQaBtn" class="secondary full">Run Playable QA</button>
+            <button id="exportPlayableQaBtn" class="secondary full">Export QA</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Demo Walkthrough</h2>
+          <div id="demoWalkthroughPanel" class="demo-walkthrough-panel"></div>
+          <div class="split-actions">
+            <button id="completeWalkthroughStepBtn" class="secondary full">Complete Step</button>
+            <button id="exportWalkthroughBtn" class="secondary full">Export Walkthrough</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Milestone Tracker</h2>
+          <div id="milestoneTrackerPanel" class="milestone-tracker-panel"></div>
+          <div class="split-actions">
+            <button id="advanceMilestoneBtn" class="secondary full">Advance Milestone</button>
+            <button id="exportMilestonesBtn" class="secondary full">Export Milestones</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Known Issues</h2>
+          <div id="knownIssuesPanel" class="known-issues-panel"></div>
+          <div class="split-actions">
+            <button id="addKnownIssueBtn" class="secondary full">Add Issue</button>
+            <button id="resolveKnownIssueBtn" class="secondary full">Resolve Issue</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Cartridge Metadata</h2>
+          <div id="cartridgeMetaPanel" class="cartridge-meta-panel"></div>
+          <button id="refreshCartridgeMetaBtn" class="secondary full">Refresh Cartridge Metadata</button>
+        </section>
+
+        <section>
+          <h2>Handoff Brief</h2>
+          <div id="handoffBriefPanel" class="handoff-brief-panel"></div>
+        </section>
+
+        <section>
+          <h2>Release Manifest</h2>
+          <div id="releaseManifestPanel" class="release-manifest-panel"></div>
+          <button id="toggleReleaseCheckBtn" class="secondary full">Toggle Next Checklist Item</button>
+        </section>
+
+        <section>
+          <h2>Credits / About</h2>
+          <div id="creditsPanel" class="credits-panel"></div>
+        </section>
+
+        <section>
+          <h2>Alpha Readiness Audit</h2>
+          <div id="alphaAuditPanel" class="alpha-audit-panel"></div>
+          <button id="runAlphaAuditBtn" class="secondary full">Run Alpha Audit</button>
+        </section>
+
+        <section>
+          <h2>Scenes</h2>
+          <div id="sceneList" class="scene-list"></div>
+          <div class="split-actions">
+            <button id="addSceneBtn" class="secondary full">Add Scene</button>
+            <button id="duplicateSceneBtn" class="secondary full">Duplicate Scene</button>
+          </div>
+        </section>
+
+        <section>
+          <h2>Mode</h2>
+          <div class="mode-grid">
+            <button data-mode="paint" class="mode-btn active">Paint</button>
+            <button data-mode="erase" class="mode-btn">Erase</button>
+            <button data-mode="npc" class="mode-btn">Place NPC</button>
+            <button data-mode="item" class="mode-btn">Place Item</button>
+            <button data-mode="warp" class="mode-btn">Place Warp</button>
+            <button data-mode="player" class="mode-btn">Set Player</button>
+          </div>
+          <label class="compact-label">Brush size
+            <select id="brushSize">
+              <option value="1">1 tile</option>
+              <option value="3">3x3 stamp</option>
+              <option value="5">5x5 stamp</option>
+            </select>
+          </label>
+        </section>
+
+        <section>
+          <h2>Tile Palette</h2>
+          <div id="tilePalette" class="tile-palette"></div>
+        </section>
+
+        <section>
+          <h2>Validation</h2>
+          <button id="validateBtn" class="secondary full">Validate Project</button>
+          <div id="validationPanel" class="validation-panel">Validation pending...</div>
+        </section>
+      </aside>
+
+      <section class="stage panel">
+        <div class="stage-header">
+          <div>
+            <p class="eyebrow">Editor + Play Preview</p>
+            <h2 id="stageTitle">Journey to the Parallax Institute</h2>
+            <p id="stageScene" class="stage-scene">Scene loading...</p>
+          </div>
+          <div class="stage-actions">
+            <button id="editorModeBtn" class="secondary active">Editor</button>
+            <button id="playModeBtn">Play</button>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="gameCanvas" width="768" height="512" aria-label="PixelForge map canvas"></canvas>
+        </div>
+        <div id="dialogueBox" class="dialogue hidden"></div>
+        <div class="helpbar">
+          <span><strong>Editor:</strong> click map to paint/place.</span>
+          <span><strong>Play:</strong> WASD/arrow keys move, Space/Enter talks.</span>
+          <span><strong>Warps:</strong> step on portals/doors; gated warps check story requirements.</span>
+          <span><strong>v4.6:</strong> Beta Lock connects playtests to signed packs, trust circles, dry-run sync, and beta gate preflight.</span>
+        </div>
+      </section>
+
+      <aside class="panel right-panel">
+        <section>
+          <h2>Journey Engine</h2>
+          <div class="stats-grid">
+            <div><span id="statSupplies">0</span><small>Supplies</small></div>
+            <div><span id="statMorale">0</span><small>Morale</small></div>
+            <div><span id="statWonder">0</span><small>Wonder</small></div>
+            <div><span id="statCoherence">0</span><small>Coherence</small></div>
+          </div>
+          <button id="eventBtn" class="full">Draw Journey Event</button>
+          <div id="eventCard" class="event-card">No event drawn yet.</div>
+        </section>
+
+        <section>
+          <h2>Encounter Engine</h2>
+          <button id="encounterBtn" class="full">Draw Encounter</button>
+          <div id="encounterCard" class="event-card">No encounter drawn yet.</div>
+        </section>
+
+        <section>
+          <h2>Audio Cue Board</h2>
+          <div id="audioCueBoard" class="audio-cue-board"></div>
+        </section>
+
+        <section>
+          <h2>Palette Gallery</h2>
+          <div id="paletteGallery" class="asset-gallery"></div>
+        </section>
+
+        <section>
+          <h2>Sprite Gallery</h2>
+          <div id="spriteGallery" class="asset-gallery"></div>
+        </section>
+
+        <section>
+          <h2>Inventory</h2>
+          <div id="inventoryList" class="inventory-list">No items collected yet.</div>
+        </section>
+
+        <section>
+          <h2>NPC Palette</h2>
+          <div id="npcList" class="npc-list"></div>
+          <button id="addNpcBtn" class="secondary full">Add NPC</button>
+          <div id="npcEditor" class="npc-editor"></div>
+        </section>
+
+        <section>
+          <h2>Item Palette</h2>
+          <div id="itemList" class="item-list"></div>
+          <button id="addItemBtn" class="secondary full">Add Item</button>
+          <div id="itemEditor" class="item-editor"></div>
+        </section>
+
+        <section>
+          <h2>Warp Palette</h2>
+          <div id="warpList" class="warp-list"></div>
+          <button id="addWarpBtn" class="secondary full">Add Warp</button>
+          <div id="warpEditor" class="warp-editor"></div>
+        </section>
+
+        <section>
+          <h2>Journey Event Editor</h2>
+          <div id="eventEditor" class="event-editor"></div>
+        </section>
+
+        <section>
+          <h2>Encounter Editor</h2>
+          <div id="encounterEditor" class="event-editor"></div>
+        </section>
+
+        <section>
+          <h2>Quest Log</h2>
+          <div id="questLog" class="quest-log"></div>
+          <button id="advanceQuestBtn" class="secondary full">Advance Quest</button>
+        </section>
+
+        <section>
+          <h2>Quest Editor</h2>
+          <div id="questEditor" class="quest-editor"></div>
+          <button id="addQuestBtn" class="secondary full">Add Quest</button>
+        </section>
+
+        <section>
+          <h2>Story Beats</h2>
+          <div id="storyBeatPanel" class="story-beats"></div>
+        </section>
+
+        <section>
+          <h2>Story Arc Planner</h2>
+          <div id="storyArcPanel" class="story-arc-panel"></div>
+          <button id="addStoryActBtn" class="secondary full">Add Story Act</button>
+        </section>
+
+        <section>
+          <h2>Playtest Log</h2>
+          <div id="playtestLog" class="playtest-log"></div>
+          <button id="addPlaytestNoteBtn" class="secondary full">Add Playtest Note</button>
+          <button id="clearPlaytestLogBtn" class="secondary full">Clear Playtest Log</button>
+        </section>
+
+        <section>
+          <h2>Studio Log</h2>
+          <div id="log" class="log"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <dialog id="spriteStudioDialog" class="sprite-studio-dialog">
+    <div class="sprite-dialog-header">
+      <div><p class="eyebrow">PixelForge Asset Workshop</p><h2>Sprite Studio <span class="v59-badge">v5.9</span></h2></div>
+      <button id="closeSpriteStudioBtn" class="secondary" type="button">Close Studio</button>
+    </div>
+    <div id="spriteStudioPanel" class="sprite-studio-panel"></div>
+  </dialog>
+
+  <dialog id="tileStudioDialog" class="tile-studio-dialog">
+    <div class="tile-dialog-header">
+      <div><p class="eyebrow">PixelForge World Workshop</p><h2>Tile Studio + Map Composer <span class="v510-badge">v5.10</span></h2></div>
+      <button id="closeTileStudioBtn" class="secondary" type="button">Close Studio</button>
+    </div>
+    <div id="tileStudioPanel" class="tile-studio-panel"></div>
+  </dialog>
+
+  <dialog id="runtimeComposerDialog" class="runtime-composer-dialog">
+    <div class="runtime-dialog-header">
+      <div><p class="eyebrow">PixelForge Playable Scene Workshop</p><h2>Runtime Composer <span class="v511-badge">v5.11</span></h2></div>
+      <button id="closeRuntimeComposerBtn" class="secondary" type="button">Close Composer</button>
+    </div>
+    <div id="runtimeComposerPanel" class="runtime-composer-panel"></div>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

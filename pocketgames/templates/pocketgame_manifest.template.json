@@ -1,6 +1,7 @@
 {
   "manifestType": "369.pocketgame.manifest",
   "manifestVersion": "0.1.0",
+  "pixelforgeVersionTarget": "5.2.0-alpha",
   "id": "pocketgame-###-your-slug",
   "slug": "your-game-slug",
   "title": "Your Game Title",
@@ -8,26 +9,72 @@
   "series": "369 PocketGames",
   "candidateNumber": 0,
   "sourceCartridge": "games/your-game-folder",
+  "cartridgeManifest": "data/your_game.cartridge.json",
   "price": {
     "model": "premium_paid_once",
-    "usdTarget": "3.69"
+    "usdTarget": "3.69",
+    "saleFloorUsd": "0.99",
+    "bundleEligible": true,
+    "notes": "Explain why this game belongs in the $3.69 premium lane."
   },
-  "monetization": {
-    "ads": false,
-    "subscriptions": false,
-    "lootBoxes": false,
-    "energyTimers": false,
-    "predatoryIAP": false
+  "monetizationBoundary": {
+    "noAds": true,
+    "noPredatoryIap": true,
+    "noSubscriptions": true,
+    "noLootBoxes": true,
+    "noEnergyTimers": true,
+    "offlinePlayable": true
   },
-  "mobile": {
-    "offlinePlayable": true,
-    "orientation": "portrait_or_landscape",
-    "touchFriendly": true,
-    "firstMinuteCharmCheck": true
+  "mobileProfile": {
+    "orientation": "portrait-primary | landscape-primary | responsive",
+    "minimumTapTargetPx": 44,
+    "readabilityTarget": "Readable on 6-inch phones without zoom.",
+    "sessionLengthMinutes": {
+      "firstSessionTarget": 5,
+      "completeRunTarget": 20,
+      "fullExperienceTarget": 60
+    },
+    "controls": [
+      "large touch buttons",
+      "scroll-safe panels"
+    ]
   },
-  "store": {
-    "shortDescription": "A tiny premium game with no ads and no traps.",
-    "longDescription": "Describe the finished tiny game here.",
-    "tags": ["retro", "tiny-game", "premium"]
+  "storePageSeed": {
+    "shortDescription": "One short store sentence.",
+    "longDescription": "A friendly plain-language description for the store page.",
+    "featureBullets": [
+      "Feature one",
+      "Feature two",
+      "Feature three"
+    ],
+    "contentNotes": [
+      "No online chat",
+      "No account required"
+    ],
+    "tagline": "Tiny world. Honest price. Complete fun."
+  },
+  "rightsAndSafety": {
+    "assetStatus": "placeholder_review_required | original_verified | cc0_verified | mixed_review_required",
+    "publicTextReviewRequired": true,
+    "claimBoundaryReviewRequired": true,
+    "thirdPartyIpAllowed": false,
+    "requiredRightsReceipt": "exports/qa/your-game-slug.rights-receipt.md"
+  },
+  "releaseGates": [
+    {
+      "id": "gate-first-60-seconds",
+      "name": "First 60 Seconds Charm Gate",
+      "required": true,
+      "status": "open",
+      "criteria": "A new player understands the core action, smiles once, and trusts the no-ads/no-traps promise within the first minute."
+    }
+  ],
+  "communityTemplate": {
+    "canBeUsedAsExample": true,
+    "recommendedForNewCreators": true,
+    "doNotCloneAsYourOwnGame": true,
+    "lessonFocus": [
+      "small complete loop"
+    ]
   }
 }

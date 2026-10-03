@@ -1,0 +1,3002 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://phi369labs.local/schemas/pixelforge.project.v5.0.json",
+  "title": "Parallax PixelForge Project v5.0 Private Beta",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "engineVersion",
+    "meta",
+    "titleScreen",
+    "sceneTemplates",
+    "releaseManifest",
+    "alphaAudit",
+    "audioCues",
+    "credits",
+    "sceneThumbnails",
+    "releaseCandidate",
+    "creatorOnboarding",
+    "studioThemes",
+    "activeThemeId",
+    "cartridgeMeta",
+    "handoffBrief",
+    "sceneWizard",
+    "quickStamps",
+    "exportProfiles",
+    "activeExportProfileId",
+    "activeSceneId",
+    "player",
+    "inventory",
+    "flags",
+    "assets",
+    "activeAssetPackId",
+    "assetPacks",
+    "scenes",
+    "quests",
+    "storyBeats",
+    "playtestLog",
+    "storyArc",
+    "journey",
+    "projectReview",
+    "issueScanner",
+    "codexHandoff",
+    "creatorPromptDeck",
+    "activeCreatorPromptId",
+    "buildSprint",
+    "releaseDiagnostics",
+    "collaboratorNotes",
+    "buildRecipes",
+    "activeBuildRecipeId",
+    "playableQa",
+    "demoWalkthrough",
+    "milestoneTracker",
+    "knownIssues",
+    "pixelStudio",
+    "writersStudio",
+    "chiptuneStudio",
+    "creativeSuite",
+    "gameKitComposer",
+    "sceneAudioBoard",
+    "assetPipeline",
+    "adventurePipeline",
+    "sequelContinuity",
+    "productionBoard",
+    "readinessMatrix",
+    "releaseCutBuilder",
+    "releaseWorkshop",
+    "exportValidator",
+    "buildNotes",
+    "rightsRegistry",
+    "gameShelf",
+    "shelfCuration",
+    "libraryLauncher",
+    "gameDetail",
+    "saveProfileManager",
+    "collectionCapsules",
+    "bbsNetwork",
+    "sharePackages",
+    "communityFeed",
+    "forumChannels",
+    "livingRoomSafety",
+    "signalWheel",
+    "couchCoopSessions",
+    "bbsLivingRoom",
+    "relayBlueprint",
+    "sessionSync",
+    "hostHandoff",
+    "replayReceipts",
+    "relayDeploymentGuide",
+    "roomDirectory",
+    "relayPacketLab",
+    "privateRelayPrototype",
+    "aiPlayerBench",
+    "aiMatchLab",
+    "aiMemoryLedger",
+    "aiPlaytestArena",
+    "tinyGameJam",
+    "cartridgeTradeBoard",
+    "jamPromptDeck",
+    "shareReadiness",
+    "commonsBridge",
+    "commonsFeedCurator",
+    "commonsRooms",
+    "commonsResonance",
+    "commonsPackSync",
+    "commonsRoomBoards",
+    "commonsPackExchange",
+    "commonsShareLedger",
+    "commonsTrustCircles",
+    "commonsModerationQueue",
+    "starterCartridgeBuilder",
+    "routeMapPreview",
+    "regionQaPass",
+    "worldLaunchChecklist",
+    "aiWorldScout",
+    "systemCodex",
+    "releaseTrain",
+    "experienceMap",
+    "agentOrchestrator",
+    "cartridgeLifecycle",
+    "creatorOsDashboard",
+    "sharedPlaytestHub",
+    "playtestInviteDesk",
+    "feedbackCardBoard",
+    "coPlayScoreboard",
+    "roadToV5",
+    "privateRelayBridge",
+    "signedPackBridge",
+    "trustCircleRouter",
+    "syncDryRunLab",
+    "betaGatePreflight",
+    "privateBetaHandoffDesk",
+    "testerOnboardingRunbook",
+    "feedbackReceiptInbox",
+    "knownIssueTriage",
+    "betaExitCriteria",
+    "v5ReadinessGate",
+    "betaOperationsConsole",
+    "betaSessionLedger",
+    "testerCohortDashboard",
+    "feedbackDigest",
+    "issueTrendBoard",
+    "releaseCandidateAssembler",
+    "v5GoNoGoReview"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "pixelforge.project.v5.0"
+    },
+    "engineVersion": {
+      "type": "string"
+    },
+    "meta": {
+      "type": "object",
+      "required": [
+        "title",
+        "claimBoundary"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "sceneName": {
+          "type": "string"
+        },
+        "studio": {
+          "type": "string"
+        },
+        "vibe": {
+          "type": "string"
+        },
+        "claimBoundary": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "activeSceneId": {
+      "type": "string"
+    },
+    "player": {
+      "type": "object",
+      "required": [
+        "sceneId",
+        "x",
+        "y",
+        "name"
+      ],
+      "properties": {
+        "sceneId": {
+          "type": "string"
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "name": {
+          "type": "string"
+        },
+        "sprite": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "inventory": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "flags": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/scene"
+      }
+    },
+    "quests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/quest"
+      }
+    },
+    "storyBeats": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/storyBeat"
+      }
+    },
+    "journey": {
+      "type": "object",
+      "required": [
+        "stats",
+        "eventCursor",
+        "events",
+        "encounterCursor",
+        "encounters"
+      ],
+      "properties": {
+        "stats": {
+          "$ref": "#/$defs/stats"
+        },
+        "eventCursor": {
+          "type": "integer"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/journeyEvent"
+          }
+        },
+        "encounterCursor": {
+          "type": "integer"
+        },
+        "encounters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/encounter"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "assets": {
+      "type": "object",
+      "required": [
+        "activePaletteId",
+        "palettes",
+        "sprites"
+      ],
+      "properties": {
+        "activePaletteId": {
+          "type": "string"
+        },
+        "palettes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "colors"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "colors": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "sprites": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "colors"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              },
+              "colors": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "storyArc": {
+      "type": "object",
+      "required": [
+        "title",
+        "currentActId",
+        "acts"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "currentActId": {
+          "type": "string"
+        },
+        "acts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "title",
+              "status",
+              "goal",
+              "beatIds"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "locked",
+                  "active",
+                  "complete"
+                ]
+              },
+              "goal": {
+                "type": "string"
+              },
+              "beatIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "playtestLog": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "sceneId",
+          "text",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "sceneId": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "titleScreen": {
+      "type": "object",
+      "required": [
+        "subtitle",
+        "startPrompt",
+        "openingText",
+        "footerText"
+      ],
+      "properties": {
+        "subtitle": {
+          "type": "string"
+        },
+        "startPrompt": {
+          "type": "string"
+        },
+        "openingText": {
+          "type": "string"
+        },
+        "footerText": {
+          "type": "string"
+        },
+        "titlePaletteId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "sceneTemplates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "description",
+          "layout"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "layout": {
+            "enum": [
+              "road",
+              "diner",
+              "dream",
+              "gate"
+            ]
+          },
+          "recommendedAct": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "releaseManifest": {
+      "type": "object",
+      "required": [
+        "manifestType",
+        "target",
+        "versionLabel",
+        "exportStatus",
+        "checklist"
+      ],
+      "properties": {
+        "manifestType": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "versionLabel": {
+          "type": "string"
+        },
+        "exportStatus": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "checklist": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "label",
+              "done"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "done": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "credits": {
+      "type": "object",
+      "required": [
+        "studio",
+        "projectLead",
+        "about",
+        "claimBoundary",
+        "specialThanks"
+      ],
+      "properties": {
+        "studio": {
+          "type": "string"
+        },
+        "projectLead": {
+          "type": "string"
+        },
+        "assistantRole": {
+          "type": "string"
+        },
+        "specialThanks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "about": {
+          "type": "string"
+        },
+        "licenseNote": {
+          "type": "string"
+        },
+        "claimBoundary": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "audioCues": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "frequency",
+          "durationMs"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "mood": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "frequency": {
+            "type": "integer",
+            "minimum": 80,
+            "maximum": 2000
+          },
+          "durationMs": {
+            "type": "integer",
+            "minimum": 40,
+            "maximum": 1200
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "alphaAudit": {
+      "type": "object",
+      "required": [
+        "auditType",
+        "checks"
+      ],
+      "properties": {
+        "auditType": {
+          "type": "string"
+        },
+        "targetVersion": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "label",
+              "passed",
+              "severity"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "passed": {
+                "type": "boolean"
+              },
+              "severity": {
+                "enum": [
+                  "blocker",
+                  "major",
+                  "minor"
+                ]
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "sceneThumbnails": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "sceneId",
+          "label",
+          "caption",
+          "reviewStatus"
+        ],
+        "properties": {
+          "sceneId": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          },
+          "reviewStatus": {
+            "enum": [
+              "needs-review",
+              "needs-polish",
+              "needs-playtest",
+              "approved"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "releaseCandidate": {
+      "type": "object",
+      "required": [
+        "candidateType",
+        "targetVersion",
+        "requiredExports",
+        "checklist"
+      ],
+      "properties": {
+        "candidateType": {
+          "type": "string"
+        },
+        "targetVersion": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "handoffNotes": {
+          "type": "string"
+        },
+        "requiredExports": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "checklist": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "label",
+              "done"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "done": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "creatorOnboarding": {
+      "type": "object",
+      "required": [
+        "track",
+        "steps"
+      ],
+      "properties": {
+        "track": {
+          "type": "string"
+        },
+        "currentStepId": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "label",
+              "done"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "done": {
+                "type": "boolean"
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "studioThemes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "paletteId"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "accent": {
+            "type": "string"
+          },
+          "paletteId": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "activeThemeId": {
+      "type": "string"
+    },
+    "cartridgeMeta": {
+      "type": "object",
+      "required": [
+        "cartridgeId",
+        "buildLabel",
+        "targetRuntime",
+        "rating",
+        "estimatedPlayMinutes",
+        "coverTagline",
+        "includes"
+      ],
+      "properties": {
+        "cartridgeId": {
+          "type": "string"
+        },
+        "buildLabel": {
+          "type": "string"
+        },
+        "targetRuntime": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "string"
+        },
+        "estimatedPlayMinutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 180
+        },
+        "coverTagline": {
+          "type": "string"
+        },
+        "includes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "handoffBrief": {
+      "type": "object",
+      "required": [
+        "audience",
+        "summary",
+        "nextMilestone",
+        "risks",
+        "asks"
+      ],
+      "properties": {
+        "audience": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "nextMilestone": {
+          "type": "string"
+        },
+        "risks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "asks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "assetPacks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/assetPack"
+      }
+    },
+    "activeAssetPackId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sceneWizard": {
+      "type": "object",
+      "required": [
+        "activePresetId",
+        "generatedCount",
+        "presets"
+      ],
+      "properties": {
+        "activePresetId": {
+          "type": "string"
+        },
+        "generatedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "presets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "layout",
+              "kind",
+              "description"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "layout": {
+                "enum": [
+                  "road",
+                  "diner",
+                  "dream",
+                  "gate"
+                ]
+              },
+              "kind": {
+                "type": "string"
+              },
+              "templateId": {
+                "type": "string"
+              },
+              "assetPackId": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "defaultNpcName": {
+                "type": "string"
+              },
+              "defaultItemName": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "quickStamps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "tileIds"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "anchor": {
+            "type": "string"
+          },
+          "tileIds": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "exportProfiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "includes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "includes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "checklistIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "activeExportProfileId": {
+      "type": "string"
+    },
+    "projectReview": {
+      "type": "object",
+      "required": [
+        "summary",
+        "lastReviewedAt",
+        "reviewItems"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "lastReviewedAt": {
+          "type": "string"
+        },
+        "reviewItems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "title",
+              "severity",
+              "status",
+              "note"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string"
+              },
+              "severity": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              },
+              "status": {
+                "enum": [
+                  "open",
+                  "resolved",
+                  "deferred"
+                ]
+              },
+              "sceneId": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              },
+              "recommendation": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "issueScanner": {
+      "type": "object",
+      "required": [
+        "lastRunAt",
+        "checks"
+      ],
+      "properties": {
+        "lastRunAt": {
+          "type": "string"
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "label",
+              "severity",
+              "passed",
+              "note"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "severity": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              },
+              "passed": {
+                "type": "boolean"
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "codexHandoff": {
+      "type": "object",
+      "required": [
+        "activeTaskId",
+        "notes",
+        "tasks"
+      ],
+      "properties": {
+        "activeTaskId": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "tasks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "title",
+              "priority",
+              "status",
+              "prompt"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "priority": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              },
+              "status": {
+                "enum": [
+                  "draft",
+                  "ready",
+                  "done"
+                ]
+              },
+              "targetFiles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "prompt": {
+                "type": "string"
+              },
+              "acceptance": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "creatorPromptDeck": {
+      "type": "object",
+      "required": [
+        "activePromptId",
+        "prompts"
+      ],
+      "properties": {
+        "activePromptId": {
+          "type": "string"
+        },
+        "prompts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "title",
+              "kind",
+              "text"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "outputHint": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "activeCreatorPromptId": {
+      "type": "string"
+    },
+    "buildSprint": {
+      "type": "object",
+      "required": [
+        "sprintId",
+        "title",
+        "goal",
+        "activeTaskId",
+        "tasks"
+      ],
+      "properties": {
+        "sprintId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "goal": {
+          "type": "string"
+        },
+        "activeTaskId": {
+          "type": "string"
+        },
+        "tasks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "title",
+              "status",
+              "owner",
+              "priority",
+              "note"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "todo",
+                  "doing",
+                  "done"
+                ]
+              },
+              "owner": {
+                "type": "string"
+              },
+              "priority": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "releaseDiagnostics": {
+      "type": "object",
+      "required": [
+        "lastRunAt",
+        "summary",
+        "checks"
+      ],
+      "properties": {
+        "lastRunAt": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "label",
+              "status",
+              "severity",
+              "note"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "pass",
+                  "warning",
+                  "fail"
+                ]
+              },
+              "severity": {
+                "enum": [
+                  "blocker",
+                  "major",
+                  "minor"
+                ]
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "collaboratorNotes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "author",
+          "role",
+          "status",
+          "text"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "resolved",
+              "deferred"
+            ]
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "buildRecipes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "kind",
+          "steps",
+          "output"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "output": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "activeBuildRecipeId": {
+      "type": "string"
+    },
+    "playableQa": {
+      "type": "object",
+      "required": [
+        "lastRunAt",
+        "summary",
+        "checks"
+      ],
+      "properties": {
+        "lastRunAt": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "label",
+              "status",
+              "severity"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "pass",
+                  "warning",
+                  "fail"
+                ]
+              },
+              "severity": {
+                "enum": [
+                  "blocker",
+                  "major",
+                  "minor"
+                ]
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "demoWalkthrough": {
+      "type": "object",
+      "required": [
+        "activeStepId",
+        "steps"
+      ],
+      "properties": {
+        "activeStepId": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "title",
+              "sceneId",
+              "expected",
+              "complete"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "sceneId": {
+                "type": "string"
+              },
+              "expected": {
+                "type": "string"
+              },
+              "complete": {
+                "type": "boolean"
+              },
+              "tip": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "milestoneTracker": {
+      "type": "object",
+      "required": [
+        "trackId",
+        "title",
+        "currentMilestoneId",
+        "milestones"
+      ],
+      "properties": {
+        "trackId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "currentMilestoneId": {
+          "type": "string"
+        },
+        "milestones": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "title",
+              "status",
+              "target"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "planned",
+                  "active",
+                  "done"
+                ]
+              },
+              "target": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "knownIssues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "severity",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "status": {
+            "enum": [
+              "open",
+              "resolved",
+              "deferred"
+            ]
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "pixelStudio": {
+      "type": "object",
+      "required": [
+        "studioType",
+        "activePresetId",
+        "presets",
+        "importedAssets",
+        "lastOutput"
+      ],
+      "additionalProperties": true
+    },
+    "writersStudio": {
+      "type": "object",
+      "required": [
+        "studioType",
+        "activeRoleId",
+        "activeBriefId",
+        "teamRoles",
+        "adventureBriefs",
+        "generatedDrafts"
+      ],
+      "additionalProperties": true
+    },
+    "assetPipeline": {
+      "type": "object",
+      "required": [
+        "activeAssetId",
+        "exportProfile",
+        "importedRefs",
+        "cleanupQueue"
+      ],
+      "additionalProperties": true
+    },
+    "adventurePipeline": {
+      "type": "object",
+      "required": [
+        "activePitchId",
+        "pitchPacks",
+        "productionSteps"
+      ],
+      "additionalProperties": true
+    },
+    "sequelContinuity": {
+      "type": "object",
+      "required": [
+        "continuityStatus",
+        "activeHookId",
+        "canonRules",
+        "hooks",
+        "sequelSeeds"
+      ],
+      "additionalProperties": true
+    },
+    "chiptuneStudio": {
+      "type": "object",
+      "required": [
+        "studioType",
+        "activePresetId",
+        "presets",
+        "importedTracks",
+        "retroOutputs",
+        "arrangementSketches",
+        "lastAnalysis"
+      ],
+      "additionalProperties": true
+    },
+    "creativeSuite": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "gameKitComposer": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "sceneAudioBoard": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "productionBoard": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "readinessMatrix": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "releaseCutBuilder": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "releaseWorkshop": {
+      "type": "object"
+    },
+    "exportValidator": {
+      "type": "object"
+    },
+    "buildNotes": {
+      "type": "object"
+    },
+    "rightsRegistry": {
+      "type": "object"
+    },
+    "gameShelf": {
+      "type": "object"
+    },
+    "shelfCuration": {
+      "type": "object"
+    },
+    "libraryLauncher": {
+      "type": "object"
+    },
+    "gameDetail": {
+      "type": "object"
+    },
+    "saveProfileManager": {
+      "type": "object"
+    },
+    "collectionCapsules": {
+      "type": "object"
+    },
+    "bbsNetwork": {
+      "type": "object",
+      "description": "Local-first BBS/forum network metadata for community sharing.",
+      "additionalProperties": true
+    },
+    "sharePackages": {
+      "type": "object",
+      "description": "Exportable BBS share packages for cartridges, devlogs, assets, and playtest requests.",
+      "additionalProperties": true
+    },
+    "communityFeed": {
+      "type": "object",
+      "description": "Local draft/export community feed with posts, comments, reactions, and moderation queue.",
+      "additionalProperties": true
+    },
+    "forumChannels": {
+      "type": "object",
+      "description": "Forum channel rules, featured posts, contributor badges, and community boundaries.",
+      "additionalProperties": true
+    },
+    "bbsLivingRoom": {
+      "type": "object",
+      "description": "No-chat BBS Living Room modes, room code policy, decor, and future online co-play boundary.",
+      "additionalProperties": true
+    },
+    "couchCoopSessions": {
+      "type": "object",
+      "description": "Invite-only couch co-play session manifests for watch parties, turn-taking, score runs, and playtests.",
+      "additionalProperties": true
+    },
+    "signalWheel": {
+      "type": "object",
+      "description": "Preset no-chat reaction and coordination signals for shared play.",
+      "additionalProperties": true
+    },
+    "livingRoomSafety": {
+      "type": "object",
+      "description": "Safety and moderation constraints for no-chat Living Room play.",
+      "additionalProperties": true
+    },
+    "relayBlueprint": {
+      "type": "object",
+      "description": "Future live relay blueprint for no-chat BBS Living Room co-play.",
+      "additionalProperties": true
+    },
+    "sessionSync": {
+      "type": "object",
+      "description": "Host-authoritative session sync snapshots, message contracts, and conflict rules.",
+      "additionalProperties": true
+    },
+    "hostHandoff": {
+      "type": "object",
+      "description": "Safe host-control handoff metadata for future live rooms.",
+      "additionalProperties": true
+    },
+    "replayReceipts": {
+      "type": "object",
+      "description": "Replay receipt summaries, timeline events, scores, and no-chat proof-of-play metadata.",
+      "additionalProperties": true
+    },
+    "privateRelayPrototype": {
+      "type": "object",
+      "description": "Local private relay prototype: simulated invite-only no-chat rooms, endpoints, authority mode, and connection state.",
+      "additionalProperties": true
+    },
+    "relayPacketLab": {
+      "type": "object",
+      "description": "Allowed no-chat relay packet queue and delivery log for future online room transport.",
+      "additionalProperties": true
+    },
+    "roomDirectory": {
+      "type": "object",
+      "description": "Local invite-only room directory listings for BBS Living Room co-play.",
+      "additionalProperties": true
+    },
+    "relayDeploymentGuide": {
+      "type": "object",
+      "description": "Safety-first private relay deployment guide and checklist.",
+      "additionalProperties": true
+    },
+    "aiPlayerBench": {
+      "type": "object"
+    },
+    "aiMatchLab": {
+      "type": "object"
+    },
+    "aiMemoryLedger": {
+      "type": "object"
+    },
+    "aiPlaytestArena": {
+      "type": "object"
+    },
+    "tinyGameJam": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "cartridgeTradeBoard": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "jamPromptDeck": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "shareReadiness": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "commonsBridge": {
+      "type": "object"
+    },
+    "commonsFeedCurator": {
+      "type": "object"
+    },
+    "commonsRooms": {
+      "type": "object"
+    },
+    "commonsResonance": {
+      "type": "object"
+    },
+    "commonsPackSync": {
+      "type": "object"
+    },
+    "commonsRoomBoards": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "commonsPackExchange": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "commonsShareLedger": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "commonsTrustCircles": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "commonsModerationQueue": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "starterCartridgeBuilder": {
+      "type": "object"
+    },
+    "routeMapPreview": {
+      "type": "object"
+    },
+    "regionQaPass": {
+      "type": "object"
+    },
+    "worldLaunchChecklist": {
+      "type": "object"
+    },
+    "aiWorldScout": {
+      "type": "object"
+    },
+    "creatorOsDashboard": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "cartridgeLifecycle": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "agentOrchestrator": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "experienceMap": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "releaseTrain": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "systemCodex": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "sharedPlaytestHub": {
+      "type": "object",
+      "description": "v4.1 shared playtest room hub",
+      "additionalProperties": true
+    },
+    "playtestInviteDesk": {
+      "type": "object",
+      "description": "v4.1 local invite manifest desk",
+      "additionalProperties": true
+    },
+    "feedbackCardBoard": {
+      "type": "object",
+      "description": "v4.1 playtest feedback cards",
+      "additionalProperties": true
+    },
+    "coPlayScoreboard": {
+      "type": "object",
+      "description": "v4.1 shared run scoreboard",
+      "additionalProperties": true
+    },
+    "roadToV5": {
+      "type": "object",
+      "description": "v4.1 road to v5.0 checkpoint tracker",
+      "additionalProperties": true
+    },
+    "privateRelayBridge": {
+      "type": "object",
+      "description": "v4.6 private relay bridge profiles and packet contract",
+      "additionalProperties": true
+    },
+    "signedPackBridge": {
+      "type": "object",
+      "description": "v4.6 signed pack manifest bridge",
+      "additionalProperties": true
+    },
+    "trustCircleRouter": {
+      "type": "object",
+      "description": "v4.6 trust-circle route planner",
+      "additionalProperties": true
+    },
+    "syncDryRunLab": {
+      "type": "object",
+      "description": "v4.6 simulated sync dry-run lab",
+      "additionalProperties": true
+    },
+    "betaGatePreflight": {
+      "type": "object",
+      "description": "v4.6 beta gate preflight checks",
+      "additionalProperties": true
+    },
+    "creatorPolishDashboard": {
+      "type": "object",
+      "description": "v4.6 creatorPolishDashboard metadata."
+    },
+    "firstRunTutorialFlow": {
+      "type": "object",
+      "description": "v4.6 firstRunTutorialFlow metadata."
+    },
+    "uxPolishBoard": {
+      "type": "object",
+      "description": "v4.6 uxPolishBoard metadata."
+    },
+    "accessibilityPass": {
+      "type": "object",
+      "description": "v4.6 accessibilityPass metadata."
+    },
+    "betaReadinessScorecard": {
+      "type": "object",
+      "description": "v4.6 betaReadinessScorecard metadata."
+    },
+    "v5PolishQueue": {
+      "type": "object",
+      "description": "v4.6 v5PolishQueue metadata."
+    },
+    "betaLockDashboard": {
+      "type": "object",
+      "description": "v4.6 beta lock dashboard gate metadata."
+    },
+    "schemaFreezeLedger": {
+      "type": "object",
+      "description": "v4.6 schema freeze / compatibility ledger."
+    },
+    "releaseBlockerBoard": {
+      "type": "object",
+      "description": "v4.6 release blocker triage board."
+    },
+    "testerHandoffPacket": {
+      "type": "object",
+      "description": "v4.6 trusted tester handoff packet."
+    },
+    "regressionTestMatrix": {
+      "type": "object",
+      "description": "v4.6 regression test matrix."
+    },
+    "v5PrivateBetaCandidate": {
+      "type": "object",
+      "description": "v4.6 private beta candidate manifest."
+    },
+    "privateBetaHandoffDesk": {
+      "type": "object",
+      "description": "v4.6 privateBetaHandoffDesk metadata."
+    },
+    "testerOnboardingRunbook": {
+      "type": "object",
+      "description": "v4.6 testerOnboardingRunbook metadata."
+    },
+    "feedbackReceiptInbox": {
+      "type": "object",
+      "description": "v4.6 feedbackReceiptInbox metadata."
+    },
+    "knownIssueTriage": {
+      "type": "object",
+      "description": "v4.6 knownIssueTriage metadata."
+    },
+    "betaExitCriteria": {
+      "type": "object",
+      "description": "v4.6 betaExitCriteria metadata."
+    },
+    "v5ReadinessGate": {
+      "type": "object",
+      "description": "v4.6 v5ReadinessGate metadata."
+    },
+    "betaOperationsConsole": {
+      "type": "object",
+      "description": "v4.6 betaOperationsConsole metadata."
+    },
+    "betaSessionLedger": {
+      "type": "object",
+      "description": "v4.6 betaSessionLedger metadata."
+    },
+    "testerCohortDashboard": {
+      "type": "object",
+      "description": "v4.6 testerCohortDashboard metadata."
+    },
+    "feedbackDigest": {
+      "type": "object",
+      "description": "v4.6 feedbackDigest metadata."
+    },
+    "issueTrendBoard": {
+      "type": "object",
+      "description": "v4.6 issueTrendBoard metadata."
+    },
+    "releaseCandidateAssembler": {
+      "type": "object",
+      "description": "v4.6 releaseCandidateAssembler metadata."
+    },
+    "v5GoNoGoReview": {
+      "type": "object",
+      "description": "v4.6 v5GoNoGoReview metadata."
+    },
+    "rcHardeningDashboard": {
+      "type": "object"
+    },
+    "artifactVerificationLedger": {
+      "type": "object"
+    },
+    "blockerClosureBoard": {
+      "type": "object"
+    },
+    "betaReceiptQuorum": {
+      "type": "object"
+    },
+    "finalRegressionSweep": {
+      "type": "object"
+    },
+    "buildProvenanceManifest": {
+      "type": "object"
+    },
+    "releaseOwnerSignoffGate": {
+      "type": "object"
+    },
+    "v5RcHardeningManifest": {
+      "type": "object"
+    },
+    "finalRcAssemblyDesk": {
+      "type": "object"
+    },
+    "releasePacketIndex": {
+      "type": "object"
+    },
+    "checksumManifest": {
+      "type": "object"
+    },
+    "betaReleaseNotes": {
+      "type": "object"
+    },
+    "launchGuide": {
+      "type": "object"
+    },
+    "signoffChecklist": {
+      "type": "object"
+    },
+    "humanReviewQueue": {
+      "type": "object"
+    },
+    "v5CandidatePacket": {
+      "type": "object"
+    },
+    "launchRehearsalDesk": {
+      "type": "object"
+    },
+    "betaDressRehearsal": {
+      "type": "object"
+    },
+    "rollbackPlaybook": {
+      "type": "object"
+    },
+    "testerPacketSampler": {
+      "type": "object"
+    },
+    "goNoGoDryRun": {
+      "type": "object"
+    },
+    "v5LaunchApprovalGate": {
+      "type": "object"
+    },
+    "privateBetaNoticeDraft": {
+      "type": "object"
+    },
+    "v5PrivateBetaDashboard": {
+      "type": "object"
+    },
+    "trustedTesterWelcomeDesk": {
+      "type": "object"
+    },
+    "betaArtifactPack": {
+      "type": "object"
+    },
+    "privateBetaPlaytestCycle": {
+      "type": "object"
+    },
+    "v5SafetyLaunchLocks": {
+      "type": "object"
+    },
+    "feedbackReceiptWorkflow": {
+      "type": "object"
+    },
+    "v5PrivateBetaManifest": {
+      "type": "object"
+    },
+    "betaGratitudeCloseout": {
+      "type": "object"
+    },
+    "spriteStudio": {
+      "type": "object",
+      "required": [
+        "studioType",
+        "canvas",
+        "tool",
+        "color",
+        "paletteId",
+        "palettes",
+        "activeFrame",
+        "fps",
+        "frames",
+        "assetSlotId",
+        "rightsStatus"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "studioType": {
+          "const": "pixelforge.sprite-studio.v5.9"
+        },
+        "canvas": {
+          "type": "object",
+          "required": [
+            "width",
+            "height",
+            "zoom",
+            "showGrid"
+          ],
+          "additionalProperties": true
+        },
+        "frames": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "palettes": {
+          "type": "array",
+          "minItems": 1
+        },
+        "fps": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "assetSlotId": {
+          "type": "string"
+        },
+        "rightsStatus": {
+          "enum": [
+            "original",
+            "licensed",
+            "public-domain",
+            "needs-review"
+          ]
+        }
+      }
+    },
+    "tileStudio": {
+      "type": "object",
+      "required": [
+        "studioType",
+        "tileCanvas",
+        "tileTool",
+        "mapTool",
+        "color",
+        "paletteId",
+        "palettes",
+        "activeTile",
+        "tiles",
+        "map",
+        "assetSlotId",
+        "rightsStatus"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "studioType": {
+          "const": "pixelforge.tile-studio.v5.10"
+        },
+        "tileCanvas": {
+          "type": "object",
+          "required": [
+            "width",
+            "height",
+            "zoom",
+            "showGrid"
+          ],
+          "additionalProperties": true
+        },
+        "tiles": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128
+        },
+        "palettes": {
+          "type": "array",
+          "minItems": 1
+        },
+        "map": {
+          "type": "object",
+          "required": [
+            "width",
+            "height",
+            "zoom",
+            "activeLayer",
+            "sceneId",
+            "layers"
+          ],
+          "additionalProperties": true
+        },
+        "assetSlotId": {
+          "type": "string"
+        },
+        "rightsStatus": {
+          "enum": [
+            "original",
+            "licensed",
+            "public-domain",
+            "needs-review"
+          ]
+        }
+      }
+    },
+    "runtimeComposer": {
+      "type": "object",
+      "required": [
+        "composerType",
+        "sceneId",
+        "mapSource",
+        "spriteSource",
+        "camera",
+        "player",
+        "flags"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "composerType": {
+          "const": "pixelforge.runtime-composer.v5.11"
+        },
+        "sceneId": {
+          "type": "string"
+        },
+        "mapSource": {
+          "enum": [
+            "tileStudio",
+            "assetMap"
+          ]
+        },
+        "spriteSource": {
+          "enum": [
+            "spriteStudio",
+            "assetSprite"
+          ]
+        },
+        "camera": {
+          "type": "object",
+          "required": [
+            "mode",
+            "zoom",
+            "viewportWidth",
+            "viewportHeight"
+          ],
+          "additionalProperties": true
+        },
+        "player": {
+          "type": "object",
+          "required": [
+            "x",
+            "y",
+            "speed",
+            "facing",
+            "animation",
+            "frame"
+          ],
+          "additionalProperties": true
+        },
+        "transitions": {
+          "type": "array",
+          "maxItems": 32
+        },
+        "flags": {
+          "type": "object",
+          "required": [
+            "showCollision",
+            "showGrid",
+            "paused"
+          ],
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "scene": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "map",
+        "playerStart",
+        "npcs",
+        "items",
+        "warps"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "map": {
+          "$ref": "#/$defs/map"
+        },
+        "playerStart": {
+          "$ref": "#/$defs/point"
+        },
+        "npcs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/npc"
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/item"
+          }
+        },
+        "warps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/warp"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "map": {
+      "type": "object",
+      "required": [
+        "width",
+        "height",
+        "tileSize",
+        "tiles"
+      ],
+      "properties": {
+        "width": {
+          "const": 24
+        },
+        "height": {
+          "const": 16
+        },
+        "tileSize": {
+          "const": 32
+        },
+        "tiles": {
+          "type": "array",
+          "minItems": 384,
+          "maxItems": 384,
+          "items": {
+            "enum": [
+              "grass",
+              "road",
+              "forest",
+              "water",
+              "mountain",
+              "diner",
+              "pyramid",
+              "dream",
+              "bridge",
+              "cabin",
+              "sign",
+              "shrine",
+              "portal",
+              "lab",
+              "cave",
+              "flowers",
+              "crystal",
+              "tower",
+              "tunnel",
+              "neon",
+              "artifact",
+              "campfire",
+              "console",
+              "banner",
+              "starpath",
+              "busstop",
+              "payphone",
+              "workshop",
+              "checkpoint",
+              "gallerywall",
+              "badge",
+              "playcard",
+              "archivebox",
+              "creatoros",
+              "lifecycle",
+              "orchestrator",
+              "xpmap",
+              "releasetrain",
+              "codexstone"
+            ]
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "point": {
+      "type": "object",
+      "required": [
+        "x",
+        "y"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        }
+      },
+      "additionalProperties": true
+    },
+    "npc": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "x",
+        "y",
+        "dialogue"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "color": {
+          "type": "string"
+        },
+        "dialogue": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "effect": {
+          "$ref": "#/$defs/delta"
+        },
+        "revealsQuestId": {
+          "type": "string"
+        },
+        "talked": {
+          "type": "boolean"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dialogueChoice"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "dialogueChoice": {
+      "type": "object",
+      "required": [
+        "label",
+        "response"
+      ],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "response": {
+          "type": "string"
+        },
+        "delta": {
+          "$ref": "#/$defs/delta"
+        },
+        "revealQuestId": {
+          "type": "string"
+        },
+        "setFlag": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "storyBeat": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "sceneId",
+        "status",
+        "text"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "sceneId": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "locked",
+            "active",
+            "complete"
+          ]
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "item": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "x",
+        "y",
+        "collected"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "color": {
+          "type": "string"
+        },
+        "collected": {
+          "type": "boolean"
+        },
+        "effect": {
+          "$ref": "#/$defs/delta"
+        }
+      },
+      "additionalProperties": true
+    },
+    "warp": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "x",
+        "y",
+        "targetSceneId",
+        "targetX",
+        "targetY"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "targetSceneId": {
+          "type": "string"
+        },
+        "targetX": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23
+        },
+        "targetY": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "color": {
+          "type": "string"
+        },
+        "requiredItemId": {
+          "type": "string"
+        },
+        "requiredQuestId": {
+          "type": "string"
+        },
+        "requiredWonder": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99
+        },
+        "blockedText": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "quest": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "hidden",
+            "active",
+            "complete"
+          ]
+        },
+        "chapter": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "journeyEvent": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "text",
+        "delta"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "delta": {
+          "$ref": "#/$defs/delta"
+        }
+      },
+      "additionalProperties": true
+    },
+    "stats": {
+      "type": "object",
+      "required": [
+        "supplies",
+        "morale",
+        "wonder",
+        "coherence"
+      ],
+      "properties": {
+        "supplies": {
+          "type": "integer"
+        },
+        "morale": {
+          "type": "integer"
+        },
+        "wonder": {
+          "type": "integer"
+        },
+        "coherence": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "delta": {
+      "type": "object",
+      "properties": {
+        "supplies": {
+          "type": "integer"
+        },
+        "morale": {
+          "type": "integer"
+        },
+        "wonder": {
+          "type": "integer"
+        },
+        "coherence": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "encounter": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "text",
+        "delta"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "delta": {
+          "$ref": "#/$defs/delta"
+        },
+        "revealQuestId": {
+          "type": "string"
+        },
+        "setFlag": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "assetPack": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "status",
+        "description",
+        "tileIds",
+        "paletteIds",
+        "spriteIds",
+        "templateIds",
+        "recommendedUse"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "active",
+            "ready"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "tileIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "paletteIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "spriteIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "templateIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recommendedUse": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true,
+  "description": "Project schema for Parallax PixelForge v4.6 Private Beta Operations."
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "pixelforge.palette.v1",
+  "id": "pf-overworld-grove-v1",
+  "name": "Bouncehome Grove",
+  "purpose": "Top-down overworld nature and path palette",
+  "colors": [
+    "#100d1a",
+    "#fff0c4",
+    "#ffd76c",
+    "#62efff",
+    "#123522",
+    "#237348",
+    "#55a75f",
+    "#8cc99b",
+    "#c7d87b",
+    "#6b4d2f",
+    "#a87943",
+    "#d7bd7a",
+    "#20265a",
+    "#555ca0",
+    "#d17b8f",
+    "#f2b6a0"
+  ],
+  "colorCount": 16,
+  "rights": "Original PixelForge house palette definitions; color values alone are not claimed as exclusive creative property."
+}
