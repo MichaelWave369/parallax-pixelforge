@@ -16,6 +16,14 @@
 - controller/observation/action conformance tests,
 - Oak Street Rumble as the first external full-game adapter.
 
+## v5.3.2 — Shared Runtime Core
+
+- extract the contracts proven by Counter, Oak Street Rumble, and Φ: Night Circuit,
+- publish the Runtime SDK v1 entry point,
+- normalize external-step vs engine-clock semantics,
+- add reusable conformance assertions,
+- keep gameplay, rendering, physics, and game-specific authority outside the core.
+
 ## v5.4 — Creator Onboarding Polish
 
 - one-command cartridge generator,
