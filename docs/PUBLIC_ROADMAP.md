@@ -9,6 +9,13 @@
 - Public validation workflow.
 - 369 PocketGames manifest lane.
 
+## v5.3.1 — Runtime Bridge Foundation
+
+- game-agnostic Runtime Bridge v1,
+- deterministic counter reference cartridge,
+- controller/observation/action conformance tests,
+- Oak Street Rumble as the first external full-game adapter.
+
 ## v5.4 — Creator Onboarding Polish
 
 - one-command cartridge generator,
