@@ -90,8 +90,11 @@ export function assertBridgeDescriptorV1(descriptor) {
   assertNonEmptyString(descriptor.gameId, "descriptor.gameId");
   assertNonEmptyString(descriptor.runtimeVersion, "descriptor.runtimeVersion");
 
-  if (typeof descriptor.deterministic !== "boolean")
-    throw new TypeError("descriptor.deterministic must be boolean");
+  if (
+    descriptor.deterministic !== undefined &&
+    typeof descriptor.deterministic !== "boolean"
+  )
+    throw new TypeError("descriptor.deterministic must be boolean when present");
 
   if (
     descriptor.clockMode !== undefined &&
@@ -117,17 +120,26 @@ export function assertBridgeDescriptorV1(descriptor) {
 
 export function clockSemantics(descriptor) {
   assertBridgeDescriptorV1(descriptor);
+  const deterministic = descriptor.deterministic ?? null;
   const clockMode =
-    descriptor.clockMode ?? (descriptor.deterministic ? "external" : "engine");
+    descriptor.clockMode ??
+    (deterministic === true
+      ? "external"
+      : deterministic === false
+        ? "engine"
+        : "unspecified");
 
   return immutableCopy({
+    deterministic,
     clockMode,
     advanceSemantics:
       descriptor.advanceSemantics ??
-      (clockMode === "external" ? "simulation-step" : "flush-controller-batch"),
-    replayExact:
-      descriptor.replayExact ??
-      (descriptor.deterministic && clockMode === "external"),
+      (clockMode === "external"
+        ? "simulation-step"
+        : clockMode === "engine"
+          ? "flush-controller-batch"
+          : "unspecified"),
+    replayExact: descriptor.replayExact ?? null,
   });
 }
 
