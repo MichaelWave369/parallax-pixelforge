@@ -6,6 +6,7 @@ import * as core from "parallax-pixelforge/runtime/core-v1";
 import * as bridge from "parallax-pixelforge/runtime/bridge-v1";
 import * as conformance from "parallax-pixelforge/runtime/conformance-v1";
 import * as host from "parallax-pixelforge/runtime/host-v1";
+import * as modelPolicy from "parallax-pixelforge/runtime/model-policy-v1";
 
 test("package self-reference exposes Runtime SDK v1 public entry points", () => {
   assert.equal(sdk.PIXELFORGE_RUNTIME_PROTOCOL, "pixelforge-runtime-bridge");
@@ -16,6 +17,8 @@ test("package self-reference exposes Runtime SDK v1 public entry points", () => 
   assert.equal(typeof sdk.runRuntimeBridgeProbeV1, "function");
   assert.equal(typeof sdk.RuntimeHostV1, "function");
   assert.equal(typeof sdk.createPolicyClientV1, "function");
+  assert.equal(typeof sdk.createModelProviderV1, "function");
+  assert.equal(typeof sdk.createModelPolicyClientV1, "function");
 });
 
 test("subpath exports resolve to the same core functions", () => {
@@ -27,4 +30,6 @@ test("subpath exports resolve to the same core functions", () => {
   );
   assert.equal(host.RuntimeHostV1, sdk.RuntimeHostV1);
   assert.equal(host.createPolicyClientV1, sdk.createPolicyClientV1);
+  assert.equal(modelPolicy.createModelProviderV1, sdk.createModelProviderV1);
+  assert.equal(modelPolicy.createModelPolicyClientV1, sdk.createModelPolicyClientV1);
 });
