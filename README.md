@@ -9,7 +9,7 @@ Community cartridges grow the arcade.
 
 ## Current launch target
 
-v5.3.2 alpha: public launch kit plus the agent-native Runtime Bridge and Shared Runtime Core v1.
+v5.3.3 alpha: public launch kit plus Runtime Bridge v1, Shared Runtime Core v1, and the generic Runtime Host v1.
 
 ## 369 PocketGames promise
 
@@ -23,7 +23,9 @@ Small, complete games with no ads, no subscriptions, no loot boxes, no energy ti
 - `pocketgames/templates/pocketgame_manifest.template.json`
 - `docs/RUNTIME_BRIDGE_V1.md`
 - `docs/RUNTIME_SHARED_CORE_V1.md`
+- `docs/RUNTIME_HOST_V1.md`
 - `runtime/sdk-v1.js`
+- `runtime/host-v1.js`
 - `runtime/bridge-v1.js`
 
 ## Public preflight

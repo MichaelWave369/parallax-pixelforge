@@ -24,6 +24,14 @@
 - add reusable conformance assertions,
 - keep gameplay, rendering, physics, and game-specific authority outside the core.
 
+## v5.3.3 — Generic Runtime Host
+
+- consume Runtime Bridge v1 through a game-agnostic host,
+- normalize external-step vs engine-clock behavior from runtime descriptors,
+- support synchronous and asynchronous policy clients,
+- keep an independent host receipt transcript and event cursor,
+- avoid provider- or game-specific logic in the host.
+
 ## v5.4 — Creator Onboarding Polish
 
 - one-command cartridge generator,

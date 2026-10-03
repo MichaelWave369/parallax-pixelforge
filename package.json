@@ -1,6 +1,6 @@
 {
   "name": "parallax-pixelforge",
-  "version": "5.3.2-alpha",
+  "version": "5.3.3-alpha",
   "private": false,
   "description": "Open-source retro game creation studio for tiny cartridge-style games and 369 PocketGames.",
   "type": "module",
@@ -10,7 +10,8 @@
     "./runtime/core-v1": "./runtime/core-v1.js",
     "./runtime/bridge-v1": "./runtime/bridge-v1.js",
     "./runtime/conformance-v1": "./runtime/conformance-v1.js",
-    "./runtime/reference-counter": "./runtime/reference-counter.js"
+    "./runtime/reference-counter": "./runtime/reference-counter.js",
+    "./runtime/host-v1": "./runtime/host-v1.js"
   },
   "scripts": {
     "test": "node --test tests/*.test.js && npm run validate:public-release && npm run validate:adaptation",
