@@ -7,6 +7,7 @@ export function createCounterBridge(seed = 0) {
   const controllers = new Map();
   const ledger = [];
   const frames = [];
+  let pending = [];
 
   const adapter = {
     describe() {
@@ -41,37 +42,57 @@ export function createCounterBridge(seed = 0) {
     submit(controllerId, intent, intentTick = tick) {
       if (!controllers.has(controllerId))
         throw new Error("controller is not registered");
-      if (intentTick !== tick)
-        return { accepted: false, reason: "WRONG_TICK" };
-      if (
-        intent?.type !== "ADD" ||
-        intent?.actorId !== "counter" ||
-        !Number.isSafeInteger(intent?.params?.amount)
-      )
-        return { accepted: false, reason: "MALFORMED_ACTION" };
-
-      value += intent.params.amount;
-      const event = {
-        id: `e:${nextEvent++}`,
-        tick,
-        schemaVersion: 1,
-        type: "ACTION_ACCEPTED",
+      pending.push({
         controllerId,
-        sourceId: "counter",
-        payload: {
-          actionType: "ADD",
-          amount: intent.params.amount,
-          value,
-        },
-      };
-      ledger.push(event);
-      frames.push({ tick, controllerId, intent: structuredClone(intent) });
-      return { accepted: true, reason: "ALLOW" };
+        tick: intentTick,
+        intent: structuredClone(intent),
+      });
+      return { queued: true, tick: intentTick };
     },
 
-    advance() {
+    advance(roots = []) {
+      pending.push(...structuredClone(roots));
+      const eventStart = ledger.length;
+      const frameRoots = pending;
+      pending = [];
+
+      for (const root of frameRoots) {
+        const { controllerId, intent } = root;
+        let accepted = true;
+        let reason = "ALLOW";
+
+        if (root.tick !== tick) {
+          accepted = false;
+          reason = "WRONG_TICK";
+        } else if (
+          intent?.type !== "ADD" ||
+          intent?.actorId !== "counter" ||
+          !Number.isSafeInteger(intent?.params?.amount)
+        ) {
+          accepted = false;
+          reason = "MALFORMED_ACTION";
+        }
+
+        if (accepted) value += intent.params.amount;
+
+        ledger.push({
+          id: `e:${nextEvent++}`,
+          tick,
+          schemaVersion: 1,
+          type: accepted ? "ACTION_ACCEPTED" : "ACTION_REJECTED",
+          controllerId,
+          sourceId: intent?.actorId ?? "unknown",
+          payload: {
+            actionType: intent?.type ?? "unknown",
+            reason,
+            ...(accepted ? { amount: intent.params.amount, value } : {}),
+          },
+        });
+      }
+
+      frames.push({ tick, roots: structuredClone(frameRoots) });
       tick += 1;
-      return [];
+      return ledger.slice(eventStart);
     },
 
     events(since = 0) {
