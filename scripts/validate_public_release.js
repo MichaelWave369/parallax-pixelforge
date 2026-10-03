@@ -24,7 +24,8 @@ const required = [
   'tests/runtime-core-v1.test.js',
   'tests/runtime-bridge-v1.test.js',
   'tests/runtime-host-v1.test.js',
-  'docs/RUNTIME_SHARED_CORE_V1.md'
+  'docs/RUNTIME_SHARED_CORE_V1.md',
+  'docs/RUNTIME_HOST_V1.md'
 ];
 
 const missing = required.filter((path) => !fs.existsSync(path));
