@@ -143,6 +143,46 @@ npm run legend:convergence:test
 npm run legend:convergence:check
 ```
 
+## Retained Legend milestones
+
+The root README keeps a compact retention index for the current forward version. Detailed milestone docs and historical receipts live under `docs/`.
+
+### v5.19 Legend Audio Pass
+
+Original local PCM16 scene music and gameplay SFX, deterministic generation, jukebox/playtest previews, machine audio audit, and human Gold-review boundary.
+
+### v5.20 Legend Adventure Expansion
+
+Old Tempo, Grove Key, Echo Hollow, Flatlings, Echo Shards, Beat Shrine progression, Rhythm Crest, and the larger gated adventure loop.
+
+### v5.21 Legend Boss + Combat Pass
+
+The Flat Note rhythm boss, four-heart combat loop, Resonance Seal progression, original boss art/audio, and deterministic combat audit.
+
+### v5.22 Eastern Road / Chapter Two
+
+Eastwind Road, Mira Reed, Glassgrass Pass, Static Sprites, Echo Boots, Signal Mill, relay progression, and Eastern Beacon Lens.
+
+### v5.23 The Iron Orchard
+
+Rivet Row, Tessa Coil, Bram Gearroot, Rustroot Cavern, Resonance Bracer combat, Rustlings, and the Rustbloom Warden chapter boss.
+
+### v5.24 Save / Inventory / Equipment
+
+Three manual local save slots plus autosave, safe checkpoint resume, portable save import/export, inventory/equipment journal, quest logs, discovered locations, and boss records.
+
+### v5.25 World Map / Fast Travel / Checkpoint Shrines
+
+Progression-bound world-map landmarks, earned fast travel, additive save migration, and no bypass of puzzles, bosses, items, or quest gates.
+
+### v5.26 Stormglass Coast
+
+Stormglass Coast, Sable Current, Tideglass Shells, Gale Mantle traversal, Tide Engine puzzle, Undertow Bell boss, Stormglass Compass, and save/travel expansion.
+
+### v5.27 Three-View Convergence
+
+Mirrorfall Basin, Splitlight Causeway, Triune Observatory, The Blind Angle, cross-view causal progression, save schema v4 migration, and six earned travel landmarks.
+
 ## Bundled games
 
 ### Journey to the Parallax Pyramid
