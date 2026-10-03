@@ -19,13 +19,16 @@ const required = [
   'runtime/bridge-v1.js',
   'runtime/conformance-v1.js',
   'runtime/host-v1.js',
+  'runtime/model-policy-v1.js',
   'runtime/sdk-v1.js',
   'runtime/reference-counter.js',
   'tests/runtime-core-v1.test.js',
   'tests/runtime-bridge-v1.test.js',
   'tests/runtime-host-v1.test.js',
+  'tests/runtime-model-policy-v1.test.js',
   'docs/RUNTIME_SHARED_CORE_V1.md',
-  'docs/RUNTIME_HOST_V1.md'
+  'docs/RUNTIME_HOST_V1.md',
+  'docs/MODEL_POLICY_V1.md'
 ];
 
 const missing = required.filter((path) => !fs.existsSync(path));

@@ -32,6 +32,16 @@
 - keep an independent host receipt transcript and event cursor,
 - avoid provider- or game-specific logic in the host.
 
+## v5.3.4 — Model Policy Client
+
+- add a provider-neutral model policy client above RuntimeHostV1,
+- normalize provider request/response boundaries,
+- support sync or async providers,
+- fail closed on malformed model output,
+- enforce a per-turn intent budget before submission,
+- keep provider receipts separate from host/game ledgers,
+- leave concrete provider SDKs and credentials out of the shared core.
+
 ## v5.4 — Creator Onboarding Polish
 
 - one-command cartridge generator,
