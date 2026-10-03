@@ -4,3 +4,4 @@ export * from "./conformance-v1.js";
 export * from "./host-v1.js";
 export * from "./model-policy-v1.js";
 export * from "./providers/ollama-v1.js";
+export * from "./async-host-v1.js";

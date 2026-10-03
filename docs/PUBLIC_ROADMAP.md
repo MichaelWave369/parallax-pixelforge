@@ -51,6 +51,15 @@
 - fail closed on transport/HTTP/response-shape errors,
 - keep live Ollama qualification optional and outside CI.
 
+## v5.3.6 — Async Runtime Host
+
+- add a Promise-capable host for runtimes behind transport boundaries,
+- preserve the synchronous RuntimeHostV1 for in-process consumers,
+- accept both sync and async Runtime Bridge implementations,
+- keep policy/model clients unchanged,
+- add asynchronous conformance validation,
+- prepare the existing Night Circuit P3 TCP seat as the first external consumer.
+
 ## v5.4 — Creator Onboarding Polish
 
 - one-command cartridge generator,
