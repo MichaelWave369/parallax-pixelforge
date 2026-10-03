@@ -9,7 +9,7 @@ Community cartridges grow the arcade.
 
 ## Current launch target
 
-v5.3.5 alpha: public launch kit plus Runtime Bridge v1, Shared Runtime Core v1, Runtime Host v1, Model Policy v1, and the first concrete local provider adapter for Ollama.
+v5.3.6 alpha: public launch kit plus Runtime Bridge v1, Shared Runtime Core v1, synchronous and transport-capable Runtime Hosts, Model Policy v1, and the local Ollama provider.
 
 ## 369 PocketGames promise
 
@@ -24,10 +24,12 @@ Small, complete games with no ads, no subscriptions, no loot boxes, no energy ti
 - `docs/RUNTIME_BRIDGE_V1.md`
 - `docs/RUNTIME_SHARED_CORE_V1.md`
 - `docs/RUNTIME_HOST_V1.md`
+- `docs/RUNTIME_ASYNC_HOST_V1.md`
 - `docs/MODEL_POLICY_V1.md`
 - `docs/OLLAMA_PROVIDER_V1.md`
 - `runtime/sdk-v1.js`
 - `runtime/host-v1.js`
+- `runtime/async-host-v1.js`
 - `runtime/model-policy-v1.js`
 - `runtime/providers/ollama-v1.js`
 - `runtime/bridge-v1.js`
