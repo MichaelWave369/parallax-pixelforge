@@ -36,11 +36,14 @@ Controller / Tool / Studio
   version: 1,
   gameId: "my-cartridge",
   runtimeVersion: "my-runtime/1",
-  deterministic: true
+  deterministic: true,
+  clockMode: "external"
 }
 ```
 
 Only `protocol`, `version`, `gameId`, and `runtimeVersion` are required.
+Clock and replay metadata are additive. See `RUNTIME_SHARED_CORE_V1.md` for the
+semantics proven by Oak Street Rumble and Φ: Night Circuit.
 
 ## Contract
 
@@ -56,16 +59,22 @@ public perception boundary, not a reference to mutable engine state.
 
 ### submit(controllerId, intent, tick?)
 
-Queues one already-resolved intent for a deterministic tick. A return value may
-acknowledge that the root was queued, but it must not imply game acceptance
-before the simulation processes it. Identity, grammar, authority and game-rule
-acceptance are reported by the subsequent action decision/event stream.
+Queues one already-resolved intent for a runtime-defined bridge step. A return
+value may acknowledge that the root was queued, but it must not imply game
+acceptance before the runtime processes it. Identity, grammar, authority and
+game-rule acceptance are reported by the subsequent action decision/event
+stream.
 
 ### advance(roots?)
 
-Advances one deterministic simulation step. Cartridges decide their own fixed
-step duration. Any externally resolved roots supplied here are part of the
-deterministic input history.
+Processes one runtime-defined bridge step.
+
+For externally-stepped deterministic runtimes such as Oak Street Rumble, this
+may be one fixed simulation tick. For engine-clocked runtimes such as Φ: Night
+Circuit, it may flush one queued controller batch while the host engine retains
+ownership of physics/frame advancement.
+
+A runtime should declare its clock semantics in `describe()` when known.
 
 ### events(since?)
 
@@ -73,12 +82,14 @@ Returns append-only semantic/runtime events from an index.
 
 ### snapshot()
 
-Returns a complete JSON-safe checkpoint sufficient for exact restore when the
-cartridge supports save/restore.
+Returns a JSON-safe runtime snapshot. A cartridge may mark the snapshot
+restorable when it is sufficient for exact restore; Bridge v1 does not assume
+that all snapshots are restorable.
 
 ### recording()
 
-Returns the deterministic replay/root history defined by the cartridge.
+Returns the runtime recording/root history defined by the cartridge. Exact
+replay is a runtime capability, not a universal Bridge v1 guarantee.
 
 ### authority()
 
@@ -86,8 +97,9 @@ Returns a JSON-safe view of current controller/actor capability ownership.
 
 ### hash()
 
-Returns a stable string representing the runtime state used for deterministic
-comparison.
+Returns a stable runtime-defined state string. Deterministic runtimes may use it
+for exact comparison; engine-clocked runtimes may define a narrower stable
+projection.
 
 ## Non-goals
 

@@ -15,9 +15,14 @@ const required = [
   'games/starter/src/main.jsx',
   'pocketgames/templates/pocketgame_manifest.template.json',
   'docs/RUNTIME_BRIDGE_V1.md',
+  'runtime/core-v1.js',
   'runtime/bridge-v1.js',
+  'runtime/conformance-v1.js',
+  'runtime/sdk-v1.js',
   'runtime/reference-counter.js',
-  'tests/runtime-bridge-v1.test.js'
+  'tests/runtime-core-v1.test.js',
+  'tests/runtime-bridge-v1.test.js',
+  'docs/RUNTIME_SHARED_CORE_V1.md'
 ];
 
 const missing = required.filter((path) => !fs.existsSync(path));
