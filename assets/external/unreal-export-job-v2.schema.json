@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PixelForge Unreal Export Job v2",
+  "type": "object",
+  "required": [
+    "schema","job_id","state","record_id","source_record_sha256",
+    "requested_forge_target","requested_interchange_format","source","output",
+    "unreal_editor_requirements","authority_boundary","execution_boundary"
+  ],
+  "properties": {
+    "schema": { "const": "pixelforge.unreal-export-job.v2" },
+    "job_id": { "type": "string" },
+    "state": { "const": "READY_FOR_UNREAL_EXECUTION" },
+    "record_id": { "type": "string", "pattern": "^ASSET-[0-9]{6}$" },
+    "source_record_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "requested_forge_target": { "type": "string" },
+    "requested_interchange_format": { "enum": ["GLB","GLTF"] },
+    "source": {
+      "type": "object",
+      "required": ["project_path","unreal_asset_path","requires_operator_binding","storage_policy"],
+      "properties": {
+        "project_path": { "type": "string", "pattern": "\\.uproject$" },
+        "unreal_asset_path": { "type": "string", "pattern": "^/" },
+        "requires_operator_binding": { "const": false },
+        "storage_policy": { "const": "LOCAL_ONLY_DO_NOT_COMMIT" }
+      },
+      "additionalProperties": true
+    },
+    "output": {
+      "type": "object",
+      "required": ["staging_root","receipt_path","overwrite","manifest_required","hash_outputs"],
+      "properties": {
+        "staging_root": { "type": "string", "minLength": 1 },
+        "receipt_path": { "type": "string", "minLength": 1 },
+        "overwrite": { "const": false },
+        "manifest_required": { "const": true },
+        "hash_outputs": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "unreal_editor_requirements": {
+      "type": "array",
+      "allOf": [
+        { "contains": { "const": "PythonScriptPlugin" } },
+        { "contains": { "const": "EditorScriptingUtilities" } },
+        { "contains": { "const": "GLTFExporter" } }
+      ]
+    },
+    "authority_boundary": { "type": "string" },
+    "execution_boundary": { "type": "string" }
+  },
+  "additionalProperties": true
+}
