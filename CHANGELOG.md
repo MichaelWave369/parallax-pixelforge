@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.33.0-alpha — First Real Cartridge Bridge
+- Added a Runtime Bridge v1 adapter for The Legend of More Bounce using the real Bouncehome Grove runtime-scene packet.
+- Movement now resolves against the scene's real collision layer and emits semantic movement/block/refusal events.
+- Added a cartridge JSONL server that reuses the v5.32 transport contract unchanged.
+- Added cartridge bridge tests, SDK/package export, public-release retention, and the v5.33 validation gate.
+- Kept framebuffer/audio, save semantics, exact replay, SPARK, and Unreal claims explicitly outside this rung.
+
 ## 5.32.0-alpha — Runtime Bridge JSONL Transport
 - Added a bounded newline-delimited JSON transport for the existing Runtime Bridge v1 method set.
 - Added ordered local stdio serving with explicit request/response schemas and fail-closed malformed/unknown request handling.
