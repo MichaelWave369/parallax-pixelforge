@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.32.0-alpha — Runtime Bridge JSONL Transport
+- Added a bounded newline-delimited JSON transport for the existing Runtime Bridge v1 method set.
+- Added ordered local stdio serving with explicit request/response schemas and fail-closed malformed/unknown request handling.
+- Added a deterministic reference-counter server for external hosts such as PhiCade.
+- Added public SDK/package export, transport tests, documentation, and a v5.32 release gate.
+- Preserved the authority boundary: transport and controller registration do not grant gameplay authority.
+
 ## 5.31.0-alpha — Native WebGL2 GLB Preview
 - Added a zero-dependency browser WebGL2 viewer for structurally qualified GLB/glTF 2.0 assets.
 - Added drag/drop, file-picker and same-origin local-vault URL loading plus orbit, zoom, reset and auto-framing.
