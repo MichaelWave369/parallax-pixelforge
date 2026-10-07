@@ -16,8 +16,11 @@ for (const file of required)
     errors.push(`Missing v5.33 path: ${file}`);
 
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
-if (pkg.version !== "5.33.0-alpha")
-  errors.push("package.json version must be 5.33.0-alpha.");
+const versionMatch = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(pkg.version || "");
+const versionMajor = versionMatch ? Number(versionMatch[1]) : -1;
+const versionMinor = versionMatch ? Number(versionMatch[2]) : -1;
+if (versionMajor !== 5 || versionMinor < 33)
+  errors.push("package.json version must be PixelForge 5.33 or later within major version 5.");
 
 for (const name of [
   "runtime:serve:cartridge",
