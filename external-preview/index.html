@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PixelForge External 3D Preview</title>
+  <link rel="stylesheet" href="preview.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow">PIXELFORGE / EXTERNAL ASSET FORGE</p>
+      <h1>Native 3D Preview <span>v5.31</span></h1>
+      <p>Local-first WebGL2 preview for structurally qualified GLB assets.</p>
+    </div>
+    <a href="../">Back to Studio</a>
+  </header>
+
+  <main>
+    <section class="controls">
+      <label class="filePick">
+        <span>Open local GLB</span>
+        <input id="fileInput" type="file" accept=".glb,model/gltf-binary" />
+      </label>
+      <div class="urlRow">
+        <input id="urlInput" value="../local-assets/staging/ASSET-000021/ASSET-000021.glb" aria-label="GLB URL" />
+        <button id="urlLoad">Load URL</button>
+      </div>
+      <button id="receiptBtn" class="secondary" disabled>Download Preview Receipt</button>
+      <p class="hint">Drag a .glb anywhere onto the viewport. Orbit: left-drag · zoom: wheel · reset: R</p>
+    </section>
+
+    <section class="viewerShell">
+      <canvas id="gl" aria-label="PixelForge WebGL2 external asset preview"></canvas>
+      <div id="dropHint">DROP GLB</div>
+      <div id="status">NO ASSET LOADED</div>
+    </section>
+
+    <aside>
+      <h2>Preview facts</h2>
+      <dl id="facts">
+        <div><dt>Status</dt><dd>Awaiting asset</dd></div>
+      </dl>
+      <h2>Boundary</h2>
+      <p>This viewport can prove that PixelForge parsed and rendered supported GLB geometry. It does not grant license approval, material parity, collision, performance approval, or compatibility PASS.</p>
+    </aside>
+  </main>
+
+  <script type="module" src="preview.js"></script>
+</body>
+</html>
