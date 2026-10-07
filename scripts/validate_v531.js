@@ -7,6 +7,7 @@ const required=[
   'external-preview/index.html',
   'external-preview/preview.css',
   'external-preview/preview.js',
+  'assets/external/native-3d-preview-receipt.schema.json',
   'scripts/lib/glb_preview_plan.js',
   'tests/glb-native-preview.test.js',
   'scripts/validate_v531.js',
