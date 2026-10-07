@@ -34,3 +34,10 @@ By contributing, you are confirming that you have the right to submit the code/a
 Do not submit ripped sprites, copyrighted music, franchise characters, unclear web images, private documents, or assets you cannot license.
 
 This is a practical project boundary note, not legal advice.
+
+## External marketplace assets
+
+PixelForge may generate metadata, manifests, or game-ready derivatives from third-party assets that an operator is licensed to use. The public repository must not be used to redistribute purchased marketplace source packages or imply that the MIT license applies to those third-party assets.
+
+Keep purchased source assets in the ignored local vault and preserve their actual source license/provenance. A PixelForge Asset Passport is an engineering record, not a new license grant.
+
