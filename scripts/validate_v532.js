@@ -15,8 +15,11 @@ for (const file of required)
     errors.push(`Missing v5.32 path: ${file}`);
 
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
-if (pkg.version !== "5.32.0-alpha")
-  errors.push("package.json version must be 5.32.0-alpha.");
+const versionMatch = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(pkg.version || "");
+const versionMajor = versionMatch ? Number(versionMatch[1]) : -1;
+const versionMinor = versionMatch ? Number(versionMatch[2]) : -1;
+if (versionMajor !== 5 || versionMinor < 32)
+  errors.push("package.json version must be PixelForge 5.32 or later within major version 5.");
 
 if (pkg.exports?.["./runtime/jsonl-transport-v1"] !== "./runtime/jsonl-transport-v1.js")
   errors.push("package exports must expose Runtime JSONL Transport v1.");
