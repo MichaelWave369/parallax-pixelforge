@@ -41,7 +41,7 @@ if (!pkg.scripts?.["github:preflight"]?.includes("validate:v5.34"))
 
 const loader = fs.readFileSync("runtime/external-spark-v1.js", "utf8");
 for (const marker of [
-  "6f3b6605a6f026eb737f9d9eb67ffd45d366e1eb",
+  "fae7879820bef63a550fea486b2defbc3cee5304",
   "spark-threshold-adapter-v1.js",
   "createBridgeV1",
   "spark-the-substrate",
