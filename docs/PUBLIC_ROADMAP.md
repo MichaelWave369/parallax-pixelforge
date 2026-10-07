@@ -1,5 +1,12 @@
 # Public Roadmap
 
+## v5.33 — First Real Cartridge Bridge — Complete
+
+- The Legend of More Bounce runs through Runtime Bridge v1 from its real Bouncehome Grove scene packet.
+- Scene collision and spawn data govern movement.
+- Existing JSONL transport remains unchanged.
+- Intended next proof: PhiCade cross-repository qualification against this real cartridge.
+
 ## v5.32 — Runtime Bridge JSONL Transport — Complete
 
 - bounded local JSONL transport for Runtime Bridge v1,

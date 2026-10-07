@@ -7,3 +7,4 @@ export * from "./providers/ollama-v1.js";
 export * from "./async-host-v1.js";
 export * from "./agent-session-v1.js";
 export * from "./jsonl-transport-v1.js";
+export * from "./legend-bouncehome-v1.js";

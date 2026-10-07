@@ -2,13 +2,13 @@
 
 Parallax PixelForge is a local-first retro Creator OS for building, playtesting, packaging, and evolving small game worlds.
 
-**Current integrated target:** PixelForge Studio **v5.32.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
+**Current integrated target:** PixelForge Studio **v5.33.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
 
 The Studio and runtime layers stay deliberately separate. Creator tooling and game-specific rules remain in the Studio/game layer; controller, observation, action, transport, model-policy, and bounded-session contracts live in the reusable runtime layer.
 
 ## Current status
 
-- Full PixelForge Studio v5.32 is integrated on `main`.
+- Full PixelForge Studio v5.33 is integrated on `main`.
 - The complete Studio + Runtime preflight runs in GitHub Actions.
 - Runtime SDK tests, Studio validators, public-release validation, adaptation validation, and v5.27 Three-View Convergence validation are part of the qualification path.
 - Python-backed generators use the cross-platform launcher in `scripts/run_python.mjs` and pinned dependencies in `requirements.txt`.
@@ -108,6 +108,25 @@ Core invariants:
 - game-specific combat, physics, rendering, rooms, shops, and authority remain game-owned.
 
 Runtime design docs live under `docs/`, including the Runtime Bridge, Shared Core, Host, Async Host, Agent Session, Model Policy, and Ollama provider specifications.
+
+## v5.33 First Real Cartridge Bridge
+
+v5.33 moves the external runtime seam from the deterministic counter into an actual PixelForge cartridge artifact.
+
+- bridges The Legend of More Bounce through its real Bouncehome Grove runtime-scene packet,
+- uses the scene's real collision layer and player spawn,
+- exposes deterministic MOVE intents through Runtime Bridge v1,
+- emits PLAYER_MOVED, MOVE_BLOCKED, and ACTION_REJECTED semantic events,
+- reuses the exact v5.32 JSONL transport without introducing a second protocol,
+- provides a cartridge runtime server for external governed hosts such as PhiCade.
+
+Run it with:
+
+~~~bash
+npm run runtime:serve:cartridge -- --cartridge the-legend-of-more-bounce
+~~~
+
+See `docs/V5_33_FIRST_CARTRIDGE_BRIDGE.md`.
 
 ## v5.32 Runtime Bridge JSONL Transport
 
