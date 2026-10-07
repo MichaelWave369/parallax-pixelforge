@@ -2,13 +2,13 @@
 
 Parallax PixelForge is a local-first retro Creator OS for building, playtesting, packaging, and evolving small game worlds.
 
-**Current integrated target:** PixelForge Studio **v5.33.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
+**Current integrated target:** PixelForge Studio **v5.34.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
 
 The Studio and runtime layers stay deliberately separate. Creator tooling and game-specific rules remain in the Studio/game layer; controller, observation, action, transport, model-policy, and bounded-session contracts live in the reusable runtime layer.
 
 ## Current status
 
-- Full PixelForge Studio v5.33 is integrated on `main`.
+- Full PixelForge Studio v5.34 is integrated on `main`.
 - The complete Studio + Runtime preflight runs in GitHub Actions.
 - Runtime SDK tests, Studio validators, public-release validation, adaptation validation, and v5.27 Three-View Convergence validation are part of the qualification path.
 - Python-backed generators use the cross-platform launcher in `scripts/run_python.mjs` and pinned dependencies in `requirements.txt`.
@@ -108,6 +108,27 @@ Core invariants:
 - game-specific combat, physics, rendering, rooms, shops, and authority remain game-owned.
 
 Runtime design docs live under `docs/`, including the Runtime Bridge, Shared Core, Host, Async Host, Agent Session, Model Policy, and Ollama provider specifications.
+
+## v5.34 SPARK External Runtime Bridge
+
+v5.34 connects PixelForge to the canonical **SPARK: The Substrate v0.17.0** source tree without copying SPARK gameplay logic.
+
+- pins SPARK revision `6f3b6605a6f026eb737f9d9eb67ffd45d366e1eb`,
+- dynamically loads SPARK's own Threshold bridge adapter,
+- wraps it with PixelForge `createBridgeV1()`,
+- serves it over the existing Runtime Bridge JSONL Transport v1,
+- qualifies the real Threshold spawn at `(480, 390)` with starter Bark Ward health `112`,
+- submits MOVE RIGHT through the external bridge and requires `SPARK_PLAYER_MOVED`,
+- captures the returned semantic event, authority view and SHA-256 runtime hash,
+- writes a cross-repository qualification receipt.
+
+Run the local cross-repo proof with:
+
+~~~bash
+npm run qualify:spark -- --spark-root /path/to/SparkTheSubstrate
+~~~
+
+See `docs/V5_34_SPARK_EXTERNAL_RUNTIME_BRIDGE.md`.
 
 ## v5.33 First Real Cartridge Bridge
 
