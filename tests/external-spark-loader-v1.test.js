@@ -18,72 +18,73 @@ function makeFixture({ version = "0.17.0", gameId = "spark-the-substrate" } = {}
     }),
   );
 
-  const adapterSource = \`
-export function createSparkThresholdAdapterV1() {
-  let tick = 0;
-  let queued = null;
-  let x = 480;
-  const controllers = new Set();
-  const events = [];
-  return {
-    describe() {
-      return {
-        protocol: "pixelforge-runtime-bridge",
-        version: 1,
-        gameId: \${JSON.stringify(gameId)},
-        runtimeVersion: "spark-threshold/0.17.0-bridge-v1",
-        deterministic: true,
-        clockMode: "external",
-        advanceSemantics: "simulation-step",
-        replayExact: false
-      };
-    },
-    registerController(controller) {
-      controllers.add(controller.id);
-      return { ok: true };
-    },
-    observe(controllerId) {
-      if (!controllers.has(controllerId)) throw new Error("controller not registered");
-      return {
-        schemaVersion: 1,
-        tick,
-        state: {
-          room: "threshold",
-          form: "spark",
-          player: { x, y: 390, maxHp: 112 }
-        }
-      };
-    },
-    submit(controllerId, intent, intentTick) {
-      if (!controllers.has(controllerId)) throw new Error("controller not registered");
-      queued = { controllerId, intent, tick: intentTick };
-      return { queued: true, tick: intentTick };
-    },
-    advance() {
-      if (queued?.intent?.type === "MOVE" && queued.tick === tick) {
-        const from = x;
-        x += 4;
-        events.push({
-          type: "SPARK_PLAYER_MOVED",
-          tick,
-          controllerId: queued.controllerId,
-          payload: { from: { x: from, y: 390 }, to: { x, y: 390 } }
-        });
-      }
-      queued = null;
-      tick += 1;
-      return events.slice(-1);
-    },
-    events(since = 0) { return events.slice(since); },
-    snapshot() { return { schemaVersion: 1, tick, x }; },
-    recording() { return { schemaVersion: 1, tick, events }; },
-    authority() {
-      return Object.fromEntries([...controllers].map((id) => [id, ["MOVE", "DASH", "PULSE"]]));
-    },
-    hash() { return "fixture-hash-" + tick + "-" + x; }
-  };
-}
-\`;
+  const adapterSource = [
+    "export function createSparkThresholdAdapterV1() {",
+    "  let tick = 0;",
+    "  let queued = null;",
+    "  let x = 480;",
+    "  const controllers = new Set();",
+    "  const events = [];",
+    "  return {",
+    "    describe() {",
+    "      return {",
+    '        protocol: "pixelforge-runtime-bridge",',
+    "        version: 1,",
+    "        gameId: " + JSON.stringify(gameId) + ",",
+    '        runtimeVersion: "spark-threshold/0.17.0-bridge-v1",',
+    "        deterministic: true,",
+    '        clockMode: "external",',
+    '        advanceSemantics: "simulation-step",',
+    "        replayExact: false",
+    "      };",
+    "    },",
+    "    registerController(controller) {",
+    "      controllers.add(controller.id);",
+    "      return { ok: true };",
+    "    },",
+    "    observe(controllerId) {",
+    '      if (!controllers.has(controllerId)) throw new Error("controller not registered");',
+    "      return {",
+    "        schemaVersion: 1,",
+    "        tick,",
+    "        state: {",
+    '          room: "threshold",',
+    '          form: "spark",',
+    "          player: { x, y: 390, maxHp: 112 }",
+    "        }",
+    "      };",
+    "    },",
+    "    submit(controllerId, intent, intentTick) {",
+    '      if (!controllers.has(controllerId)) throw new Error("controller not registered");',
+    "      queued = { controllerId, intent, tick: intentTick };",
+    "      return { queued: true, tick: intentTick };",
+    "    },",
+    "    advance() {",
+    '      if (queued?.intent?.type === "MOVE" && queued.tick === tick) {',
+    "        const from = x;",
+    "        x += 4;",
+    "        events.push({",
+    '          type: "SPARK_PLAYER_MOVED",',
+    "          tick,",
+    "          controllerId: queued.controllerId,",
+    "          payload: { from: { x: from, y: 390 }, to: { x, y: 390 } }",
+    "        });",
+    "      }",
+    "      queued = null;",
+    "      tick += 1;",
+    "      return events.slice(-1);",
+    "    },",
+    "    events(since = 0) { return events.slice(since); },",
+    "    snapshot() { return { schemaVersion: 1, tick, x }; },",
+    "    recording() { return { schemaVersion: 1, tick, events }; },",
+    "    authority() {",
+    '      return Object.fromEntries([...controllers].map((id) => [id, ["MOVE", "DASH", "PULSE"]]));',
+    "    },",
+    '    hash() { return "fixture-hash-" + tick + "-" + x; }',
+    "  };",
+    "}",
+    "",
+  ].join("\n");
 
   fs.writeFileSync(
     path.join(root, "runtime", "spark-threshold-adapter-v1.js"),
@@ -126,7 +127,7 @@ test("external SPARK loader fails closed on version mismatch", async () => {
   try {
     await assert.rejects(
       () => loadExternalSparkThresholdBridgeV1(root),
-      /expected SPARK 0\\.17\\.0/,
+      /expected SPARK 0\.17\.0/,
     );
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
