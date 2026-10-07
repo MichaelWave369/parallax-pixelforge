@@ -18,7 +18,8 @@ const required=[
 for(const file of required) if(!fs.existsSync(file)) errors.push(`Missing v5.29 path: ${file}`);
 
 const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
-if(pkg.version!=='5.29.0-alpha') errors.push('package.json version must be 5.29.0-alpha.');
+const [pkgMajor,pkgMinor]=String(pkg.version||'0.0.0').split('.').map(Number);
+if(pkgMajor!==5 || pkgMinor<29) errors.push('package.json must retain v5.29+ capabilities.');
 for(const name of ['asset:unreal:bind','asset:unreal:run','asset:unreal:verify','test:unreal-export','validate:v5.29']){
   if(!pkg.scripts?.[name]) errors.push(`package.json missing script: ${name}`);
 }

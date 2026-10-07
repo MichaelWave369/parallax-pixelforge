@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PixelForge Unreal Asset Discovery Receipt v1",
+  "type": "object",
+  "required": ["schema","generated_utc","status","record_id","query","searched_root","candidate_count","candidates","boundary"],
+  "properties": {
+    "schema": { "const": "pixelforge.unreal-asset-discovery.v1" },
+    "generated_utc": { "type": "string" },
+    "status": { "enum": ["CANDIDATES_FOUND","NO_CANDIDATES_FOUND","FAIL"] },
+    "record_id": { "type": "string", "pattern": "^ASSET-[0-9]{6}$" },
+    "query": { "type": "string", "minLength": 1 },
+    "searched_root": { "const": "/Game" },
+    "scanned_asset_count": { "type": "integer", "minimum": 0 },
+    "candidate_count": { "type": "integer", "minimum": 0 },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["unreal_asset_path","score","asset_class"],
+        "properties": {
+          "unreal_asset_path": { "type": "string", "pattern": "^/Game/" },
+          "score": { "type": "integer", "minimum": 0 },
+          "asset_class": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "error": { "type": "string" },
+    "boundary": { "type": "string" }
+  },
+  "additionalProperties": true
+}

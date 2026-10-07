@@ -2,13 +2,13 @@
 
 Parallax PixelForge is a local-first retro Creator OS for building, playtesting, packaging, and evolving small game worlds.
 
-**Current integrated target:** PixelForge Studio **v5.29.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
+**Current integrated target:** PixelForge Studio **v5.30.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
 
 The Studio and runtime layers stay deliberately separate. Creator tooling and game-specific rules remain in the Studio/game layer; controller, observation, action, transport, model-policy, and bounded-session contracts live in the reusable runtime layer.
 
 ## Current status
 
-- Full PixelForge Studio v5.29 is integrated on `main`.
+- Full PixelForge Studio v5.30 is integrated on `main`.
 - The complete Studio + Runtime preflight runs in GitHub Actions.
 - Runtime SDK tests, Studio validators, public-release validation, adaptation validation, and v5.27 Three-View Convergence validation are part of the qualification path.
 - Python-backed generators use the cross-platform launcher in `scripts/run_python.mjs` and pinned dependencies in `requirements.txt`.
@@ -59,10 +59,10 @@ Run the full Studio + Runtime release preflight:
 npm run github:preflight
 ```
 
-Run the current v5.29 gate directly:
+Run the current v5.30 gate directly:
 
 ```bash
-npm run validate:v5.29
+npm run validate:v5.30
 ```
 
 Optional local Ollama qualification:
@@ -108,6 +108,19 @@ Core invariants:
 - game-specific combat, physics, rendering, rooms, shops, and authority remain game-owned.
 
 Runtime design docs live under `docs/`, including the Runtime Bridge, Shared Core, Host, Async Host, Agent Session, Model Policy, and Ollama provider specifications.
+
+## v5.30 Unreal Discovery + GLB Structural Qualification
+
+v5.30 removes the blind Unreal object-path hunt and adds a dependency-free structural gate for exported GLB files.
+
+- asks Unreal to scan `/Game` and return ranked candidate object paths for a governed asset record,
+- records candidate asset classes without selecting or exporting one automatically,
+- parses GLB/glTF 2.0 containers directly in Node without a third-party parser,
+- verifies header/version/length/chunks plus scene, mesh, material, texture, animation, skin and extension structure,
+- combines v5.29 byte/hash verification with GLB parsing,
+- stops at **INTERCHANGE_STRUCTURAL_PASS_RUNTIME_IMPORT_PENDING** instead of claiming rendering or compatibility success.
+
+The intended first physical proof remains **ASSET-000021 — Stylized Fantasy Environment**. See `docs/V5_30_UNREAL_DISCOVERY_GLB_QUALIFICATION.md`.
 
 ## v5.29 Unreal Export Executor
 

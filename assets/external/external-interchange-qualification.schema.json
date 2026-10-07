@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PixelForge External Interchange Qualification v1",
+  "type": "object",
+  "required": ["schema","generated_at","record_id","source_record_sha256","passed","status","export_verification","boundary"],
+  "properties": {
+    "schema": { "const": "pixelforge.external-interchange-qualification.v1" },
+    "generated_at": { "type": "string" },
+    "record_id": { "type": "string", "pattern": "^ASSET-[0-9]{6}$" },
+    "source_record_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "passed": { "type": "boolean" },
+    "status": { "enum": ["INTERCHANGE_STRUCTURAL_PASS_RUNTIME_IMPORT_PENDING","INTERCHANGE_STRUCTURAL_FAIL"] },
+    "export_verification": { "type": "object" },
+    "glb_inspection": { "type": ["object","null"] },
+    "structural_error": { "type": ["string","null"] },
+    "boundary": { "type": "string" }
+  },
+  "additionalProperties": true
+}
