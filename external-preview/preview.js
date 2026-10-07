@@ -203,7 +203,7 @@ function makeProgram(gl){
 async function createTexture(gltf,bin,textureIndex){
   const textureDef=gltf.textures?.[textureIndex];
   const imageDef=gltf.images?.[textureDef?.source];
-  if(!imageDef?.bufferView) throw new Error('Only embedded GLB images are supported in v5.31.');
+  if(imageDef?.bufferView===undefined) throw new Error('Only embedded GLB images are supported in v5.31.');
   const bv=gltf.bufferViews?.[imageDef.bufferView];
   if(!bv || (bv.buffer??0)!==0) throw new Error('Texture image uses unsupported external buffer.');
   const start=bv.byteOffset||0;
