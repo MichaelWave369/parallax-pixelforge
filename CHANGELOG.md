@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.34.0-alpha — SPARK External Runtime Bridge
+- Added a cross-repository loader for the canonical SPARK v0.17.0 Threshold Runtime Bridge adapter.
+- Wrapped SPARK's own adapter with PixelForge Runtime Bridge v1 instead of copying SPARK gameplay rules.
+- Added a JSONL external-SPARK server and pinned cross-process qualification against SPARK revision 6f3b6605a6f026eb737f9d9eb67ffd45d366e1eb.
+- Qualified the real Threshold spawn, governed MOVE state transition, semantic event stream, authority view, and SHA-256 runtime hash.
+- Added v5.34 validation, public-release retention, CI artifact upload, and documentation.
+
 ## 5.33.0-alpha — First Real Cartridge Bridge
 - Added a Runtime Bridge v1 adapter for The Legend of More Bounce using the real Bouncehome Grove runtime-scene packet.
 - Movement now resolves against the scene's real collision layer and emits semantic movement/block/refusal events.
