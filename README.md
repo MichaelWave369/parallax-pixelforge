@@ -2,13 +2,13 @@
 
 Parallax PixelForge is a local-first retro Creator OS for building, playtesting, packaging, and evolving small game worlds.
 
-**Current integrated target:** PixelForge Studio **v5.31.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
+**Current integrated target:** PixelForge Studio **v5.32.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
 
 The Studio and runtime layers stay deliberately separate. Creator tooling and game-specific rules remain in the Studio/game layer; controller, observation, action, transport, model-policy, and bounded-session contracts live in the reusable runtime layer.
 
 ## Current status
 
-- Full PixelForge Studio v5.31 is integrated on `main`.
+- Full PixelForge Studio v5.32 is integrated on `main`.
 - The complete Studio + Runtime preflight runs in GitHub Actions.
 - Runtime SDK tests, Studio validators, public-release validation, adaptation validation, and v5.27 Three-View Convergence validation are part of the qualification path.
 - Python-backed generators use the cross-platform launcher in `scripts/run_python.mjs` and pinned dependencies in `requirements.txt`.
@@ -108,6 +108,26 @@ Core invariants:
 - game-specific combat, physics, rendering, rooms, shops, and authority remain game-owned.
 
 Runtime design docs live under `docs/`, including the Runtime Bridge, Shared Core, Host, Async Host, Agent Session, Model Policy, and Ollama provider specifications.
+
+## v5.32 Runtime Bridge JSONL Transport
+
+v5.32 gives the public Runtime Bridge v1 a bounded local process transport intended for external governed hosts such as PhiCade.
+
+- newline-delimited JSON request/response schemas,
+- strict allow-list of the existing Runtime Bridge v1 methods,
+- ordered request processing,
+- bounded transport/bridge errors without remote eval or shell access,
+- deterministic reference-counter stdio server,
+- runtime SDK/package export and conformance tests,
+- controller registration remains separate from game authority.
+
+Run the reference bridge with:
+
+```bash
+npm run runtime:serve:reference
+```
+
+See `docs/RUNTIME_JSONL_TRANSPORT_V1.md`.
 
 ## v5.31 Native WebGL2 GLB Preview
 
