@@ -113,7 +113,7 @@ Runtime design docs live under `docs/`, including the Runtime Bridge, Shared Cor
 
 v5.34 connects PixelForge to the canonical **SPARK: The Substrate v0.17.0** source tree without copying SPARK gameplay logic.
 
-- pins SPARK revision `6f3b6605a6f026eb737f9d9eb67ffd45d366e1eb`,
+- pins SPARK revision `fae7879820bef63a550fea486b2defbc3cee5304`,
 - dynamically loads SPARK's own Threshold bridge adapter,
 - wraps it with PixelForge `createBridgeV1()`,
 - serves it over the existing Runtime Bridge JSONL Transport v1,
