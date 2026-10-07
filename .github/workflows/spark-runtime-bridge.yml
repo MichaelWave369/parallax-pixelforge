@@ -1,0 +1,47 @@
+name: SPARK External Runtime Bridge
+
+on:
+  pull_request:
+    paths:
+      - "runtime/external-spark-v1.js"
+      - "scripts/serve_external_spark_runtime.mjs"
+      - "scripts/qualify_spark_runtime.mjs"
+      - "scripts/validate_v534.js"
+      - "docs/V5_34_SPARK_EXTERNAL_RUNTIME_BRIDGE.md"
+      - "package.json"
+      - ".github/workflows/spark-runtime-bridge.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "runtime/external-spark-v1.js"
+      - "scripts/serve_external_spark_runtime.mjs"
+      - "scripts/qualify_spark_runtime.mjs"
+      - "scripts/validate_v534.js"
+      - "docs/V5_34_SPARK_EXTERNAL_RUNTIME_BRIDGE.md"
+      - "package.json"
+      - ".github/workflows/spark-runtime-bridge.yml"
+
+jobs:
+  qualify:
+    name: runtime / PixelForge to SPARK qualification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PixelForge
+        uses: actions/checkout@v4
+      - name: Checkout pinned SPARK
+        uses: actions/checkout@v4
+        with:
+          repository: MichaelWave369/SparkTheSubstrate
+          ref: 6f3b6605a6f026eb737f9d9eb67ffd45d366e1eb
+          path: _spark
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/validate_v534.js
+      - run: node scripts/qualify_spark_runtime.mjs --spark-root "$GITHUB_WORKSPACE/_spark"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pixelforge-spark-runtime-qualification
+          path: artifacts/spark-runtime-qualification.json
+          if-no-files-found: error
