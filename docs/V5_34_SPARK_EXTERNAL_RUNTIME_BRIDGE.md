@@ -72,6 +72,18 @@ Default receipt:
 artifacts/spark-runtime-qualification.json
 ```
 
+## Private-repository CI topology
+
+`SparkTheSubstrate` is intentionally private. A public PixelForge workflow's default `GITHUB_TOKEN` cannot checkout a separate private repository owned by the same user.
+
+Therefore the evidence is split deliberately:
+
+- PixelForge PR CI runs the public loader/contract tests and v5.34 structural validator without private credentials.
+- The exact cross-repository qualification runs from the private SPARK repository, which can read its own pinned source and checkout public PixelForge without a PAT.
+- No long-lived personal access token is required or stored in PixelForge.
+
+This is an authentication-boundary choice, not a change to the runtime protocol.
+
 ## Boundary
 
 This rung does not grant PixelForge authority over SPARK saves, campaign progression, D1, co-op, Sideways, Duel, Endless, Memory Arcade, or legacy cabinet storage.
