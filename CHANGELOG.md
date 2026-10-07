@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.30.0-alpha — Unreal Discovery + GLB Structural Qualification
+- Added Unreal `/Game` asset discovery with ranked candidate object paths and asset-class receipts.
+- Kept candidate selection operator-controlled; discovery never auto-binds or exports a path.
+- Added a dependency-free GLB/glTF 2.0 container inspector for headers, chunks, scenes, meshes, materials, textures, animations, skins, buffers and extensions.
+- Added combined export-integrity + GLB structural qualification ending at INTERCHANGE_STRUCTURAL_PASS_RUNTIME_IMPORT_PENDING.
+- Added four GLB qualification tests, Unreal discovery Python syntax coverage and a v5.30 release gate.
+
 ## 5.29.0-alpha — Unreal Export Executor
 - Added v1→v2 binding for real Unreal project and content paths without committing local paths or assets.
 - Added Windows/Linux UnrealEditor-Cmd planning/execution wrapper using the repository Python launcher.
