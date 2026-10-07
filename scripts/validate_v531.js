@@ -22,17 +22,18 @@ for(const name of ['test:glb-preview','check:glb-preview-js','validate:v5.31']){
 if(!pkg.scripts?.['github:preflight']?.includes('validate:v5.31')) errors.push('github:preflight must include v5.31 validation.');
 
 const html=fs.readFileSync('external-preview/index.html','utf8');
-for(const marker of ['Native 3D Preview','id="gl"','preview.js','Download Preview Receipt']){
+for(const marker of ['Native 3D Preview','id="gl"','preview.js','Download Preview Receipt','local-assets/staging/ASSET-000021']){
   if(!html.includes(marker)) errors.push(`Preview HTML missing marker: ${marker}`);
 }
 
 const preview=fs.readFileSync('external-preview/preview.js','utf8');
-for(const marker of ['webgl2','PREVIEW_RENDERED_VISUAL_REVIEW_PENDING','gl.drawElements','gl.drawArrays','createImageBitmap','local-assets/staging/ASSET-000021']){
+for(const marker of ['webgl2','gl.drawElements','gl.drawArrays','createImageBitmap']){
   if(!preview.includes(marker)) errors.push(`Preview renderer missing marker: ${marker}`);
 }
 
 const plan=fs.readFileSync('scripts/lib/glb_preview_plan.js','utf8');
 if(!plan.includes('NATIVE_WEBGL2_STATIC_GLTF2')) errors.push('Preview plan renderer identity missing.');
+if(!plan.includes('PREVIEW_RENDERED_VISUAL_REVIEW_PENDING')) errors.push('Preview plan status boundary missing.');
 if(!plan.includes('does not grant source compatibility PASS')) errors.push('Preview receipt compatibility boundary missing.');
 
 const studio=fs.readFileSync('index.html','utf8');
