@@ -2,13 +2,13 @@
 
 Parallax PixelForge is a local-first retro Creator OS for building, playtesting, packaging, and evolving small game worlds.
 
-**Current integrated target:** PixelForge Studio **v5.30.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
+**Current integrated target:** PixelForge Studio **v5.31.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
 
 The Studio and runtime layers stay deliberately separate. Creator tooling and game-specific rules remain in the Studio/game layer; controller, observation, action, transport, model-policy, and bounded-session contracts live in the reusable runtime layer.
 
 ## Current status
 
-- Full PixelForge Studio v5.30 is integrated on `main`.
+- Full PixelForge Studio v5.31 is integrated on `main`.
 - The complete Studio + Runtime preflight runs in GitHub Actions.
 - Runtime SDK tests, Studio validators, public-release validation, adaptation validation, and v5.27 Three-View Convergence validation are part of the qualification path.
 - Python-backed generators use the cross-platform launcher in `scripts/run_python.mjs` and pinned dependencies in `requirements.txt`.
@@ -59,10 +59,10 @@ Run the full Studio + Runtime release preflight:
 npm run github:preflight
 ```
 
-Run the current v5.30 gate directly:
+Run the current v5.31 gate directly:
 
 ```bash
-npm run validate:v5.30
+npm run validate:v5.31
 ```
 
 Optional local Ollama qualification:
@@ -108,6 +108,22 @@ Core invariants:
 - game-specific combat, physics, rendering, rooms, shops, and authority remain game-owned.
 
 Runtime design docs live under `docs/`, including the Runtime Bridge, Shared Core, Host, Async Host, Agent Session, Model Policy, and Ollama provider specifications.
+
+## v5.31 Native WebGL2 GLB Preview
+
+v5.31 renders supported qualified GLB assets directly in PixelForge with a zero-dependency WebGL2 viewer.
+
+- drag/drop, file picker, or same-origin local-vault URL loading,
+- multiple mesh nodes and TRIANGLES primitives,
+- indexed/non-indexed geometry and node TRS/matrix transforms,
+- optional normals/UVs, base-color factors, and embedded base-color textures,
+- orbit/zoom/reset controls plus automatic bounds framing,
+- explicit static-preview warnings for animation, skinning, embedded cameras, extensions, and simplified PBR,
+- downloadable preview receipts ending at **PREVIEW_RENDERED_VISUAL_REVIEW_PENDING**.
+
+Open `http://localhost:3690/external-preview/` after `npm run start`.
+
+See `docs/V5_31_NATIVE_WEBGL2_GLB_PREVIEW.md`.
 
 ## v5.30 Unreal Discovery + GLB Structural Qualification
 

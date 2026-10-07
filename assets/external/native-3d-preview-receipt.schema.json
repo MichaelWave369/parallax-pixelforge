@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PixelForge Native 3D Preview Receipt v1",
+  "type": "object",
+  "required": ["schema","rendered","status","renderer","drawn_primitives","skipped_primitives","warnings","boundary"],
+  "properties": {
+    "schema": { "const": "pixelforge.native-3d-preview-receipt.v1" },
+    "rendered": { "type": "boolean" },
+    "status": { "enum": ["PREVIEW_RENDERED_VISUAL_REVIEW_PENDING","PREVIEW_RENDER_FAIL"] },
+    "renderer": { "type": ["string","null"] },
+    "drawn_primitives": { "type": "integer", "minimum": 0 },
+    "skipped_primitives": { "type": "integer", "minimum": 0 },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "generated_at": { "type": "string" },
+    "source_name": { "type": "string" },
+    "source_bytes": { "type": "integer", "minimum": 1 },
+    "structural_summary": { "type": "object" },
+    "asset_generator": { "type": ["string","null"] },
+    "bounds": { "type": "object" },
+    "runtime": { "type": "object" },
+    "boundary": { "type": "string" }
+  },
+  "additionalProperties": true
+}

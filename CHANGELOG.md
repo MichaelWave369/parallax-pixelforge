@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.31.0-alpha — Native WebGL2 GLB Preview
+- Added a zero-dependency browser WebGL2 viewer for structurally qualified GLB/glTF 2.0 assets.
+- Added drag/drop, file-picker and same-origin local-vault URL loading plus orbit, zoom, reset and auto-framing.
+- Added static mesh/node rendering with indexed/non-indexed TRIANGLES, base-color factors and embedded base-color textures.
+- Added explicit warnings for animation, skinning, embedded cameras, required extensions, missing normals and simplified metallic/roughness.
+- Added machine preview plans and receipts ending at PREVIEW_RENDERED_VISUAL_REVIEW_PENDING.
+- Added four preview-plan tests, browser-module syntax checking and a v5.31 release gate.
+
 ## 5.30.0-alpha — Unreal Discovery + GLB Structural Qualification
 - Added Unreal `/Game` asset discovery with ranked candidate object paths and asset-class receipts.
 - Kept candidate selection operator-controlled; discovery never auto-binds or exports a path.
