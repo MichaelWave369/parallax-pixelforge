@@ -26,3 +26,10 @@ Do not contribute assets you do not have the right to share. This includes rippe
 ## Not legal advice
 
 This file is a practical project boundary note, not legal advice. Run a legal review before app-store production releases or broad commercial licensing.
+
+## External asset libraries
+
+Third-party marketplace assets remain governed by their own licenses even when PixelForge converts or incorporates them into a project. Store purchased source files locally, do not publish standalone source packages through this MIT repository, and retain provenance/license evidence with the project.
+
+The External Asset Forge deliberately preserves source compatibility and lane verdicts rather than treating import, export, or conversion as legal or technical approval.
+
