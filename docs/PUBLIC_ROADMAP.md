@@ -1,5 +1,13 @@
 # Public Roadmap
 
+## v5.32 — Runtime Bridge JSONL Transport — Complete
+
+- bounded local JSONL transport for Runtime Bridge v1,
+- strict method allow-list and ordered request processing,
+- deterministic reference-counter stdio server,
+- intended external governed-host handoff to PhiCade,
+- no transport-level authority escalation.
+
 ## v5.3 — Public GitHub Launch Kit
 
 - Public README and contribution kit.
