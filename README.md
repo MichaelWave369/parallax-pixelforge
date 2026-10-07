@@ -2,13 +2,13 @@
 
 Parallax PixelForge is a local-first retro Creator OS for building, playtesting, packaging, and evolving small game worlds.
 
-**Current integrated target:** PixelForge Studio **v5.27.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
+**Current integrated target:** PixelForge Studio **v5.28.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
 
 The Studio and runtime layers stay deliberately separate. Creator tooling and game-specific rules remain in the Studio/game layer; controller, observation, action, transport, model-policy, and bounded-session contracts live in the reusable runtime layer.
 
 ## Current status
 
-- Full PixelForge Studio v5.27 is integrated on `main`.
+- Full PixelForge Studio v5.28 is integrated on `main`.
 - The complete Studio + Runtime preflight runs in GitHub Actions.
 - Runtime SDK tests, Studio validators, public-release validation, adaptation validation, and v5.27 Three-View Convergence validation are part of the qualification path.
 - Python-backed generators use the cross-platform launcher in `scripts/run_python.mjs` and pinned dependencies in `requirements.txt`.
@@ -59,10 +59,10 @@ Run the full Studio + Runtime release preflight:
 npm run github:preflight
 ```
 
-Run the current v5.27 gate directly:
+Run the current v5.28 gate directly:
 
 ```bash
-npm run validate:v5.27
+npm run validate:v5.28
 ```
 
 Optional local Ollama qualification:
@@ -108,6 +108,21 @@ Core invariants:
 - game-specific combat, physics, rendering, rooms, shops, and authority remain game-owned.
 
 Runtime design docs live under `docs/`, including the Runtime Bridge, Shared Core, Host, Async Host, Agent Session, Model Policy, and Ollama provider specifications.
+
+## v5.28 External Asset Forge
+
+v5.28 adds a governed bridge from local external asset libraries into PixelForge without committing purchased marketplace source files to the public repository.
+
+- imports governed metadata while preserving stable `ASSET-000xxx` identities,
+- routes assets through **PORTABLE**, **BAKEABLE**, or **REIMPLEMENT** lanes,
+- emits rights-aware Asset Passports without changing source compatibility verdicts,
+- creates operator-bound Unreal export-job manifests for eligible assets,
+- keeps `local-assets/` and generated external registries outside Git,
+- rejects the fiction that routing or export automatically means compatibility approval.
+
+With the current UE Agent Office arsenal, the 263 governed records classify as **209 PORTABLE / 11 BAKEABLE / 43 REIMPLEMENT**; all remain unqualified until their source governance says otherwise.
+
+See `docs/V5_28_EXTERNAL_ASSET_FORGE.md`.
 
 ## PixelForge Studio v5.27
 
