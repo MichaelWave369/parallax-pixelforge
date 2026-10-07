@@ -17,7 +17,8 @@ const required = [
 for (const file of required) if (!fs.existsSync(file)) errors.push(`Missing v5.28 path: ${file}`);
 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-if (pkg.version !== '5.28.0-alpha') errors.push('package.json version must be 5.28.0-alpha.');
+const [pkgMajor,pkgMinor]=String(pkg.version||'0.0.0').split('.').map(Number);
+if (pkgMajor!==5 || pkgMinor<28) errors.push('package.json must retain v5.28+ capabilities.');
 for (const name of ['asset:external', 'test:external-assets', 'validate:v5.28']) {
   if (!pkg.scripts?.[name]) errors.push(`package.json missing script: ${name}`);
 }
