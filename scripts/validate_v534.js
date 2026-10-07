@@ -6,6 +6,7 @@ const required = [
   "runtime/external-spark-v1.js",
   "scripts/serve_external_spark_runtime.mjs",
   "scripts/qualify_spark_runtime.mjs",
+  "tests/external-spark-loader-v1.test.js",
   "docs/V5_34_SPARK_EXTERNAL_RUNTIME_BRIDGE.md",
   "scripts/validate_v534.js",
 ];
@@ -21,6 +22,7 @@ if (pkg.version !== "5.34.0-alpha")
 for (const name of [
   "runtime:serve:spark",
   "qualify:spark",
+  "test:spark-loader",
   "validate:v5.34",
 ]) {
   if (!pkg.scripts?.[name])
