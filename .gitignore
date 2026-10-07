@@ -9,3 +9,5 @@ coverage/
 .cache/
 .vite/
 exports/**/*.tmp
+local-assets/
+exports/external-assets/
