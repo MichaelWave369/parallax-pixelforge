@@ -28,6 +28,7 @@ const required = [
   'runtime/jsonl-transport-v1.js',
   'runtime/legend-bouncehome-v1.js',
   'runtime/external-spark-v1.js',
+  'scripts/serve_external_spark_runtime.mjs',
   'scripts/qualify_spark_runtime.mjs',
   'docs/V5_34_SPARK_EXTERNAL_RUNTIME_BRIDGE.md',
   'tests/runtime-legend-cartridge-v1.test.js',
