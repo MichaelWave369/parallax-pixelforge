@@ -1,5 +1,14 @@
 # Public Roadmap
 
+## v5.34 — SPARK External Runtime Bridge — Complete Candidate
+
+- canonical SPARK v0.17.0 loaded as an external runtime rather than copied,
+- SPARK Threshold adapter wrapped by PixelForge Runtime Bridge v1,
+- existing JSONL transport reused unchanged,
+- pinned cross-repository qualification for one real SPARK movement transition,
+- semantic event, authority view, and SHA-256 runtime hash captured,
+- intended next proof: PhiCade authority in front of the same SPARK action.
+
 ## v5.33 — First Real Cartridge Bridge — Complete
 
 - The Legend of More Bounce runs through Runtime Bridge v1 from its real Bouncehome Grove scene packet.
