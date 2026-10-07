@@ -2,13 +2,13 @@
 
 Parallax PixelForge is a local-first retro Creator OS for building, playtesting, packaging, and evolving small game worlds.
 
-**Current integrated target:** PixelForge Studio **v5.28.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
+**Current integrated target:** PixelForge Studio **v5.29.0-alpha** plus the public **Runtime SDK v1** stack: Runtime Bridge, Shared Runtime Core, synchronous and asynchronous Runtime Hosts, bounded Agent Session v1, Model Policy v1, and the local Ollama provider.
 
 The Studio and runtime layers stay deliberately separate. Creator tooling and game-specific rules remain in the Studio/game layer; controller, observation, action, transport, model-policy, and bounded-session contracts live in the reusable runtime layer.
 
 ## Current status
 
-- Full PixelForge Studio v5.28 is integrated on `main`.
+- Full PixelForge Studio v5.29 is integrated on `main`.
 - The complete Studio + Runtime preflight runs in GitHub Actions.
 - Runtime SDK tests, Studio validators, public-release validation, adaptation validation, and v5.27 Three-View Convergence validation are part of the qualification path.
 - Python-backed generators use the cross-platform launcher in `scripts/run_python.mjs` and pinned dependencies in `requirements.txt`.
@@ -59,10 +59,10 @@ Run the full Studio + Runtime release preflight:
 npm run github:preflight
 ```
 
-Run the current v5.28 gate directly:
+Run the current v5.29 gate directly:
 
 ```bash
-npm run validate:v5.28
+npm run validate:v5.29
 ```
 
 Optional local Ollama qualification:
@@ -108,6 +108,19 @@ Core invariants:
 - game-specific combat, physics, rendering, rooms, shops, and authority remain game-owned.
 
 Runtime design docs live under `docs/`, including the Runtime Bridge, Shared Core, Host, Async Host, Agent Session, Model Policy, and Ollama provider specifications.
+
+## v5.29 Unreal Export Executor
+
+v5.29 turns the governed External Asset Forge plan into a local executable Unreal bridge.
+
+- upgrades a v1 draft job into a bound local-only v2 job using a real `.uproject` and Unreal asset path,
+- launches `UnrealEditor-Cmd` through the existing cross-platform Python launcher,
+- runs a tiny Unreal-side Python executor using the GLTF Exporter plugin,
+- writes GLB/glTF plus byte count, SHA-256, engine version, warnings/errors, and an execution receipt,
+- verifies the returned file outside Unreal before PixelForge accepts the export as intact,
+- stops at **EXPORT_VERIFIED_IMPORT_PENDING** rather than falsely granting compatibility PASS.
+
+The first intended governed proof target remains **ASSET-000021 — Stylized Fantasy Environment**. See `docs/V5_29_UNREAL_EXPORT_EXECUTOR.md`.
 
 ## v5.28 External Asset Forge
 

@@ -170,7 +170,7 @@ export function buildUnrealExportJob(passport, options = {}) {
       manifest_required: true,
       hash_outputs: true,
     },
-    unreal_editor_requirements: ['PythonScriptPlugin', 'EditorScriptingUtilities'],
+    unreal_editor_requirements: ['PythonScriptPlugin', 'EditorScriptingUtilities', ...((format === 'GLB' || format === 'GLTF') ? ['GLTFExporter'] : [])],
     authority_boundary:
       'This job requests export only. It does not approve the asset, change its compatibility state, or authorize redistribution.',
   };

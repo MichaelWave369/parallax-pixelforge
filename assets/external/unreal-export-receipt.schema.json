@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PixelForge Unreal Export Receipt v1",
+  "type": "object",
+  "required": [
+    "schema","generated_utc","status","record_id","source_record_sha256",
+    "engine_version","unreal_asset_path","requested_interchange_format",
+    "messages","qualification_state","boundary"
+  ],
+  "properties": {
+    "schema": { "const": "pixelforge.unreal-export-receipt.v1" },
+    "generated_utc": { "type": "string" },
+    "status": { "enum": ["PASS","FAIL"] },
+    "record_id": { "type": "string", "pattern": "^ASSET-[0-9]{6}$" },
+    "source_record_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "engine_version": { "type": "string" },
+    "job_path": { "type": "string" },
+    "unreal_asset_path": { "type": "string" },
+    "requested_interchange_format": { "enum": ["GLB","GLTF"] },
+    "asset_class": { "type": "string" },
+    "output": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["file_path","bytes","sha256"],
+          "properties": {
+            "file_path": { "type": "string" },
+            "bytes": { "type": "integer", "minimum": 1 },
+            "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "messages": {
+      "type": "object",
+      "required": ["warnings","errors","suggestions"],
+      "properties": {
+        "warnings": { "type": "array", "items": { "type": "string" } },
+        "errors": { "type": "array", "items": { "type": "string" } },
+        "suggestions": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "qualification_state": {
+      "enum": ["EXPORT_NOT_VERIFIED","EXPORT_PASS_AWAITING_PIXELFORGE_VERIFICATION"]
+    },
+    "boundary": { "type": "string" },
+    "error": { "type": "string" }
+  },
+  "additionalProperties": true
+}

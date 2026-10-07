@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.29.0-alpha — Unreal Export Executor
+- Added v1→v2 binding for real Unreal project and content paths without committing local paths or assets.
+- Added Windows/Linux UnrealEditor-Cmd planning/execution wrapper using the repository Python launcher.
+- Added Unreal-side GLB/glTF export through the GLTF Exporter Python API.
+- Added export receipts with engine version, warnings/errors, byte count and SHA-256.
+- Added PixelForge-side receipt verification ending at EXPORT_VERIFIED_IMPORT_PENDING rather than automatic compatibility approval.
+- Added five executor governance tests, Python syntax checks and a v5.29 release gate.
+
 ## 5.28.0-alpha — External Asset Forge / Unreal Arsenal Bridge
 - Added local governed intake for external asset registries while keeping purchased source files out of the public repository.
 - Added deterministic PORTABLE / BAKEABLE / REIMPLEMENT routing and rights-aware Asset Passports.
