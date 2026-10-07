@@ -5,7 +5,7 @@ v5.34 is the first PixelForge qualification against the canonical `SparkTheSubst
 ## Pinned SPARK source
 
 ```text
-revision: 6f3b6605a6f026eb737f9d9eb67ffd45d366e1eb
+revision: fae7879820bef63a550fea486b2defbc3cee5304
 version:  0.17.0
 ```
 

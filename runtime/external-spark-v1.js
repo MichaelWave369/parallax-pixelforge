@@ -6,7 +6,7 @@ import { createBridgeV1 } from "./bridge-v1.js";
 
 export const PIXELFORGE_SPARK_ADAPTER_ID = "pixelforge.external-spark-threshold-v1";
 export const PIXELFORGE_SPARK_PINNED_REVISION =
-  "6f3b6605a6f026eb737f9d9eb67ffd45d366e1eb";
+  "fae7879820bef63a550fea486b2defbc3cee5304";
 export const PIXELFORGE_SPARK_EXPECTED_VERSION = "0.17.0";
 
 export async function loadExternalSparkThresholdBridgeV1(
