@@ -1,0 +1,25 @@
+{
+  "schema": "pixelforge.unreal-export-job.v1",
+  "job_id": "PF-UE-ASSET-900004-NATIVE_3D",
+  "state": "DRAFT_OPERATOR_BINDING_REQUIRED",
+  "record_id": "ASSET-900004",
+  "source_record_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "requested_forge_target": "NATIVE_3D",
+  "requested_interchange_format": "GLB",
+  "source": {
+    "unreal_asset_path": null,
+    "requires_operator_binding": true,
+    "storage_policy": "LOCAL_ONLY_DO_NOT_COMMIT"
+  },
+  "output": {
+    "staging_root": "local-assets/staging/ASSET-900004",
+    "overwrite": false,
+    "manifest_required": true,
+    "hash_outputs": true
+  },
+  "unreal_editor_requirements": [
+    "PythonScriptPlugin",
+    "EditorScriptingUtilities"
+  ],
+  "authority_boundary": "This synthetic example requests export only and grants no compatibility or redistribution authority."
+}

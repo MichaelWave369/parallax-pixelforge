@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PixelForge Unreal Export Job v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "job_id",
+    "state",
+    "record_id",
+    "source_record_sha256",
+    "requested_forge_target",
+    "requested_interchange_format",
+    "source",
+    "output",
+    "unreal_editor_requirements",
+    "authority_boundary"
+  ],
+  "properties": {
+    "schema": { "const": "pixelforge.unreal-export-job.v1" },
+    "job_id": { "type": "string" },
+    "state": { "const": "DRAFT_OPERATOR_BINDING_REQUIRED" },
+    "record_id": { "type": "string", "pattern": "^ASSET-[0-9]{6}$" },
+    "source_record_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "requested_forge_target": { "type": "string" },
+    "requested_interchange_format": { "type": "string" },
+    "source": {
+      "type": "object",
+      "required": ["unreal_asset_path", "requires_operator_binding", "storage_policy"],
+      "properties": {
+        "unreal_asset_path": { "type": ["string", "null"] },
+        "requires_operator_binding": { "const": true },
+        "storage_policy": { "const": "LOCAL_ONLY_DO_NOT_COMMIT" }
+      },
+      "additionalProperties": false
+    },
+    "output": {
+      "type": "object",
+      "required": ["staging_root", "overwrite", "manifest_required", "hash_outputs"],
+      "properties": {
+        "staging_root": { "type": "string" },
+        "overwrite": { "const": false },
+        "manifest_required": { "const": true },
+        "hash_outputs": { "const": true }
+      },
+      "additionalProperties": false
+    },
+    "unreal_editor_requirements": {
+      "type": "array",
+      "contains": { "const": "PythonScriptPlugin" }
+    },
+    "authority_boundary": { "type": "string" }
+  },
+  "additionalProperties": false
+}

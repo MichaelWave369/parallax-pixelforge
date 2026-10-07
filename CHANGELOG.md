@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.28.0-alpha — External Asset Forge / Unreal Arsenal Bridge
+- Added local governed intake for external asset registries while keeping purchased source files out of the public repository.
+- Added deterministic PORTABLE / BAKEABLE / REIMPLEMENT routing and rights-aware Asset Passports.
+- Added operator-bound Unreal export-job manifests with GLB/PNG target requests, source hashes, and local-only staging policy.
+- Added six external-asset governance tests plus a v5.28 release gate.
+- Qualified no marketplace assets by assumption: compatibility and lane verdicts remain source-governed and human-reviewable.
+
 ## 5.27.0-alpha — Three-View Convergence / Chapter Five
 - Added Mirrorfall Basin, Splitlight Causeway, Triune Observatory, and The Blind Angle.
 - Made top-down, side-view, and first-person state causally interdependent through prism, Pulse Node, and lens-shutter progression.
