@@ -36,3 +36,6 @@ input[type=color]{height:42px;padding:3px}button.full{width:100%}.fileButton{pos
 .receipt strong{letter-spacing:1px;font-size:11px}.receipt p{margin:6px 0 0}
 @media(max-width:1200px){.layout{grid-template-columns:255px minmax(350px,1fr)}.inspector{grid-column:1/-1;max-height:none;min-height:0}.panel{max-height:none}.top{flex-wrap:wrap}}
 @media(max-width:740px){.layout{display:flex;flex-direction:column}.viewport{order:-1;min-height:420px;width:100%}.panel{width:100%;min-height:0}.viewportTop{flex-direction:column;align-items:flex-start}#stage{min-height:350px}.top{align-items:flex-start}}
+
+/* Respect browser hidden state even on styled upload controls. */
+[hidden]{display:none!important}
