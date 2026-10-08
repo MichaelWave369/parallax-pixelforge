@@ -164,7 +164,7 @@
     "qualify:spark": "node scripts/qualify_spark_runtime.mjs",
     "validate:v5.34": "npm run test:spark-loader && node scripts/validate_v534.js",
     "test:spark-loader": "node --test tests/external-spark-loader-v1.test.js",
-    "test:vr": "node --test tests/vr-studio.test.js"
+    "test:vr": "node --check vr-studio/world.js && node --check vr-studio/renderer.js && node --check vr-studio/studio.js && node --test tests/vr-studio.test.js"
   },
   "keywords": [
     "16-bit",
