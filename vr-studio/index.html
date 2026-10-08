@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PixelForge VR Studio | Interactive World Editing</title>
+<title>PixelForge VR Studio | Move Rotate Scale</title>
 <link rel="stylesheet" href="./studio.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
   <header class="top">
     <div>
       <div class="eyebrow">PARALLAX PIXELFORGE / EXPERIMENTAL WORLD CREATOR</div>
-      <h1>VR <span>STUDIO</span> <small>v5.38 interactive editor</small></h1>
+      <h1>VR <span>STUDIO</span> <small>v5.39 transform tools</small></h1>
       <p>Build worlds in desktop 3D. Inspect a headset preview only where immersive WebXR is supported.</p>
     </div>
     <div class="toolbar">
@@ -43,9 +43,14 @@
       <div id="objects" class="objectList" role="list"></div>
     </aside>
     <section class="viewport">
-      <div class="viewportTop"><strong>WORLD VIEWPORT</strong><span>Click object to select · Drag X/Y/Z handle to move · Drag empty space to orbit · Wheel to zoom</span></div>
+      <div class="viewportTop"><strong>WORLD VIEWPORT</strong><span>Click to select · Tool W/E/R · Drag gizmo handles · Drag empty space to orbit · Wheel zoom</span></div>
+      <div class="toolModes" role="group" aria-label="3D transform tool">
+        <button type="button" data-tool="move" aria-pressed="true">W · Move</button>
+        <button type="button" data-tool="rotate" aria-pressed="false">E · Rotate Y</button>
+        <button type="button" data-tool="scale" aria-pressed="false">R · Scale</button>
+      </div>
       <div class="stageShell">
-        <canvas id="stage" aria-label="3D world editor. Click to select objects. Drag color-coded axis handles to move." tabindex="0"></canvas>
+        <canvas id="stage" aria-label="3D world editor. Click to select. Choose move, rotate, or scale above; drag visible handles to edit." tabindex="0"></canvas>
         <svg id="moveGizmo" class="moveGizmo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div class="viewportFoot"><span>1 UNIT = 1 METER</span><span>DESKTOP / PREVIEW MODE</span></div>
@@ -57,7 +62,9 @@
         <div class="idRow"><span id="selectedId"></span><span id="assetBadge"></span></div>
         <label>Display name<input id="name" maxlength="80"></label>
         <label>Color<input id="color" type="color"></label>
-        <h3>MOVE CONTROLS</h3>
+        <h3>TRANSFORM CONTROLS</h3>
+        <p class="hint">Choose Move, Rotate Y or Scale above. W / E / R switch tools when not editing a field.</p>
+        <div id="moveControls">
         <label>Move snap
           <select id="moveSnap" aria-label="Movement step">
             <option value="0.1">0.1 m</option>
@@ -75,6 +82,43 @@
           <button type="button" data-nudge="z:1" aria-label="Move Z positive">Z +</button>
         </div>
         <p class="hint">Red = X · Green = Y · Blue = Z. Drag a colored axis in the 3D viewport or nudge here. One drag creates one undo step.</p>
+        </div>
+        <div id="rotateControls" hidden>
+          <label>Angle snap
+            <select id="angleSnap" aria-label="Rotate snapping angle">
+              <option value="5">5°</option>
+              <option value="15" selected>15°</option>
+              <option value="30">30°</option>
+              <option value="45">45°</option>
+            </select>
+          </label>
+          <div class="transformPad">
+            <button type="button" data-rotate="-1" aria-label="Rotate Y counterclockwise">↺ Rotate −</button>
+            <button type="button" data-rotate="1" aria-label="Rotate Y clockwise">↻ Rotate +</button>
+          </div>
+          <p class="hint">Drag the amber ring horizontally. Rotation is around world Y only. Each drag creates one undo entry.</p>
+        </div>
+        <div id="scaleControls" hidden>
+          <label>Scale snap
+            <select id="scaleSnap" aria-label="Scale increment">
+              <option value="0.05">0.05</option>
+              <option value="0.1" selected>0.1</option>
+              <option value="0.25">0.25</option>
+              <option value="0.5">0.5</option>
+            </select>
+          </label>
+          <div class="movePad" aria-label="Scale controls">
+            <button type="button" data-resize="x:-1" aria-label="Reduce X scale">X −</button>
+            <button type="button" data-resize="x:1" aria-label="Increase X scale">X +</button>
+            <button type="button" data-resize="y:-1" aria-label="Reduce Y scale">Y −</button>
+            <button type="button" data-resize="y:1" aria-label="Increase Y scale">Y +</button>
+            <button type="button" data-resize="z:-1" aria-label="Reduce Z scale">Z −</button>
+            <button type="button" data-resize="z:1" aria-label="Increase Z scale">Z +</button>
+            <button type="button" data-resize="uniform:-1" aria-label="Reduce all axes">All −</button>
+            <button type="button" data-resize="uniform:1" aria-label="Increase all axes">All +</button>
+          </div>
+          <p class="hint">Drag colored square X/Y/Z handles to scale one axis; drag the center diamond upward/downward to scale uniformly. Values stay between 0.05 and 50.</p>
+        </div>
         <h3>POSITION (METERS)</h3>
         <div class="triplet"><label>X<input data-vector="position" data-axis="0" type="number" min="-100" max="100" step=".1"></label>
           <label>Y<input data-vector="position" data-axis="1" type="number" min="-100" max="100" step=".1"></label>

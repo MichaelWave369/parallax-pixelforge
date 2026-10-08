@@ -52,3 +52,13 @@ input[type=color]{height:42px;padding:3px}button.full{width:100%}.fileButton{pos
 .movePad button:nth-child(3),.movePad button:nth-child(4){border-color:#327b5a}
 .movePad button:nth-child(5),.movePad button:nth-child(6){border-color:#3c69a5}
 @media(max-width:740px){.stageShell{min-height:350px}}
+
+/* v5.39 modes: editing overlays never intercept viewport pointer events. */
+.toolModes{display:flex;gap:8px;flex-wrap:wrap;padding:0 14px 12px;background:#0e1c2b}
+.toolModes button{padding:7px 15px;min-height:36px;border-radius:8px}
+.toolModes button[aria-pressed="true"]{background:#31505b;color:#b2fae0;border-color:#7bdfc4;box-shadow:inset 0 0 0 1px #7bdfc444}
+.transformPad{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.transformPad button{min-height:38px;border-color:#b17c45;color:#ffe0ab}
+.moveGizmo path{stroke-linecap:round;stroke-linejoin:round}
+.moveGizmo .scale-diamond{fill:#f7f0ca;stroke:#1b2e3d;stroke-width:2}
+@media(max-width:740px){.toolModes button{flex:1}}
