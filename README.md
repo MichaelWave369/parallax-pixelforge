@@ -15,6 +15,14 @@ The Studio and runtime layers stay deliberately separate. Creator tooling and ga
 - Local Ollama qualification is optional and remains outside required CI.
 - Human visual, pacing, combat-feel, commercial-depth, store-art, and value review remain separate from machine validation.
 
+## v5.35 VR Studio — World Foundation
+
+The experimental [VR Studio](vr-studio/) starts with a usable, local-first desktop 3D world composer. It includes a validated scene graph, primitive placement, transforms, undo, scene save/import/export, and locally hashed Unreal GLB **proxy** staging. Capability-gated WebXR can preview that geometric scene on supported headsets, but remains unqualified without physical testing.
+
+**No claims of rendered GLB import, collisions, VR-controller interactions, headset compatibility or runtime/agent authority.** PixelForge's original external GLB renderer remains the asset inspection path. See [v5.35 VR World Foundation](docs/V5_35_VR_WORLD_FOUNDATION.md).
+
+Open `http://localhost:3690/vr-studio/` after `npm run start`. Run `npm run test:vr` for the scene-contract tests.
+
 ## Quick start
 
 Prerequisites:
