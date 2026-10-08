@@ -60,7 +60,7 @@ function redraw() {
   facts.hidden=!o.asset;
   facts.textContent=o.asset?o.asset.asset_id+' | '+o.asset.source_name+' | SHA-256 '+o.asset.sha256+
     ' | '+o.asset.byte_length+' bytes | '+(renderer?.hasMesh(o.asset.sha256)
-      ? 'Static GLB geometry shown. Material/physics/rights qualification pending.'
+      ? 'Static GLB geometry shown; basic embedded texture preview where supported. PBR/physics/rights qualification pending.'
       : 'Rebind the identical local GLB to display its mesh.'):'';
 }
 function safe(action) {
@@ -161,10 +161,10 @@ $('glbFile').addEventListener('change',async event=>{
     const next=addObject(world,'asset-proxy',asset);
     if(!renderer)throw new Error('WebGL2 renderer unavailable.');
     const decoded=decodeGlbMesh(buffer);
-    const report=renderer.registerMesh(sha256,decoded);
+    const report=await renderer.registerMesh(sha256,decoded);
     selected=next.objects.at(-1).id;
-    change(next,'Static GLB geometry placed: '+report.meshCount+' primitives / '+report.vertexCount+
-      ' vertices. Local preview only; rights, PBR, collision, performance and VR remain unqualified.'+
+    change(next,'GLB geometry placed: '+report.meshCount+' primitives / '+report.vertexCount+' vertices / '+report.textureCount+' embedded textures. '+ 
+      'Local preview only; rights, PBR, collision, performance and VR remain unqualified.'+
       (report.warnings.length?' Warnings: '+report.warnings.join(', '):''));
   }catch(error){status('ASSET REJECTED: '+error.message);}
 });
@@ -183,10 +183,10 @@ $('rebindFile').addEventListener('change',async event=>{
     const digest=await crypto.subtle.digest('SHA-256',bytes);
     const sha256=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
     if(sha256!==selectedAsset.sha256)throw new Error('SHA-256 mismatch: cannot silently replace scene asset.');
-    const report=renderer.registerMesh(sha256,decodeGlbMesh(bytes));
+    const report=await renderer.registerMesh(sha256,decodeGlbMesh(bytes));
     redraw();
-    status('Exact GLB rebound and rendered: '+report.vertexCount+
-      ' vertices. Static preview only; no rights/physics/headset qualification.'+
+    status('Exact GLB rebound and rendered: '+report.vertexCount+' vertices / '+report.textureCount+' embedded textures. '+
+      'Static preview only; no rights/physics/headset qualification.'+
       (report.warnings.length?' Warnings: '+report.warnings.join(', '):''));
   }catch(error){status('GLB REBIND REJECTED: '+error.message);}
 });
