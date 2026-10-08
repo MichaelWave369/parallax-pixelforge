@@ -15,6 +15,12 @@ The Studio and runtime layers stay deliberately separate. Creator tooling and ga
 - Local Ollama qualification is optional and remains outside required CI.
 - Human visual, pacing, combat-feel, commercial-depth, store-art, and value review remain separate from machine validation.
 
+## v5.44 Unreal Assets — Guarded one-at-a-time local exporter
+
+The private 3D export queue now has an optional **Windows-local two-phase execution path**: preview a fully bound v2 job, inspect an SHA-256-locked review, then explicitly approve a **single** asset ID and hash prefix before the existing Unreal exporter runs. A successful export is independently checked and produces a private v5.42 handoff for the VR Studio. No browser, GitHub Pages or remote agent gains access to the local Unreal Editor.
+
+Command: `npm run asset:unreal:guard -- <local-bound-job.v2.json> --engine-root <UE-install>` (preview only). For exact confirmation and production boundaries, read [v5.44 guarded Unreal runner guide](docs/V5_44_GUARDED_UNREAL_RUNNER.md). CI: `npm run test:unreal:guard`.
+
 ## v5.43 VR Studio — Visual Unreal asset shelf and reviewed export queue
 
 The private 263-entry Unreal/Fab shelf now supports **operator-selected PNG/JPEG/WebP thumbnails**, a visual card gallery or compact list, and a **24-item reviewed export planning queue**. Thumbnails remain in the browser tab, never in GitHub Pages, and the downloaded queue contains only governed IDs. A separate local CLI converts the reviewed plan into *non-executable, unbound* v1 Unreal draft jobs; no browser process launches Unreal and no asset rights are automatically granted.
