@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PixelForge VR Studio | Move Rotate Scale</title>
+<title>PixelForge VR Studio | World Lighting Studio</title>
 <link rel="stylesheet" href="./studio.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
   <header class="top">
     <div>
       <div class="eyebrow">PARALLAX PIXELFORGE / EXPERIMENTAL WORLD CREATOR</div>
-      <h1>VR <span>STUDIO</span> <small>v5.39 transform tools</small></h1>
+      <h1>VR <span>STUDIO</span> <small>v5.40 world lighting</small></h1>
       <p>Build worlds in desktop 3D. Inspect a headset preview only where immersive WebXR is supported.</p>
     </div>
     <div class="toolbar">
@@ -134,6 +134,41 @@
         </label>
         <button id="remove" class="danger full" type="button">Remove Selected Object</button>
       </div>
+      <h2 class="separated">WORLD LIGHTING</h2>
+      <p class="hint">Shape a world with sunlight, ambient light, color and distance fog. Presets are editable, saved locally in scene JSON, and apply to both primitives and loaded GLBs.</p>
+      <label>Atmosphere preset
+        <select id="lightingPreset" aria-label="Lighting preset">
+          <option value="custom">Custom</option>
+          <option value="daylight">Daylight</option>
+          <option value="sunset">Sunset</option>
+          <option value="midnight">Midnight</option>
+          <option value="neon-lab">Neon Lab</option>
+        </select>
+      </label>
+      <div class="lightingColors">
+        <label>Ambient tint<input type="color" data-lighting="ambientColor"></label>
+        <label>Sunlight tint<input type="color" data-lighting="sunColor"></label>
+        <label>Sky / fog color<input type="color" data-lighting="fogColor"></label>
+      </div>
+      <div class="lightingFields">
+        <label>Ambient strength <output data-lighting-output="ambientStrength"></output>
+          <input type="range" min="0" max="1.5" step="0.05" data-lighting="ambientStrength">
+        </label>
+        <label>Sun strength <output data-lighting-output="sunStrength"></output>
+          <input type="range" min="0" max="2" step="0.05" data-lighting="sunStrength">
+        </label>
+        <label>Sun azimuth <output data-lighting-output="sunAzimuth"></output>
+          <input type="range" min="-180" max="180" step="5" data-lighting="sunAzimuth">
+        </label>
+        <label>Sun elevation <output data-lighting-output="sunElevation"></output>
+          <input type="range" min="0" max="90" step="5" data-lighting="sunElevation">
+        </label>
+        <label>Fog density <output data-lighting-output="fogDensity"></output>
+          <input type="range" min="0" max="0.08" step="0.002" data-lighting="fogDensity">
+        </label>
+      </div>
+      <button id="resetLighting" type="button" class="full">Restore neutral lighting</button>
+      <p class="hint">Lighting is basic diffuse shading and exponential distance fog. No shadow maps, volumetric effects or physical color calibration are claimed.</p>
       <h2 class="separated">WORLD FILE</h2>
       <div class="actions">
         <button id="save" type="button">Save Local</button>
