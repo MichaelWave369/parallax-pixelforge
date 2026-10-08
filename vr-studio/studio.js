@@ -2,6 +2,7 @@ import {newWorld,parseWorld,validateWorld,addObject,editObject,removeObject,rena
 import {DEFAULT_LIGHTING,resolvedLighting,lightingPreset,matchingLightingPreset} from './world-lighting.js';
 import {createRenderer} from './renderer.js';
 import {decodeGlbMesh} from './glb-mesh.js';
+import {mountPrivateAssetLibrary} from './asset-catalog-ui.js';
 import {gizmoHandles,findGizmoHandle,pickWorldObject,draggedAxisPosition,AXES} from './viewport-tools.js';
 import {rotationRing,findRotationRing,draggedYaw,scaleHandles,findScaleHandle,draggedScale,steppedScale} from './transform-tools.js';
 
@@ -477,6 +478,10 @@ $('exitVR').addEventListener('click',async()=>{
     $('enterVR').disabled=false;$('exitVR').disabled=true;
     status('Returned to desktop world editor.');
   }catch(error){status('VR EXIT FAILED: '+error.message);}
+});
+mountPrivateAssetLibrary({
+  onChooseGlb:()=>$('glbFile').click(),
+  onStatus:status
 });
 redraw();
 void detectVR();
