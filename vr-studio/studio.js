@@ -2,6 +2,7 @@ import {newWorld,parseWorld,validateWorld,addObject,editObject,removeObject,rena
 import {createRenderer} from './renderer.js';
 import {decodeGlbMesh} from './glb-mesh.js';
 import {gizmoHandles,findGizmoHandle,pickWorldObject,draggedAxisPosition,AXES} from './viewport-tools.js';
+import {rotationRing,findRotationRing,draggedYaw,scaleHandles,findScaleHandle,draggedScale,steppedScale} from './transform-tools.js';
 
 const $ = id => document.getElementById(id);
 const STORAGE = 'pixelforge.vr-world.v1.local';
@@ -204,6 +205,7 @@ try{
 const stage=$('stage'),overlay=$('moveGizmo');
 const axisColor={x:'#ff747b',y:'#65e5a5',z:'#7baeff'};
 const svgNS='http://www.w3.org/2000/svg';
+let toolMode='move',gesture=null;
 function svgNode(tag,props) {
   const el=document.createElementNS(svgNS,tag);
   for(const [key,value] of Object.entries(props))el.setAttribute(key,String(value));
@@ -215,58 +217,126 @@ function drawGizmo() {
   const width=stage.clientWidth,height=stage.clientHeight;
   if(width<1||height<1)return;
   overlay.setAttribute('viewBox','0 0 '+width+' '+height);
-  const handles=gizmoHandles(renderer.camera,current().position,width,height);
-  if(!handles)return;
-  for(const handle of handles) {
-    const c=axisColor[handle.axis];
-    overlay.append(svgNode('line',{x1:handle.from.x,y1:handle.from.y,
-      x2:handle.to.x,y2:handle.to.y,stroke:c,'stroke-width':4}));
-    overlay.append(svgNode('circle',{cx:handle.to.x,cy:handle.to.y,
-      r:7,fill:c,stroke:'#d8f8ef','stroke-width':1.5}));
-    const t=svgNode('text',{x:handle.to.x+10,y:handle.to.y-9,fill:c});
-    t.textContent=handle.axis.toUpperCase();
-    overlay.append(t);
+  const pos=current().position;
+  if(toolMode==='rotate'){
+    const ring=rotationRing(renderer.camera,pos,width,height);
+    if(!ring)return;
+    const d=ring.points.map((p,i)=>
+      (i?'L ':'M ')+p.x.toFixed(2)+' '+p.y.toFixed(2)).join(' ');
+    overlay.append(svgNode('path',{d,fill:'none',stroke:'#ffbc77','stroke-width':4}));
+    overlay.append(svgNode('circle',{cx:ring.center.x,cy:ring.center.y,
+      r:5,fill:'#ffd5a8',stroke:'#142637','stroke-width':2}));
+    const label=svgNode('text',{x:ring.center.x+12,y:ring.center.y-10,fill:'#ffcb8b'});
+    label.textContent='Y ROTATE';overlay.append(label);
+    return;
   }
-  const c=handles[0].from;
-  overlay.append(svgNode('circle',{cx:c.x,cy:c.y,r:4,fill:'#f7fafc',stroke:'#122337','stroke-width':1.6}));
+  const handles=toolMode==='scale'
+    ?scaleHandles(renderer.camera,pos,width,height)
+    :gizmoHandles(renderer.camera,pos,width,height);
+  if(!handles)return;
+  for(const h of handles){
+    const c=axisColor[h.axis];
+    overlay.append(svgNode('line',{x1:h.from.x,y1:h.from.y,
+      x2:h.to.x,y2:h.to.y,stroke:c,'stroke-width':4}));
+    if(toolMode==='scale'){
+      overlay.append(svgNode('rect',{x:h.to.x-6,y:h.to.y-6,width:12,height:12,
+        rx:2,fill:c,stroke:'#d8f8ef','stroke-width':1.5}));
+    }else{
+      overlay.append(svgNode('circle',{cx:h.to.x,cy:h.to.y,r:7,
+        fill:c,stroke:'#d8f8ef','stroke-width':1.5}));
+    }
+    const t=svgNode('text',{x:h.to.x+10,y:h.to.y-9,fill:c});
+    t.textContent=h.axis.toUpperCase();overlay.append(t);
+  }
+  const center=handles[0].from;
+  if(toolMode==='scale'){
+    overlay.append(svgNode('path',{
+      d:'M '+center.x+' '+(center.y-10)+' L '+(center.x+10)+' '+center.y+
+        ' L '+center.x+' '+(center.y+10)+' L '+(center.x-10)+' '+center.y+' Z',
+      class:'scale-diamond'
+    }));
+  }else{
+    overlay.append(svgNode('circle',{cx:center.x,cy:center.y,r:4,
+      fill:'#f7fafc',stroke:'#122337','stroke-width':1.6}));
+  }
 }
 function pointerLocal(e) {
   const r=stage.getBoundingClientRect();
   return {x:e.clientX-r.left,y:e.clientY-r.top};
 }
-let gesture=null;
+function setTool(next) {
+  if(!['move','rotate','scale'].includes(next))return;
+  if(gesture)return; // Switching tools mid-drag must never corrupt undo history.
+  toolMode=next;
+  for(const button of document.querySelectorAll('[data-tool]'))
+    button.setAttribute('aria-pressed',String(button.dataset.tool===next));
+  $('moveControls').hidden=next!=='move';
+  $('rotateControls').hidden=next!=='rotate';
+  $('scaleControls').hidden=next!=='scale';
+  drawGizmo();
+  status('Tool: '+next.toUpperCase()+'. Select an object to edit; all modifications remain local and validated.');
+}
+for(const button of document.querySelectorAll('[data-tool]'))
+  button.addEventListener('click',()=>setTool(button.dataset.tool));
 stage.addEventListener('pointerdown',e=>{
   if(e.button!==0||!renderer)return;
   const {x,y}=pointerLocal(e);
   const obj=current(),width=stage.clientWidth,height=stage.clientHeight;
-  const handles=obj?gizmoHandles(renderer.camera,obj.position,width,height):null;
-  const handle=findGizmoHandle(handles,x,y);
-  if(handle) {
-    gesture={pointerId:e.pointerId,mode:'gizmo',axisHandle:handle,
-      id:obj.id,startX:x,startY:y,startWorld:world,startPosition:[...obj.position]};
+  let handle=null,mode=null;
+  if(obj&&toolMode==='move'){
+    const handles=gizmoHandles(renderer.camera,obj.position,width,height);
+    handle=findGizmoHandle(handles,x,y);
+    if(handle)mode='move';
+  }else if(obj&&toolMode==='scale'){
+    const handles=scaleHandles(renderer.camera,obj.position,width,height);
+    handle=findScaleHandle(handles,x,y);
+    if(handle)mode='scale';
+  }else if(obj&&toolMode==='rotate'){
+    const ring=rotationRing(renderer.camera,obj.position,width,height);
+    if(findRotationRing(ring,x,y)){handle={axis:'y'};mode='rotate';}
+  }
+  if(mode){
+    gesture={pointerId:e.pointerId,mode,handle,id:obj.id,
+      startX:x,startY:y,lastX:x,lastY:y,
+      startWorld:world,startPosition:[...obj.position],
+      startScale:[...obj.scale],startYaw:obj.yaw};
   }else{
     const id=pickWorldObject(world,renderer.camera,x,y,width,height,
       sha=>renderer.getMeshBounds(sha));
     if(id){selected=id;redraw();}
-    gesture={pointerId:e.pointerId,mode:id?'select':'orbit',startX:x,startY:y,lastX:x,lastY:y};
+    gesture={pointerId:e.pointerId,mode:id?'select':'orbit',
+      startX:x,startY:y,lastX:x,lastY:y};
   }
   stage.setPointerCapture(e.pointerId);
 });
 stage.addEventListener('pointermove',e=>{
   if(!gesture||gesture.pointerId!==e.pointerId||!renderer)return;
   const {x,y}=pointerLocal(e);
-  if(gesture.mode==='gizmo') {
+  if(['move','scale','rotate'].includes(gesture.mode)){
     try{
-      const snapped=draggedAxisPosition(
-        gesture.startPosition,gesture.axisHandle,x-gesture.startX,y-gesture.startY,
-        Number($('moveSnap').value));
-      world=editObject(gesture.startWorld,gesture.id,{position:snapped});
+      let patch,fields;
+      if(gesture.mode==='move'){
+        patch={position:draggedAxisPosition(gesture.startPosition,gesture.handle,
+          x-gesture.startX,y-gesture.startY,Number($('moveSnap').value))};
+        fields='position';
+      }else if(gesture.mode==='scale'){
+        patch={scale:draggedScale(gesture.startScale,gesture.handle,
+          x-gesture.startX,y-gesture.startY,Number($('scaleSnap').value))};
+        fields='scale';
+      }else{
+        patch={yaw:draggedYaw(gesture.startYaw,x-gesture.startX,
+          Number($('angleSnap').value))};
+      }
+      world=editObject(gesture.startWorld,gesture.id,patch);
       const obj=current();
-      if(obj?.id===gesture.id)document.querySelectorAll('[data-vector="position"]').forEach(input=>{
-        input.value=obj.position[Number(input.dataset.axis)];
-      });
+      if(obj?.id===gesture.id){
+        if(fields)document.querySelectorAll('[data-vector="'+fields+'"]').forEach(input=>{
+          input.value=obj[fields][Number(input.dataset.axis)];
+        });
+        else $('yaw').value=obj.yaw;
+      }
       drawGizmo();
-    }catch(error){status('MOVE REJECTED: '+error.message);}
+    }catch(error){status('TRANSFORM REJECTED: '+error.message);}
     return;
   }
   if(gesture.mode==='select'&&Math.hypot(x-gesture.startX,y-gesture.startY)>5)
@@ -282,13 +352,17 @@ stage.addEventListener('pointermove',e=>{
 function finishGesture(e,cancel=false){
   if(!gesture||gesture.pointerId!==e.pointerId)return;
   const active=gesture;gesture=null;
-  if(active.mode==='gizmo'){
+  if(['move','scale','rotate'].includes(active.mode)){
     const candidate=world;
     world=active.startWorld;
     const after=candidate.objects.find(o=>o.id===active.id);
-    if(!cancel&&after&&after.position.some((v,i)=>v!==active.startPosition[i])){
-      change(candidate,'Moved '+active.id+' on '+active.axisHandle.axis.toUpperCase()+
-        ' axis; one undo step saved.');
+    const changed=after&&(active.mode==='rotate'
+      ? after.yaw!==active.startYaw
+      : (active.mode==='scale'?after.scale.some((v,i)=>v!==active.startScale[i])
+        : after.position.some((v,i)=>v!==active.startPosition[i])));
+    if(!cancel&&changed){
+      change(candidate,'Applied '+active.mode+' to '+active.id+
+        '; one undo step saved.');
     }else redraw();
   }
   if(stage.hasPointerCapture(e.pointerId))stage.releasePointerCapture(e.pointerId);
@@ -302,7 +376,7 @@ stage.addEventListener('wheel',e=>{
     renderer.camera.distance*Math.exp(e.deltaY*.001)));
   drawGizmo();
 },{passive:false});
-new ResizeObserver(drawGizmo).observe(stage);
+if(typeof ResizeObserver!=='undefined')new ResizeObserver(drawGizmo).observe(stage);
 for(const button of document.querySelectorAll('[data-nudge]')){
   button.addEventListener('click',()=>safe(()=>{
     const obj=current();
@@ -316,6 +390,35 @@ for(const button of document.querySelectorAll('[data-nudge]')){
     change(editObject(world,obj.id,{position:pos}),'Nudged '+obj.name+' on '+axis.toUpperCase()+'.');
   }));
 }
+for(const button of document.querySelectorAll('[data-rotate]')){
+  button.addEventListener('click',()=>safe(()=>{
+    const obj=current();
+    if(!obj)throw Error('Select an object first.');
+    const delta=Number(button.dataset.rotate)*Number($('angleSnap').value);
+    change(editObject(world,obj.id,{yaw:Math.max(-360,Math.min(360,obj.yaw+delta))}),
+      'Rotated '+obj.name+' around Y.');
+  }));
+}
+for(const button of document.querySelectorAll('[data-resize]')){
+  button.addEventListener('click',()=>safe(()=>{
+    const obj=current();
+    if(!obj)throw Error('Select an object first.');
+    const [axis,dir]=button.dataset.resize.split(':');
+    const scale=steppedScale(obj.scale,axis,Number(dir),Number($('scaleSnap').value));
+    change(editObject(world,obj.id,{scale}),'Scaled '+obj.name+' ('+axis+').');
+  }));
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&gesture){
+    finishGesture({pointerId:gesture.pointerId},true);
+    status('Transform cancelled; original world restored.');
+    return;
+  }
+  if(e.altKey||e.ctrlKey||e.metaKey||e.shiftKey||e.repeat)return;
+  if(/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName||''))return;
+  const next={w:'move',e:'rotate',r:'scale'}[e.key.toLowerCase()];
+  if(next){e.preventDefault();setTool(next);}
+});
 async function detectVR(){
   const button=$('enterVR');
   if(!renderer || !navigator.xr){button.textContent='VR Unavailable';return;}
