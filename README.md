@@ -15,6 +15,12 @@ The Studio and runtime layers stay deliberately separate. Creator tooling and ga
 - Local Ollama qualification is optional and remains outside required CI.
 - Human visual, pacing, combat-feel, commercial-depth, store-art, and value review remain separate from machine validation.
 
+## v5.39 VR Studio — Rotate and scale gizmos
+
+PixelForge VR Studio now supports three desktop transform tools: W to move, E to rotate around world Y, and R to scale. Rotate has a projected amber ring and angle snapping; Scale has axis-aligned square handles, center uniform-scaling diamond and bounded scale snapping. Each completed drag creates one undo step; canceled gestures restore the original world.
+
+All transforms remain within `pixelforge.vr-world.v1` with no new agent privileges or asset publication. See [v5.39 acceptance and transform guide](docs/V5_39_ROTATE_SCALE_GIZMOS.md) and run `npm run test:vr-transform`.
+
 ## v5.38 VR Studio — Click-to-select and transform gizmos
 
 Worlds can now be edited from the 3D viewport: ray-to-bounding-box object selection, X/Y/Z move handles, configurable snapping, six accessible nudge controls and one-undo-entry drag gestures. Loaded GLB objects use their decoded bounds for coarse picking; unmatched local models remain selectable as proxies. This is **desktop scene editing**, not a qualified in-headset controller system.
