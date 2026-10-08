@@ -81,7 +81,7 @@ function program(gl) {
 function rgb(hex) {
   return [1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);
 }
-export function createRenderer(canvas,getWorld,getSelected) {
+export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) {
   const gl=canvas.getContext('webgl2',{antialias:true,xrCompatible:true,alpha:false});
   if(!gl)throw new Error('WebGL2 is required for VR Studio.');
   const prog=program(gl);
@@ -98,6 +98,7 @@ export function createRenderer(canvas,getWorld,getSelected) {
     color:gl.getUniformLocation(prog,'uColor'),selected:gl.getUniformLocation(prog,'uSelected')};
   const camera={yaw:0.6,pitch:0.46,distance:17,target:[0,0.5,-4]};
   let xrSession=null;
+  let xrReferenceSpace=null;
   let disposed=false;
 
   function paint(vp) {
@@ -129,7 +130,7 @@ export function createRenderer(canvas,getWorld,getSelected) {
   function xrLoop(time,frame) {
     if(!xrSession||disposed)return;
     xrSession.requestAnimationFrame(xrLoop);
-    const pose=frame.getViewerPose(xrSession.referenceSpace);
+    const pose=frame.getViewerPose(xrReferenceSpace);
     if(!pose)return;
     const layer=xrSession.renderState.baseLayer;
     gl.bindFramebuffer(gl.FRAMEBUFFER,layer.framebuffer);
@@ -148,11 +149,14 @@ export function createRenderer(canvas,getWorld,getSelected) {
     await gl.makeXRCompatible();
     const session=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor']});
     try {
-      session.referenceSpace=await session.requestReferenceSpace('local-floor')
+      const referenceSpace=await session.requestReferenceSpace('local-floor')
         .catch(()=>session.requestReferenceSpace('local'));
       await session.updateRenderState({baseLayer:new XRWebGLLayer(session,gl,{alpha:false,depth:true})});
+      xrReferenceSpace=referenceSpace;
       xrSession=session;
-      session.addEventListener('end',()=>{if(xrSession===session)xrSession=null;},{once:true});
+      session.addEventListener('end',()=>{
+        if(xrSession===session){xrSession=null;xrReferenceSpace=null;onSessionEnd();}
+      },{once:true});
       session.requestAnimationFrame(xrLoop);
     } catch(error) {await session.end();throw error;}
   }
