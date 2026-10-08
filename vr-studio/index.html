@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PixelForge VR Studio | Unreal Asset Export Handoff</title>
+<title>PixelForge VR Studio | Private Visual Asset Shelf</title>
 <link rel="stylesheet" href="./studio.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
   <header class="top">
     <div>
       <div class="eyebrow">PARALLAX PIXELFORGE / EXPERIMENTAL WORLD CREATOR</div>
-      <h1>VR <span>STUDIO</span> <small>v5.42 export hash handoff</small></h1>
+      <h1>VR <span>STUDIO</span> <small>v5.43 visual collection</small></h1>
       <p>Build worlds in desktop 3D. Inspect a headset preview only where immersive WebXR is supported.</p>
     </div>
     <div class="toolbar">
@@ -42,6 +42,10 @@
       </label>
       <div id="catalogWorkspace" hidden>
         <div class="catalogStats"><strong id="catalogCount">0 assets</strong><span id="catalogLanes"></span></div>
+        <label class="fileButton">Add private thumbnails (ASSET-000021.png, etc.)
+          <input id="catalogThumbFiles" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+        </label>
+        <div class="catalogThumbMeta"><span id="catalogThumbCount">No thumbnails loaded</span><button type="button" id="catalogClearThumbs">Clear images</button></div>
         <label>Find an asset<input type="search" id="catalogSearch" placeholder="Cyberpunk, Castle, Sci-Fi…" maxlength="160" autocomplete="off"></label>
         <div class="catalogFilters">
           <label>Category<select id="catalogCategory"><option value="all">All categories</option></select></label>
@@ -52,7 +56,11 @@
             <option value="REIMPLEMENT">Reimplement</option>
           </select></label>
         </div>
-        <div id="catalogResults" class="catalogResults" role="list" aria-label="Private Unreal collection results"></div>
+        <label>View style<select id="catalogView" aria-label="Asset library view style">
+          <option value="gallery" selected>Visual gallery</option>
+          <option value="list">Compact list</option>
+        </select></label>
+        <div id="catalogResults" class="catalogResults assetGallery" role="list" aria-label="Private Unreal collection results"></div>
         <p id="catalogMatches" class="hint"></p>
         <div id="catalogDetail" class="catalogDetail" hidden>
           <strong id="catalogSelectedName"></strong>
@@ -60,7 +68,16 @@
           <p id="catalogStatus" class="hint"></p>
           <button id="catalogUse" class="primary full" type="button">Use this asset's GLB</button>
           <button id="catalogPlan" class="full" type="button">Copy Unreal export plan command</button>
+          <button id="catalogQueueAdd" class="full" type="button">+ Add to export planning queue</button>
           <p class="hint">The browser cannot run Unreal Editor. Use the copied command in your local PixelForge checkout, then bind the correct UE project and /Game path using the existing Unreal export bridge.</p>
+        </div>
+        <div class="exportQueue">
+          <div class="exportQueueHead"><strong>LOCAL EXPORT PLANNING QUEUE</strong><span id="queueCount">0 / 24</span></div>
+          <p class="hint">Choose portable 3D candidates, then review and download a draft queue for your local PixelForge checkout. No Unreal jobs execute in the browser.</p>
+          <div id="queueList" class="queueList" aria-label="Proposed Unreal export queue"></div>
+          <label class="queueApproval"><input type="checkbox" id="queueReviewed"> I've reviewed these asset IDs for local export planning. This is not a rights or compatibility approval.</label>
+          <button class="full primary" id="queueDownload" type="button" disabled>Download reviewed queue JSON</button>
+          <p class="hint">The local CLI can translate this queue into individual draft export jobs. Each actual Unreal export still needs separately bound paths and explicit operator execution.</p>
         </div>
       </div>
       <h3>LOCAL GLB GEOMETRY</h3>
