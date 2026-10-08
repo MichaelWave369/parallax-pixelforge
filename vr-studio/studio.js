@@ -3,6 +3,7 @@ import {DEFAULT_LIGHTING,resolvedLighting,lightingPreset,matchingLightingPreset}
 import {createRenderer} from './renderer.js';
 import {decodeGlbMesh} from './glb-mesh.js';
 import {mountPrivateAssetLibrary} from './asset-catalog-ui.js';
+import {parseHandoff,assertHandoffForSelection,assertHandoffHash,HANDOFF_MAX_BYTES} from './asset-handoff.js';
 import {gizmoHandles,findGizmoHandle,pickWorldObject,draggedAxisPosition,AXES} from './viewport-tools.js';
 import {rotationRing,findRotationRing,draggedYaw,scaleHandles,findScaleHandle,draggedScale,steppedScale} from './transform-tools.js';
 
@@ -13,6 +14,42 @@ let selected = 'obj-2';
 const undo = [];
 let renderer = null;
 const status = msg => { $('status').textContent = msg; };
+let activeHandoff=null; // memory-only: never saved to scene JSON or browser storage
+function renderHandoff(){
+  const bound=activeHandoff!==null;
+  $('handoffBadge').textContent=bound?'HASH-BOUND HANDOFF':'MANUAL / UNVERIFIED';
+  $('handoffBadge').className=bound?'bound':'';
+  $('handoffDetails').hidden=!bound;
+  $('clearHandoff').hidden=!bound;
+  $('handoffDetails').textContent=bound
+    ? activeHandoff.record_id+' · '+activeHandoff.file_name+' · '+activeHandoff.file_bytes+
+      ' bytes · SHA-256 '+activeHandoff.file_sha256+
+      ' | Operator-provided metadata only; not a signed certificate.'
+    :'';
+}
+$('handoffFile').addEventListener('change',async event=>{
+  const file=event.target.files?.[0];event.target.value='';
+  if(!file)return;
+  try {
+    if(file.size>HANDOFF_MAX_BYTES||file.size<20)
+      throw Error('Unreal handoff must be smaller than 16 KB.');
+    const candidate=parseHandoff(await file.text());
+    const selectedId=$('assetId').value.trim();
+    if(candidate.record_id!==selectedId)
+      throw Error('First select matching catalog ID '+candidate.record_id+
+        '. Current selection '+selectedId+'.');
+    activeHandoff=candidate;
+    renderHandoff();
+    status('Handoff loaded for '+candidate.record_id+
+      '. Select the exact local exported GLB; hash mismatch will be rejected.');
+  }catch(error){status('HANDOFF REJECTED: '+error.message);}
+});
+$('clearHandoff').addEventListener('click',()=>{
+  activeHandoff=null;renderHandoff();
+  status('Local export handoff cleared. Manual GLB import is unverified.');
+});
+renderHandoff();
+
 
 try {
   const raw=localStorage.getItem(STORAGE);
@@ -189,12 +226,14 @@ $('glbFile').addEventListener('change',async event=>{
     const assetId=$('assetId').value.trim();
     if(!/^ASSET-[0-9]{6}$/.test(assetId))throw new Error('Provide a governed ASSET-000000 identifier.');
     if(!/^[\w.\- ]{1,120}\.glb$/i.test(file.name))throw new Error('Only simple-named .glb files are accepted.');
+    if(activeHandoff)assertHandoffForSelection(activeHandoff,assetId,file);
     if(file.size>50000000||file.size<28)throw new Error('GLB staging range is 28 bytes to 50 MB.');
     if(!crypto.subtle)throw new Error('SHA-256 requires localhost or a secure browser origin.');
     const buffer=await file.arrayBuffer();
     validateGlbHeader(buffer);
     const digest=await crypto.subtle.digest('SHA-256',buffer);
     const sha256=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
+    if(activeHandoff)assertHandoffHash(activeHandoff,sha256);
     const asset={asset_id:assetId,source_name:file.name,byte_length:file.size,sha256};
     // Validate scene capacity first; no world mutation on import rejection.
     const next=addObject(world,'asset-proxy',asset);
@@ -203,7 +242,8 @@ $('glbFile').addEventListener('change',async event=>{
     const report=await renderer.registerMesh(sha256,decoded);
     selected=next.objects.at(-1).id;
     change(next,'GLB geometry placed: '+report.meshCount+' primitives / '+report.vertexCount+' vertices / '+report.textureCount+' embedded textures. '+ 
-      'Local preview only; rights, PBR, collision, performance and VR remain unqualified.'+
+      (activeHandoff?'Local export handoff hash MATCH; ':'Manual import UNVERIFIED; ')+
+      'rights, PBR, collision, performance and VR remain unqualified.'+
       (report.warnings.length?' Warnings: '+report.warnings.join(', '):''));
   }catch(error){status('ASSET REJECTED: '+error.message);}
 });
