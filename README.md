@@ -15,6 +15,12 @@ The Studio and runtime layers stay deliberately separate. Creator tooling and ga
 - Local Ollama qualification is optional and remains outside required CI.
 - Human visual, pacing, combat-feel, commercial-depth, store-art, and value review remain separate from machine validation.
 
+## v5.45 Unreal Assets — First Windows workstation pilot
+
+Before running the guarded exporter on a real purchased asset, the new **read-only local Unreal pilot** checks your actual engine installation, bound v2 job, operator review, export/receipt hashes, GLB structure, private handoff and lock state. It writes only a private JSON diagnosis to ignored `local-assets/reports/`, never launches Unreal and never infers asset redistribution rights or tested visual compatibility.
+
+Run `npm run asset:unreal:pilot` for setup guidance, then `npm run asset:unreal:pilot -- --engine-root <installed-UE-folder> --job <local-bound-v2-job>` when you have actual paths. See [v5.45 Windows pilot guide](docs/V5_45_FIRST_UNREAL_PILOT.md) and `npm run test:unreal:pilot`.
+
 ## v5.44 Unreal Assets — Guarded one-at-a-time local exporter
 
 The private 3D export queue now has an optional **Windows-local two-phase execution path**: preview a fully bound v2 job, inspect an SHA-256-locked review, then explicitly approve a **single** asset ID and hash prefix before the existing Unreal exporter runs. A successful export is independently checked and produces a private v5.42 handoff for the VR Studio. No browser, GitHub Pages or remote agent gains access to the local Unreal Editor.
