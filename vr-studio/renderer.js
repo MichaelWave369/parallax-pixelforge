@@ -3,22 +3,29 @@
 const VS = `#version 300 es
 layout(location=0) in vec3 aPosition;
 layout(location=1) in vec3 aNormal;
+layout(location=2) in vec2 aUV;
 uniform mat4 uVP;
 uniform mat4 uModel;
 out vec3 vNormal;
+out vec2 vUV;
 void main() {
   gl_Position = uVP * uModel * vec4(aPosition,1.0);
   vNormal = mat3(uModel) * aNormal;
+  vUV=aUV;
 }`;
 const FS = `#version 300 es
 precision highp float;
 in vec3 vNormal;
+in vec2 vUV;
 uniform vec3 uColor;
 uniform float uSelected;
+uniform bool uHasTexture;
+uniform sampler2D uBaseTexture;
 out vec4 fragColor;
 void main() {
   float light = 0.38 + 0.62 * max(dot(normalize(vNormal), normalize(vec3(0.55,1.0,0.5))),0.0);
-  vec3 rgb = uColor * light + vec3(uSelected * 0.15, uSelected * 0.13, 0.0);
+  vec3 texel=uHasTexture ? texture(uBaseTexture,vUV).rgb : vec3(1.0);
+  vec3 rgb = uColor * texel * light + vec3(uSelected * 0.15, uSelected * 0.13, 0.0);
   fragColor = vec4(rgb,1.0);
 }`;
 
@@ -92,42 +99,91 @@ export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) 
   gl.bufferData(gl.ARRAY_BUFFER,vert,gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,24,0);
   gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,3,gl.FLOAT,false,24,12);
+  gl.disableVertexAttribArray(2);
+  gl.vertexAttrib2f(2,0,0);
   gl.enable(gl.DEPTH_TEST);
   gl.useProgram(prog);
   const loc={vp:gl.getUniformLocation(prog,'uVP'),model:gl.getUniformLocation(prog,'uModel'),
-    color:gl.getUniformLocation(prog,'uColor'),selected:gl.getUniformLocation(prog,'uSelected')};
+    color:gl.getUniformLocation(prog,'uColor'),selected:gl.getUniformLocation(prog,'uSelected'),
+    hasTexture:gl.getUniformLocation(prog,'uHasTexture'),
+    baseTexture:gl.getUniformLocation(prog,'uBaseTexture')};
+  gl.uniform1i(loc.baseTexture,0);
   const camera={yaw:0.6,pitch:0.46,distance:17,target:[0,0.5,-4]};
   const loadedMeshes=new Map();
 
   // GPU data is scoped to this browser session. No GLB bytes are sent to Pages,
   // embedded into scene JSON, or implicitly marked compatibility-approved.
-  function registerMesh(sha256,decoded) {
+  async function registerMesh(sha256,decoded) {
     if(!/^[a-f0-9]{64}$/.test(sha256))throw new Error('Invalid SHA-256 identity.');
     if(loadedMeshes.has(sha256))return loadedMeshes.get(sha256).report;
     if(loadedMeshes.size>=8)throw new Error('Maximum eight unique in-memory GLB preview assets per session.');
     if(!decoded||decoded.status!=='STATIC_GEOMETRY_PREVIEW_ONLY'||
       !Array.isArray(decoded.meshes)||decoded.vertexCount>150000||decoded.vertexCount<=0)
       throw new Error('Unqualified preview mesh payload.');
-    const parts=[];
+    const parts=[],gpuTextures=new Map();
     try {
+      // Decode images from already validated GLB bytes. No URLs or network access.
+      // Texture allocations are rolled back on any decode/upload failure.
+      const textures=decoded.textures||[];
+      if(!Array.isArray(textures)||textures.length>8)
+        throw new Error('Invalid texture budget.');
+      let decodedPixels=0;
+      for(const t of textures) {
+        if(!Number.isSafeInteger(t.index)||t.index<0||gpuTextures.has(t.index)||
+          !['image/png','image/jpeg'].includes(t.mimeType)||
+          !(t.bytes instanceof Uint8Array)||t.bytes.length>6_000_000)
+          throw new Error('Unqualified embedded texture payload.');
+        const image=await createImageBitmap(new Blob([t.bytes],{type:t.mimeType}));
+        try {
+          decodedPixels+=image.width*image.height;
+          const maxSize=gl.getParameter(gl.MAX_TEXTURE_SIZE);
+          if(image.width<1||image.height<1||
+            image.width>2048||image.height>2048||
+            image.width>maxSize||image.height>maxSize||
+            decodedPixels>4_194_304)
+            throw new Error('Decoded image exceeds per-asset pixel budget.');
+          const texture=gl.createTexture();
+          if(!texture)throw new Error('Texture allocation failed.');
+          gpuTextures.set(t.index,texture);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D,texture);
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+          gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
+          const sampler=t.sampler;
+          gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,sampler.wrapS);
+          gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,sampler.wrapT);
+          gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,sampler.magFilter);
+          gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,sampler.minFilter);
+          if([9984,9985,9986,9987].includes(sampler.minFilter))gl.generateMipmap(gl.TEXTURE_2D);
+          const error=gl.getError();
+          if(error!==gl.NO_ERROR)throw new Error('GPU texture upload failed: '+error);
+        }finally{image.close?.();}
+      }
+      gl.bindTexture(gl.TEXTURE_2D,null);
       for(const m of decoded.meshes) {
-        if(!(m.vertices instanceof Float32Array)||m.vertices.length%6||m.vertices.length===0||
-          !m.color||m.color.length!==3)throw new Error('Invalid preview primitive.');
+        if(!(m.vertices instanceof Float32Array)||m.vertices.length%8||m.vertices.length===0||
+          !m.color||m.color.length!==3 ||
+          (m.textureIndex!==null&&m.textureIndex!==undefined&&!gpuTextures.has(m.textureIndex)))
+          throw new Error('Invalid preview primitive.');
         const vao=gl.createVertexArray(),buffer=gl.createBuffer();
         if(!vao||!buffer)throw new Error('GPU resource allocation failed.');
-        parts.push({vao,buffer,count:m.vertices.length/6,color:m.color});
+        parts.push({vao,buffer,count:m.vertices.length/8,color:m.color,
+          texture:m.textureIndex===null||m.textureIndex===undefined?null:gpuTextures.get(m.textureIndex)});
         gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
         gl.bufferData(gl.ARRAY_BUFFER,m.vertices,gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,24,0);
-        gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,3,gl.FLOAT,false,24,12);
+        gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,32,0);
+        gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,3,gl.FLOAT,false,32,12);
+        gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,2,gl.FLOAT,false,32,24);
       }
     }catch(error){
       for(const p of parts){gl.deleteBuffer(p.buffer);gl.deleteVertexArray(p.vao);}
+      for(const texture of gpuTextures.values())gl.deleteTexture(texture);
       throw error;
     }
     const report={status:decoded.status,meshCount:decoded.meshCount,
-      vertexCount:decoded.vertexCount,warnings:decoded.warnings};
-    loadedMeshes.set(sha256,{parts,report});
+      vertexCount:decoded.vertexCount,textureCount:gpuTextures.size,
+      warnings:[...decoded.warnings,'BASIC_BASE_COLOR_TEXTURE_PREVIEW_NOT_PBR_PARITY']};
+    loadedMeshes.set(sha256,{parts,report,gpuTextures});
     return report;
   }
   const hasMesh=sha256=>loadedMeshes.has(sha256);
@@ -147,10 +203,15 @@ export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) 
         for(const part of asset.parts) {
           gl.bindVertexArray(part.vao);
           gl.uniform3fv(loc.color,part.color);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D,part.texture);
+          gl.uniform1i(loc.hasTexture,part.texture?1:0);
           gl.drawArrays(gl.TRIANGLES,0,part.count);
         }
       }else {
         gl.bindVertexArray(vao);
+        gl.uniform1i(loc.hasTexture,0);
+        gl.bindTexture(gl.TEXTURE_2D,null);
         gl.uniform3fv(loc.color,rgb(o.color));
         gl.drawArrays(gl.TRIANGLES,0,36);
       }
@@ -210,8 +271,11 @@ export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) 
   return {camera,enterVR,exitVR,registerMesh,hasMesh,
     dispose(){
       disposed=true;void exitVR();
-      for(const mesh of loadedMeshes.values())for(const p of mesh.parts){
-        gl.deleteBuffer(p.buffer);gl.deleteVertexArray(p.vao);
+      for(const mesh of loadedMeshes.values()){
+        for(const p of mesh.parts){
+          gl.deleteBuffer(p.buffer);gl.deleteVertexArray(p.vao);
+        }
+        for(const texture of mesh.gpuTextures.values())gl.deleteTexture(texture);
       }
       gl.deleteBuffer(buf);gl.deleteVertexArray(vao);gl.deleteProgram(prog);
       loadedMeshes.clear();
