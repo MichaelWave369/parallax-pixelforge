@@ -15,6 +15,14 @@ The Studio and runtime layers stay deliberately separate. Creator tooling and ga
 - Local Ollama qualification is optional and remains outside required CI.
 - Human visual, pacing, combat-feel, commercial-depth, store-art, and value review remain separate from machine validation.
 
+## v5.41 VR Studio — My Unreal Asset Library
+
+VR Studio now includes a **private, searchable Unreal Asset Library dock**. Load a governed records JSON file such as the owner's 263-entry Unreal/Fab inventory, browse it by name, style, publisher, category, route or genre, select a real `ASSET-000xxx` record, and pass that ID directly to PixelForge's existing local GLB importer. For not-yet-exported 3D assets the dock can copy an operator-side v5.28 Unreal export planning command.
+
+Catalog metadata stays in browser memory only, and the original owned collection is **not published to GitHub**. GLB asset bytes remain local, hashed and separate from saved scenes. This integrates existing Asset Forge, Unreal discovery/export, GLB verification and v5.36+ VR tools, without attempting to run Unreal from static GitHub Pages.
+
+Read [v5.41 private UE collection setup and workflow](docs/V5_41_PRIVATE_UE_ASSET_LIBRARY.md) and run `npm run test:vr-catalog`.
+
 ## v5.40 VR Studio — World Lighting Studio
 
 Creators can now build distinct lighting moods with editable **Daylight, Sunset, Midnight and Neon Lab** presets plus bounded ambient/sun intensity, light colors, sun direction, and distance fog. These are real shader-driven lighting controls for existing primitives and locally loaded static GLBs, not a background-only effect.
