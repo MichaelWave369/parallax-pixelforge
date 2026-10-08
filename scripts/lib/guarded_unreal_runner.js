@@ -30,7 +30,12 @@ function requireLocalPath(value,root,label) {
 }
 export function readBoundJob(jobPath,repoRoot){
   const base=path.resolve(repoRoot),file=path.resolve(jobPath);
-  requireLocalPath(file,path.join(base,'local-assets','jobs'),'Bound job');
+  const privateRoot=path.join(base,'local-assets');
+  // Even an apparently safe lexical staging path is unsafe if local-assets
+  // itself is a link to a public or unrelated directory.
+  if(fs.existsSync(privateRoot)&&fs.lstatSync(privateRoot).isSymbolicLink())
+    throw Error('Private local-assets directory must not be a symlink.');
+  requireLocalPath(file,path.join(privateRoot,'jobs'),'Bound job');
   const stat=fs.statSync(file);
   if(!stat.isFile()||stat.size<50||stat.size>250_000)
     throw Error('Bound job is missing or too large.');
