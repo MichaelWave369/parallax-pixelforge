@@ -94,3 +94,13 @@ input[type=color]{height:42px;padding:3px}button.full{width:100%}.fileButton{pos
 .catalogDetail .hint{overflow-wrap:anywhere;margin:8px 0 12px}
 .catalogDetail button{margin:5px 0 0}
 .catalogDetail button:disabled{opacity:.4}
+
+/* v5.42: local export evidence, never a license/compatibility badge. */
+.handoffSection{border:1px solid #385671;background:#102435;border-radius:11px;padding:12px;margin:12px 0 15px}
+.handoffTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:9px}
+.handoffTop strong{color:#d2e8fa;font-size:10px;letter-spacing:1.1px}
+#handoffBadge{font-size:10px;color:#e6ba89;letter-spacing:.03em}
+#handoffBadge.bound{color:#9ce3bf}
+.handoffDetails{font-size:11px;color:#b8d4e5;overflow-wrap:anywhere;line-height:1.6;padding:10px;
+  background:#0a1825;border-radius:7px;margin-bottom:11px}
+#clearHandoff{margin-bottom:4px;background:#293447;color:#ffe2b1;border-color:#64758a}
