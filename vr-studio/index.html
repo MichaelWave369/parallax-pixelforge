@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PixelForge VR Studio | Private Unreal Asset Library</title>
+<title>PixelForge VR Studio | Unreal Asset Export Handoff</title>
 <link rel="stylesheet" href="./studio.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
   <header class="top">
     <div>
       <div class="eyebrow">PARALLAX PIXELFORGE / EXPERIMENTAL WORLD CREATOR</div>
-      <h1>VR <span>STUDIO</span> <small>v5.41 Unreal collection</small></h1>
+      <h1>VR <span>STUDIO</span> <small>v5.42 export hash handoff</small></h1>
       <p>Build worlds in desktop 3D. Inspect a headset preview only where immersive WebXR is supported.</p>
     </div>
     <div class="toolbar">
@@ -67,6 +67,15 @@
       <p class="hint">Select a locally exported, governed GLB to draw supported <b>static TRIANGLES geometry with embedded PNG/JPEG base-color textures</b>. UVs and sampler modes are validated. Source bytes remain in browser memory only.</p>
       <p class="hint">Enter an ID manually, or pick one from My Unreal Asset Library above. Source files must remain local and are not committed or sent to GitHub Pages.</p>
       <label>Asset Passport ID<input id="assetId" pattern="ASSET-[0-9]{6}" value="ASSET-000021" maxlength="12"></label>
+      <div class="handoffSection">
+        <div class="handoffTop"><strong>UNREAL EXPORT EVIDENCE</strong><span id="handoffBadge">MANUAL / UNVERIFIED</span></div>
+        <p class="hint">For hash-bound import, first generate a private v5.42 handoff on your PC using the existing Unreal export job and receipt, then load it here. A handoff binds the selected ID, filename, size, and SHA-256. It does not prove asset rights.</p>
+        <label class="fileButton">Load private Unreal handoff (.json)
+          <input id="handoffFile" type="file" accept=".json,application/json">
+        </label>
+        <div id="handoffDetails" class="handoffDetails" hidden></div>
+        <button id="clearHandoff" type="button" class="full" hidden>Clear handoff · Return to manual mode</button>
+      </div>
       <label class="fileButton">Import local GLB geometry<input id="glbFile" type="file" accept=".glb,model/gltf-binary"></label>
       <h3>SCENE GRAPH <span id="count">0 / 128</span></h3>
       <div id="objects" class="objectList" role="list"></div>
