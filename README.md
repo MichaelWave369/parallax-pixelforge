@@ -15,6 +15,12 @@ The Studio and runtime layers stay deliberately separate. Creator tooling and ga
 - Local Ollama qualification is optional and remains outside required CI.
 - Human visual, pacing, combat-feel, commercial-depth, store-art, and value review remain separate from machine validation.
 
+## v5.40 VR Studio — World Lighting Studio
+
+Creators can now build distinct lighting moods with editable **Daylight, Sunset, Midnight and Neon Lab** presets plus bounded ambient/sun intensity, light colors, sun direction, and distance fog. These are real shader-driven lighting controls for existing primitives and locally loaded static GLBs, not a background-only effect.
+
+World lighting is an optional, validated extension of the same v1 JSON format: old scenes still open unchanged. The React Pages VR Studio route and operator-only asset protections remain intact. Run `npm run test:vr-lighting` and review [v5.40 acceptance and lighting controls](docs/V5_40_WORLD_LIGHTING_STUDIO.md).
+
 ## v5.39 VR Studio — Rotate and scale gizmos
 
 PixelForge VR Studio now supports three desktop transform tools: W to move, E to rotate around world Y, and R to scale. Rotate has a projected amber ring and angle snapping; Scale has axis-aligned square handles, center uniform-scaling diamond and bounded scale snapping. Each completed drag creates one undo step; canceled gestures restore the original world.
