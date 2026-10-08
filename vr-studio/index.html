@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PixelForge VR Studio | Embedded GLB Textures</title>
+<title>PixelForge VR Studio | Interactive World Editing</title>
 <link rel="stylesheet" href="./studio.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
   <header class="top">
     <div>
       <div class="eyebrow">PARALLAX PIXELFORGE / EXPERIMENTAL WORLD CREATOR</div>
-      <h1>VR <span>STUDIO</span> <small>v5.37 texture preview</small></h1>
+      <h1>VR <span>STUDIO</span> <small>v5.38 interactive editor</small></h1>
       <p>Build worlds in desktop 3D. Inspect a headset preview only where immersive WebXR is supported.</p>
     </div>
     <div class="toolbar">
@@ -43,8 +43,11 @@
       <div id="objects" class="objectList" role="list"></div>
     </aside>
     <section class="viewport">
-      <div class="viewportTop"><strong>WORLD VIEWPORT</strong><span>Drag to orbit · Wheel to zoom · Objects selected from list</span></div>
-      <canvas id="stage" aria-label="WebGL2 3D world preview"></canvas>
+      <div class="viewportTop"><strong>WORLD VIEWPORT</strong><span>Click object to select · Drag X/Y/Z handle to move · Drag empty space to orbit · Wheel to zoom</span></div>
+      <div class="stageShell">
+        <canvas id="stage" aria-label="3D world editor. Click to select objects. Drag color-coded axis handles to move." tabindex="0"></canvas>
+        <svg id="moveGizmo" class="moveGizmo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
       <div class="viewportFoot"><span>1 UNIT = 1 METER</span><span>DESKTOP / PREVIEW MODE</span></div>
     </section>
     <aside class="panel inspector">
@@ -54,6 +57,24 @@
         <div class="idRow"><span id="selectedId"></span><span id="assetBadge"></span></div>
         <label>Display name<input id="name" maxlength="80"></label>
         <label>Color<input id="color" type="color"></label>
+        <h3>MOVE CONTROLS</h3>
+        <label>Move snap
+          <select id="moveSnap" aria-label="Movement step">
+            <option value="0.1">0.1 m</option>
+            <option value="0.25" selected>0.25 m</option>
+            <option value="0.5">0.5 m</option>
+            <option value="1">1 m</option>
+          </select>
+        </label>
+        <div class="movePad" aria-label="Keyboard-accessible movement controls">
+          <button type="button" data-nudge="x:-1" aria-label="Move X negative">X −</button>
+          <button type="button" data-nudge="x:1" aria-label="Move X positive">X +</button>
+          <button type="button" data-nudge="y:-1" aria-label="Move Y negative">Y −</button>
+          <button type="button" data-nudge="y:1" aria-label="Move Y positive">Y +</button>
+          <button type="button" data-nudge="z:-1" aria-label="Move Z negative">Z −</button>
+          <button type="button" data-nudge="z:1" aria-label="Move Z positive">Z +</button>
+        </div>
+        <p class="hint">Red = X · Green = Y · Blue = Z. Drag a colored axis in the 3D viewport or nudge here. One drag creates one undo step.</p>
         <h3>POSITION (METERS)</h3>
         <div class="triplet"><label>X<input data-vector="position" data-axis="0" type="number" min="-100" max="100" step=".1"></label>
           <label>Y<input data-vector="position" data-axis="1" type="number" min="-100" max="100" step=".1"></label>
