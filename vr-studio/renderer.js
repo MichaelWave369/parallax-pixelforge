@@ -184,10 +184,11 @@ export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) 
       vertexCount:decoded.vertexCount,textureCount:gpuTextures.size,
       warnings:[...decoded.warnings,
         ...(gpuTextures.size?['BASIC_BASE_COLOR_TEXTURE_PREVIEW_NOT_PBR_PARITY']:[])]};
-    loadedMeshes.set(sha256,{parts,report,gpuTextures});
+    loadedMeshes.set(sha256,{parts,report,gpuTextures,bounds:decoded.bounds});
     return report;
   }
   const hasMesh=sha256=>loadedMeshes.has(sha256);
+  const getMeshBounds=sha256=>loadedMeshes.get(sha256)?.bounds||null;
 
   let xrSession=null;
   let xrReferenceSpace=null;
@@ -269,7 +270,7 @@ export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) 
   }
   function exitVR(){return xrSession?.end();}
   desktopLoop();
-  return {camera,enterVR,exitVR,registerMesh,hasMesh,
+  return {camera,enterVR,exitVR,registerMesh,hasMesh,getMeshBounds,
     dispose(){
       disposed=true;void exitVR();
       for(const mesh of loadedMeshes.values()){
