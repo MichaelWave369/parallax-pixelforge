@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PixelForge VR Studio | World Foundation</title>
+<link rel="stylesheet" href="./studio.css">
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div>
+      <div class="eyebrow">PARALLAX PIXELFORGE / EXPERIMENTAL WORLD CREATOR</div>
+      <h1>VR <span>STUDIO</span> <small>v5.35 foundation</small></h1>
+      <p>Build worlds in desktop 3D. Inspect a headset preview only where immersive WebXR is supported.</p>
+    </div>
+    <div class="toolbar">
+      <a class="btn ghost" href="../">← PixelForge</a>
+      <a class="btn ghost" href="../external-preview/">GLB Inspector ↗</a>
+      <button id="enterVR" class="primary" type="button" disabled>Checking WebXR…</button>
+      <button id="exitVR" type="button" class="ghost" disabled>Exit VR</button>
+    </div>
+  </header>
+  <div class="statusbar">
+    <span class="dot"></span><span id="status" role="status">Initializing renderer…</span>
+    <span class="tag">LOCAL FIRST</span><span class="tag">OPERATOR AUTHORITY</span><span class="tag amber">EXPERIMENTAL XR</span>
+  </div>
+  <main class="layout">
+    <aside class="panel">
+      <h2>WORLD LIBRARY</h2>
+      <label>World title<input id="worldTitle" maxlength="100" aria-label="World title"></label>
+      <h3>NEW OBJECT</h3>
+      <label>Shape<select id="shape">
+        <option value="block">Block</option><option value="floor">Floor / Platform</option>
+        <option value="pillar">Pillar</option><option value="portal">Portal Marker</option>
+      </select></label>
+      <button id="add" class="primary full" type="button">+ Add to World</button>
+      <h3>UNREAL ASSET STAGING</h3>
+      <p class="hint">Stage a governed local GLB as a purple <b>proxy</b>. The 3D mesh itself is not imported by this rung.</p>
+      <label>Asset Passport ID<input id="assetId" pattern="ASSET-[0-9]{6}" value="ASSET-000021" maxlength="12"></label>
+      <label class="fileButton">Stage local GLB<input id="glbFile" type="file" accept=".glb,model/gltf-binary"></label>
+      <h3>SCENE GRAPH <span id="count">0 / 128</span></h3>
+      <div id="objects" class="objectList" role="list"></div>
+    </aside>
+    <section class="viewport">
+      <div class="viewportTop"><strong>WORLD VIEWPORT</strong><span>Drag to orbit · Wheel to zoom · Objects selected from list</span></div>
+      <canvas id="stage" aria-label="WebGL2 3D world preview"></canvas>
+      <div class="viewportFoot"><span>1 UNIT = 1 METER</span><span>DESKTOP / PREVIEW MODE</span></div>
+    </section>
+    <aside class="panel inspector">
+      <h2>OBJECT INSPECTOR</h2>
+      <div id="nothing" class="empty">Choose an object from the scene graph to edit it.</div>
+      <div id="fields" hidden>
+        <div class="idRow"><span id="selectedId"></span><span id="assetBadge"></span></div>
+        <label>Display name<input id="name" maxlength="80"></label>
+        <label>Color<input id="color" type="color"></label>
+        <h3>POSITION (METERS)</h3>
+        <div class="triplet"><label>X<input data-vector="position" data-axis="0" type="number" min="-100" max="100" step=".1"></label>
+          <label>Y<input data-vector="position" data-axis="1" type="number" min="-100" max="100" step=".1"></label>
+          <label>Z<input data-vector="position" data-axis="2" type="number" min="-100" max="100" step=".1"></label></div>
+        <h3>SCALE</h3>
+        <div class="triplet"><label>X<input data-vector="scale" data-axis="0" type="number" min=".05" max="50" step=".1"></label>
+          <label>Y<input data-vector="scale" data-axis="1" type="number" min=".05" max="50" step=".1"></label>
+          <label>Z<input data-vector="scale" data-axis="2" type="number" min=".05" max="50" step=".1"></label></div>
+        <label>Yaw (degrees)<input id="yaw" type="number" min="-360" max="360" step="5"></label>
+        <div id="assetFacts" class="facts" hidden></div>
+        <button id="remove" class="danger full" type="button">Remove Selected Object</button>
+      </div>
+      <h2 class="separated">WORLD FILE</h2>
+      <div class="actions">
+        <button id="save" type="button">Save Local</button>
+        <button id="export" type="button">Export JSON</button>
+        <label class="fileButton">Import JSON<input id="import" type="file" accept=".json,application/json"></label>
+        <button id="undo" type="button">Undo</button>
+        <button id="reset" class="danger" type="button">Reset</button>
+      </div>
+      <p class="hint">Scenes contain only geometry transforms and a bounded asset reference manifest. No binaries, purchased models, executable scripts, network URLs or model authority are exported.</p>
+      <div class="receipt"><strong>QUALIFICATION BOUNDARY</strong>
+        <p>Desktop geometry is previewable. GLB placements are labeled proxies. No collision, interaction, animation, multiplayer, headset compatibility, comfort or frame-rate qualification is implied.</p>
+      </div>
+    </aside>
+  </main>
+</div>
+<script type="module" src="./studio.js"></script>
+</body>
+</html>
