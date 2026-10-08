@@ -50,7 +50,7 @@ function writePrivate(file,data){
   fs.writeFileSync(file,JSON.stringify(data,null,2)+'\n',{flag:'wx',mode:0o600});
 }
 function main(){
-  let lock=null;
+  let lock=null,retainLock=false;
   try {
     const flags=parseArgs(process.argv.slice(2));
     const bound=readBoundJob(flags.job,ROOT);
@@ -85,7 +85,10 @@ function main(){
     const result=spawnSync(process.execPath,
       [RUNNER,UE_SCRIPT,bound.file,'--engine-root',review.engine_root,'--execute'],
       {cwd:ROOT,stdio:'inherit',shell:false,timeout:30*60*1000});
-    if(result.error)throw Error('Local Unreal command failed: '+result.error.message);
+    if(result.error){
+      if(result.error.code==='ETIMEDOUT')retainLock=true;
+      throw Error('Local Unreal command failed: '+result.error.message);
+    }
     if(result.status!==0)throw Error('Unreal exporter exited with code '+String(result.status));
     const receipt=JSON.parse(fs.readFileSync(bound.receipt,'utf8'));
     const verification=verifyUnrealExportReceipt(bound.job,receipt);
@@ -113,7 +116,9 @@ function main(){
     console.error('GUARDED EXPORT BLOCKED: '+error.message);
     process.exitCode=1;
   }finally{
-    if(lock&&fs.existsSync(lock))fs.unlinkSync(lock);
+    // Timeout may leave an Unreal descendant process alive; preserve the lock
+    // for explicit investigation instead of permitting a second export.
+    if(lock&&!retainLock&&fs.existsSync(lock))fs.unlinkSync(lock);
   }
 }
 if(!process.argv.slice(2).length){usage();process.exitCode=2;}
