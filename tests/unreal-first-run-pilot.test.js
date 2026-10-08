@@ -65,6 +65,10 @@ function makeGlb(){
 }
 function writeExport(x){
   const bound=readBoundJob(x.file,x.root);
+  const preview=createExecutionReview(bound,x.engine,x.root,'win32');
+  const review=reviewPath(x.root,'ASSET-000021');
+  fs.mkdirSync(path.dirname(review),{recursive:true});
+  fs.writeFileSync(review,JSON.stringify(preview));
   fs.mkdirSync(path.dirname(bound.model),{recursive:true});
   fs.mkdirSync(path.dirname(bound.receipt),{recursive:true});
   const bytes=makeGlb();
@@ -154,7 +158,6 @@ test('wrong GLB bytes, receipts, or handoff hashes are blocked',t=>{
   }));
   report=x.run();
   assert.equal(report.stage,'BLOCKED_REVIEW_REQUIRED');
-  assert.equal(find(report,'local_export').status,'PASS');
   assert.equal(find(report,'local_export').status,'PASS');
   assert.ok(report.checks.some(v=>v.status==='BLOCKED'&&v.detail.includes('SHA-256')));
   assert.notEqual(sha,'f'.repeat(64));
