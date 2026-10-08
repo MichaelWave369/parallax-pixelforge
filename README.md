@@ -15,6 +15,12 @@ The Studio and runtime layers stay deliberately separate. Creator tooling and ga
 - Local Ollama qualification is optional and remains outside required CI.
 - Human visual, pacing, combat-feel, commercial-depth, store-art, and value review remain separate from machine validation.
 
+## v5.43 VR Studio — Visual Unreal asset shelf and reviewed export queue
+
+The private 263-entry Unreal/Fab shelf now supports **operator-selected PNG/JPEG/WebP thumbnails**, a visual card gallery or compact list, and a **24-item reviewed export planning queue**. Thumbnails remain in the browser tab, never in GitHub Pages, and the downloaded queue contains only governed IDs. A separate local CLI converts the reviewed plan into *non-executable, unbound* v1 Unreal draft jobs; no browser process launches Unreal and no asset rights are automatically granted.
+
+See [the v5.43 private visual shelf and queue guide](docs/V5_43_PRIVATE_VISUAL_SHELF.md), run `npm run test:vr-shelf`, and use `npm run asset:unreal:queue:plan -- <local-records.json> <reviewed-queue.json> --confirm-plan` for **local draft preparation only**.
+
 ## v5.42 VR Studio — Unreal export hash handoff
 
 World creators can now load a **verified local Unreal export handoff** before staging a catalog-linked GLB. The existing local Unreal exporter job + original receipt + structural GLB inspection generate a tiny handoff containing the source record ID, file name, size and SHA-256. The browser checks the selected asset ID and exact file bytes before importing the model. This is evidence of local file integrity, **not** legal rights or Unreal visual fidelity.
