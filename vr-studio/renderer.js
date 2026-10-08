@@ -1,4 +1,5 @@
 // Dependency-free WebGL2 scene renderer with a capability-gated WebXR prototype.
+import {resolvedLighting,rgbOf,sunDirection} from './world-lighting.js';
 // VR headsets, device compatibility and frame performance require physical qualification.
 const VS = `#version 300 es
 layout(location=0) in vec3 aPosition;
@@ -8,8 +9,11 @@ uniform mat4 uVP;
 uniform mat4 uModel;
 out vec3 vNormal;
 out vec2 vUV;
+out vec3 vWorldPosition;
 void main() {
-  gl_Position = uVP * uModel * vec4(aPosition,1.0);
+  vec4 worldPosition=uModel * vec4(aPosition,1.0);
+  gl_Position = uVP * worldPosition;
+  vWorldPosition=worldPosition.xyz;
   vNormal = mat3(uModel) * aNormal;
   vUV=aUV;
 }`;
@@ -17,16 +21,28 @@ const FS = `#version 300 es
 precision highp float;
 in vec3 vNormal;
 in vec2 vUV;
+in vec3 vWorldPosition;
 uniform vec3 uColor;
 uniform float uSelected;
 uniform bool uHasTexture;
 uniform sampler2D uBaseTexture;
+uniform vec3 uAmbientColor;
+uniform vec3 uSunColor;
+uniform vec3 uSunDirection;
+uniform vec3 uFogColor;
+uniform vec3 uEye;
+uniform float uAmbientStrength;
+uniform float uSunStrength;
+uniform float uFogDensity;
 out vec4 fragColor;
 void main() {
-  float light = 0.38 + 0.62 * max(dot(normalize(vNormal), normalize(vec3(0.55,1.0,0.5))),0.0);
   vec3 texel=uHasTexture ? texture(uBaseTexture,vUV).rgb : vec3(1.0);
-  vec3 rgb = uColor * texel * light + vec3(uSelected * 0.15, uSelected * 0.13, 0.0);
-  fragColor = vec4(rgb,1.0);
+  float diffuse=max(dot(normalize(vNormal),normalize(uSunDirection)),0.0);
+  vec3 lighting=uAmbientColor*uAmbientStrength + uSunColor*uSunStrength*diffuse;
+  vec3 lit=uColor * texel * lighting;
+  float fog=clamp(1.0-exp(-uFogDensity*distance(vWorldPosition,uEye)),0.0,1.0);
+  vec3 rgb=mix(lit,uFogColor,fog)+vec3(uSelected * 0.15, uSelected * 0.13,0.0);
+  fragColor = vec4(clamp(rgb,0.0,1.0),1.0);
 }`;
 
 const ident=()=>new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
@@ -106,7 +122,15 @@ export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) 
   const loc={vp:gl.getUniformLocation(prog,'uVP'),model:gl.getUniformLocation(prog,'uModel'),
     color:gl.getUniformLocation(prog,'uColor'),selected:gl.getUniformLocation(prog,'uSelected'),
     hasTexture:gl.getUniformLocation(prog,'uHasTexture'),
-    baseTexture:gl.getUniformLocation(prog,'uBaseTexture')};
+    baseTexture:gl.getUniformLocation(prog,'uBaseTexture'),
+    ambientColor:gl.getUniformLocation(prog,'uAmbientColor'),
+    sunColor:gl.getUniformLocation(prog,'uSunColor'),
+    sunDirection:gl.getUniformLocation(prog,'uSunDirection'),
+    fogColor:gl.getUniformLocation(prog,'uFogColor'),
+    eye:gl.getUniformLocation(prog,'uEye'),
+    ambientStrength:gl.getUniformLocation(prog,'uAmbientStrength'),
+    sunStrength:gl.getUniformLocation(prog,'uSunStrength'),
+    fogDensity:gl.getUniformLocation(prog,'uFogDensity')};
   gl.uniform1i(loc.baseTexture,0);
   const camera={yaw:0.6,pitch:0.46,distance:17,target:[0,0.5,-4]};
   const loadedMeshes=new Map();
@@ -194,9 +218,18 @@ export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) 
   let xrReferenceSpace=null;
   let disposed=false;
 
-  function paint(vp) {
+  function paint(vp,eye) {
     gl.useProgram(prog);
     gl.uniformMatrix4fv(loc.vp,false,vp);
+    const light=resolvedLighting(getWorld());
+    gl.uniform3fv(loc.ambientColor,rgbOf(light.ambientColor));
+    gl.uniform3fv(loc.sunColor,rgbOf(light.sunColor));
+    gl.uniform3fv(loc.sunDirection,sunDirection(light));
+    gl.uniform3fv(loc.fogColor,rgbOf(light.fogColor));
+    gl.uniform3fv(loc.eye,eye);
+    gl.uniform1f(loc.ambientStrength,light.ambientStrength);
+    gl.uniform1f(loc.sunStrength,light.sunStrength);
+    gl.uniform1f(loc.fogDensity,light.fogDensity);
     for(const o of getWorld().objects) {
       gl.uniformMatrix4fv(loc.model,false,modelFor(o));
       gl.uniform1f(loc.selected,getSelected()===o.id?1:0);
@@ -228,12 +261,13 @@ export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) 
     if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
     gl.bindFramebuffer(gl.FRAMEBUFFER,null);
     gl.viewport(0,0,w,h);
-    gl.clearColor(0.025,0.041,0.077,1);
+    const bg=rgbOf(resolvedLighting(getWorld()).fogColor);
+    gl.clearColor(bg[0],bg[1],bg[2],1);
     gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
     const {yaw,pitch,distance,target}=camera;
     const eye=[target[0]+distance*Math.cos(pitch)*Math.sin(yaw),
       target[1]+distance*Math.sin(pitch),target[2]+distance*Math.cos(pitch)*Math.cos(yaw)];
-    paint(mul(perspective(Math.PI/3,w/h,.05,250),view(eye,target)));
+    paint(mul(perspective(Math.PI/3,w/h,.05,250),view(eye,target)),eye);
   }
   function xrLoop(time,frame) {
     if(!xrSession||disposed)return;
@@ -242,12 +276,14 @@ export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) 
     if(!pose)return;
     const layer=xrSession.renderState.baseLayer;
     gl.bindFramebuffer(gl.FRAMEBUFFER,layer.framebuffer);
-    gl.clearColor(0.025,0.041,0.077,1);
+    const bg=rgbOf(resolvedLighting(getWorld()).fogColor);
+    gl.clearColor(bg[0],bg[1],bg[2],1);
     gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
     for(const v of pose.views) {
       const rect=layer.getViewport(v);
       gl.viewport(rect.x,rect.y,rect.width,rect.height);
-      paint(mul(v.projectionMatrix,v.transform.inverse.matrix));
+      paint(mul(v.projectionMatrix,v.transform.inverse.matrix),
+        [v.transform.position.x,v.transform.position.y,v.transform.position.z]);
     }
   }
   async function enterVR() {
