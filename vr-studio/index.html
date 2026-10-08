@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PixelForge VR Studio | World Lighting Studio</title>
+<title>PixelForge VR Studio | Private Unreal Asset Library</title>
 <link rel="stylesheet" href="./studio.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
   <header class="top">
     <div>
       <div class="eyebrow">PARALLAX PIXELFORGE / EXPERIMENTAL WORLD CREATOR</div>
-      <h1>VR <span>STUDIO</span> <small>v5.40 world lighting</small></h1>
+      <h1>VR <span>STUDIO</span> <small>v5.41 Unreal collection</small></h1>
       <p>Build worlds in desktop 3D. Inspect a headset preview only where immersive WebXR is supported.</p>
     </div>
     <div class="toolbar">
@@ -35,8 +35,37 @@
         <option value="pillar">Pillar</option><option value="portal">Portal Marker</option>
       </select></label>
       <button id="add" class="primary full" type="button">+ Add to World</button>
+      <h3>MY UNREAL ASSET LIBRARY</h3>
+      <p class="hint">Open your private, governed collection here. Search by name, category or genre, select the asset you own, then attach its locally exported GLB. Catalog data is kept in this tab's memory and is never uploaded.</p>
+      <label class="fileButton" id="catalogPicker">Open private catalog (.json)
+        <input id="catalogFile" type="file" accept=".json,application/json">
+      </label>
+      <div id="catalogWorkspace" hidden>
+        <div class="catalogStats"><strong id="catalogCount">0 assets</strong><span id="catalogLanes"></span></div>
+        <label>Find an asset<input type="search" id="catalogSearch" placeholder="Cyberpunk, Castle, Sci-Fi…" maxlength="160" autocomplete="off"></label>
+        <div class="catalogFilters">
+          <label>Category<select id="catalogCategory"><option value="all">All categories</option></select></label>
+          <label>Route<select id="catalogLane">
+            <option value="all">All routes</option>
+            <option value="PORTABLE">Portable</option>
+            <option value="BAKEABLE">Bakeable</option>
+            <option value="REIMPLEMENT">Reimplement</option>
+          </select></label>
+        </div>
+        <div id="catalogResults" class="catalogResults" role="list" aria-label="Private Unreal collection results"></div>
+        <p id="catalogMatches" class="hint"></p>
+        <div id="catalogDetail" class="catalogDetail" hidden>
+          <strong id="catalogSelectedName"></strong>
+          <p id="catalogSelectedFacts" class="hint"></p>
+          <p id="catalogStatus" class="hint"></p>
+          <button id="catalogUse" class="primary full" type="button">Use this asset's GLB</button>
+          <button id="catalogPlan" class="full" type="button">Copy Unreal export plan command</button>
+          <p class="hint">The browser cannot run Unreal Editor. Use the copied command in your local PixelForge checkout, then bind the correct UE project and /Game path using the existing Unreal export bridge.</p>
+        </div>
+      </div>
       <h3>LOCAL GLB GEOMETRY</h3>
       <p class="hint">Select a locally exported, governed GLB to draw supported <b>static TRIANGLES geometry with embedded PNG/JPEG base-color textures</b>. UVs and sampler modes are validated. Source bytes remain in browser memory only.</p>
+      <p class="hint">Enter an ID manually, or pick one from My Unreal Asset Library above. Source files must remain local and are not committed or sent to GitHub Pages.</p>
       <label>Asset Passport ID<input id="assetId" pattern="ASSET-[0-9]{6}" value="ASSET-000021" maxlength="12"></label>
       <label class="fileButton">Import local GLB geometry<input id="glbFile" type="file" accept=".glb,model/gltf-binary"></label>
       <h3>SCENE GRAPH <span id="count">0 / 128</span></h3>
