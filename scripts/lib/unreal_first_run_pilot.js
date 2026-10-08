@@ -51,7 +51,7 @@ export function inspectPilot({repoRoot,jobPath=null,engineRoot=null,platform=pro
     engineReady=checkExists(exe);
     add('editor_binary',engineReady?'PASS':'BLOCKED',
       engineReady?'UnrealEditor-Cmd binary found. Plugins and actual launch remain untested.':
-        'UnrealEditor-Cmd not found at '+exe);
+        'UnrealEditor-Cmd not found under the provided engine root.');
   }
   let bound=null;
   if(!jobPath) add('bound_job','NEEDS_INPUT',
@@ -121,7 +121,9 @@ export function inspectPilot({repoRoot,jobPath=null,engineRoot=null,platform=pro
           if(checkExists(audit)){
             const v=readJson(audit);
             add('guarded_run_audit',v.schema==='pixelforge.guarded-unreal-invocation.v1'&&
-              v.job_sha256===bound.jobHash&&v.status==='EXPORT_VERIFIED_HANDOFF_READY'?
+              v.job_sha256===bound.jobHash&&v.record_id===id&&
+              v.output_sha256===exportReceipt.output.sha256&&
+              v.status==='EXPORT_VERIFIED_HANDOFF_READY'?
               'PASS':'BLOCKED','Guarded invocation audit recorded; identity checked against current bound job.');
           }else add('guarded_run_audit','INFO','No guarded-run audit on disk; export may have used a different local path.');
         }catch(error){add('local_export','BLOCKED',error.message);}
@@ -139,7 +141,7 @@ export function inspectPilot({repoRoot,jobPath=null,engineRoot=null,platform=pro
     job_sha256:bound?.jobHash??null,
     checks,
     // Intentionally no full local source paths or private catalog content in the report.
-    locally_executed_unreal:false,
+    diagnostic_executed_unreal:false,
     browser_renderer_tested:false,
     license_approved:false,
     compatible_in_pixelforge:false,
