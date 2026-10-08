@@ -182,7 +182,8 @@ export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) 
     }
     const report={status:decoded.status,meshCount:decoded.meshCount,
       vertexCount:decoded.vertexCount,textureCount:gpuTextures.size,
-      warnings:[...decoded.warnings,'BASIC_BASE_COLOR_TEXTURE_PREVIEW_NOT_PBR_PARITY']};
+      warnings:[...decoded.warnings,
+        ...(gpuTextures.size?['BASIC_BASE_COLOR_TEXTURE_PREVIEW_NOT_PBR_PARITY']:[])]};
     loadedMeshes.set(sha256,{parts,report,gpuTextures});
     return report;
   }
