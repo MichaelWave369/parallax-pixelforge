@@ -15,6 +15,12 @@ The Studio and runtime layers stay deliberately separate. Creator tooling and ga
 - Local Ollama qualification is optional and remains outside required CI.
 - Human visual, pacing, combat-feel, commercial-depth, store-art, and value review remain separate from machine validation.
 
+## v5.42 VR Studio — Unreal export hash handoff
+
+World creators can now load a **verified local Unreal export handoff** before staging a catalog-linked GLB. The existing local Unreal exporter job + original receipt + structural GLB inspection generate a tiny handoff containing the source record ID, file name, size and SHA-256. The browser checks the selected asset ID and exact file bytes before importing the model. This is evidence of local file integrity, **not** legal rights or Unreal visual fidelity.
+
+The existing manual GLB import remains clearly labeled **UNVERIFIED**. No private file or handoff is published through GitHub Pages or stored in the scene. See [the v5.42 local handoff workflow](docs/V5_42_UNREAL_ASSET_HANDOFF.md) and run `npm run test:vr-handoff`.
+
 ## v5.41 VR Studio — My Unreal Asset Library
 
 VR Studio now includes a **private, searchable Unreal Asset Library dock**. Load a governed records JSON file such as the owner's 263-entry Unreal/Fab inventory, browse it by name, style, publisher, category, route or genre, select a real `ASSET-000xxx` record, and pass that ID directly to PixelForge's existing local GLB importer. For not-yet-exported 3D assets the dock can copy an operator-side v5.28 Unreal export planning command.
