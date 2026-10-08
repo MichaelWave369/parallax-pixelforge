@@ -73,3 +73,24 @@ input[type=color]{height:42px;padding:3px}button.full{width:100%}.fileButton{pos
 .lightingFields input[type=range]{width:100%;min-height:29px;padding:0;accent-color:#ffb57f;border:none;background:transparent;cursor:pointer}
 #resetLighting{border-color:#4d6e6b;color:#bcf5dc;margin:7px 0 9px}
 @media(max-width:740px){.lightingColors{gap:5px}}
+
+/* v5.41 private asset shelf: memory-only collection UI. */
+.catalogStats{display:grid;gap:5px;padding:10px 11px;border:1px solid #38645c;
+  border-radius:9px;background:#13313a;margin:10px 0 15px}
+.catalogStats strong{color:#b2f8e0;font-size:15px}
+.catalogStats span{color:#97aebe;font-size:10px;line-height:1.7}
+.catalogFilters{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.catalogFilters label{min-width:0;font-size:11px}
+.catalogFilters select{padding:8px 5px;max-width:100%;font-size:11px}
+.catalogResults{max-height:330px;overflow:auto;display:grid;gap:6px;padding-right:3px;margin-top:4px}
+.catalogRow{display:grid!important;text-align:left!important;gap:5px!important;justify-content:start!important;
+  background:#111e30!important;border-color:#375063!important;width:100%;
+  overflow-wrap:anywhere;min-height:56px;padding:11px!important}
+.catalogRow strong{font-size:12px;color:#f2f6ff}
+.catalogRow span{font-size:10px;color:#a7bdc7}
+.catalogRow:hover,.catalogRow.selected{background:#23434c!important;border-color:#81ddbd!important}
+.catalogDetail{padding:12px;background:#152d36;border:1px solid #3b6e69;border-radius:10px;margin:13px 0}
+.catalogDetail>strong{font-size:13px;color:#daf8ec}
+.catalogDetail .hint{overflow-wrap:anywhere;margin:8px 0 12px}
+.catalogDetail button{margin:5px 0 0}
+.catalogDetail button:disabled{opacity:.4}
