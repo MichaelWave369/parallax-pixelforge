@@ -62,3 +62,14 @@ input[type=color]{height:42px;padding:3px}button.full{width:100%}.fileButton{pos
 .moveGizmo path{stroke-linecap:round;stroke-linejoin:round}
 .moveGizmo .scale-diamond{fill:#f7f0ca;stroke:#1b2e3d;stroke-width:2}
 @media(max-width:740px){.toolModes button{flex:1}}
+
+/* v5.40 World Lighting: all controls stay in the existing inspector and are desktop-friendly. */
+.lightingColors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.lightingColors label{font-size:11px}
+.lightingColors input{width:100%;min-width:0}
+.lightingFields{display:grid;gap:3px}
+.lightingFields label{margin-bottom:11px}
+.lightingFields output{float:right;color:#a5ead3;font:700 11px ui-monospace,Consolas,monospace}
+.lightingFields input[type=range]{width:100%;min-height:29px;padding:0;accent-color:#ffb57f;border:none;background:transparent;cursor:pointer}
+#resetLighting{border-color:#4d6e6b;color:#bcf5dc;margin:7px 0 9px}
+@media(max-width:740px){.lightingColors{gap:5px}}

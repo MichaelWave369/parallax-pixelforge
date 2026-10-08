@@ -1,4 +1,5 @@
-import {newWorld,parseWorld,validateWorld,addObject,editObject,removeObject,renameWorld,MAX_OBJECTS} from './world.js';
+import {newWorld,parseWorld,validateWorld,addObject,editObject,removeObject,renameWorld,editWorldLighting,replaceWorldLighting,MAX_OBJECTS} from './world.js';
+import {DEFAULT_LIGHTING,resolvedLighting,lightingPreset,matchingLightingPreset} from './world-lighting.js';
 import {createRenderer} from './renderer.js';
 import {decodeGlbMesh} from './glb-mesh.js';
 import {gizmoHandles,findGizmoHandle,pickWorldObject,draggedAxisPosition,AXES} from './viewport-tools.js';
@@ -30,9 +31,25 @@ function change(next, message) {
   status(message);
 }
 function current(){return world.objects.find(o=>o.id===selected)||null;}
+// All lighting display values are read from validated world state, including legacy scenes.
+function updateLightingControls(){
+  const light=resolvedLighting(world);
+  $('lightingPreset').value=matchingLightingPreset(light);
+  for(const input of document.querySelectorAll('[data-lighting]')){
+    const key=input.dataset.lighting;
+    input.value=light[key];
+  }
+  for(const output of document.querySelectorAll('[data-lighting-output]')){
+    const key=output.dataset.lightingOutput;
+    const value=light[key];
+    output.textContent=key==='fogDensity'?value.toFixed(3)
+      : key==='sunAzimuth'||key==='sunElevation'?value+'°':value.toFixed(2);
+  }
+}
 function redraw() {
   $('worldTitle').value=world.title;
   $('count').textContent=world.objects.length+' / '+MAX_OBJECTS;
+  updateLightingControls();
   const list=$('objects');list.replaceChildren();
   for(const o of world.objects) {
     const button=document.createElement('button');
@@ -99,6 +116,24 @@ for(const field of document.querySelectorAll('[data-vector]')) {
 }
 $('worldTitle').addEventListener('change',event=>safe(()=>{
   change(renameWorld(world,event.target.value),'World renamed.');
+}));
+for(const field of document.querySelectorAll('[data-lighting]')){
+  field.addEventListener('change',()=>safe(()=>{
+    const key=field.dataset.lighting;
+    const value=field.type==='color'?field.value:Number(field.value);
+    const next=editWorldLighting(world,{[key]:value});
+    change(next,'Updated world lighting: '+key+'.');
+  }));
+}
+$('lightingPreset').addEventListener('change',event=>safe(()=>{
+  if(event.target.value==='custom')return;
+  const preset=event.target.value;
+  change(replaceWorldLighting(world,lightingPreset(preset)),
+    'Applied '+preset+' atmosphere preset.');
+}));
+$('resetLighting').addEventListener('click',()=>safe(()=>{
+  change(replaceWorldLighting(world,{...DEFAULT_LIGHTING}),
+    'Restored neutral world lighting.');
 }));
 $('undo').addEventListener('click',()=>safe(()=>{
   const old=undo.pop();if(!old)throw new Error('Nothing to undo.');

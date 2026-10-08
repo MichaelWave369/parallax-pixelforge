@@ -1,4 +1,5 @@
 // PixelForge VR World v1: portable scene data; no executable code or provider authority.
+import {DEFAULT_LIGHTING,resolvedLighting,validateLighting,lightingWithPatch} from './world-lighting.js';
 export const FORMAT = 'pixelforge.vr-world.v1';
 export const KINDS = Object.freeze(['floor', 'block', 'pillar', 'portal', 'asset-proxy']);
 export const MAX_OBJECTS = 128;
@@ -13,6 +14,7 @@ export function newWorld() {
     format: FORMAT,
     title: 'Untitled VR World',
     next_id: 4,
+    lighting: {...DEFAULT_LIGHTING},
     objects: [
       {id:'obj-1',name:'Ground',kind:'floor',position:[0,-0.15,-4],scale:[12,0.3,12],yaw:0,color:'#263b53',asset:null},
       {id:'obj-2',name:'Welcome Pillar',kind:'pillar',position:[-2,1,-4],scale:[0.7,2,0.7],yaw:0,color:'#f4a65d',asset:null},
@@ -51,6 +53,9 @@ export function validateWorld(world) {
   if (!Number.isSafeInteger(world.next_id) || world.next_id < 1 || world.next_id > 1000000000)
     throw new Error('Invalid next_id.');
   if (!Array.isArray(world.objects) || world.objects.length > MAX_OBJECTS) throw new Error('World object limit exceeded.');
+  // Pre-v5.40 scenes omit lighting. Accept them and apply defaults only in the viewer;
+  // save/import never gains permissions or silently rewrites old source files.
+  if (world.lighting !== undefined) validateLighting(world.lighting);
   const ids = new Set();
   let highest = 0;
   for (const o of world.objects) {
@@ -104,4 +109,14 @@ export function removeObject(world, id) {
 
 export function renameWorld(world, title) {
   return validateWorld({...world, title});
+}
+
+// Operator-only environment changes: no scripting, remote fetches or runtime power.
+export function editWorldLighting(world,patch){
+  validateWorld(world);
+  return validateWorld({...world,lighting:lightingWithPatch(resolvedLighting(world),patch)});
+}
+export function replaceWorldLighting(world,preset){
+  validateWorld(world);
+  return validateWorld({...world,lighting:{...validateLighting(preset)}});
 }
