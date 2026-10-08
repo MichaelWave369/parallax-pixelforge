@@ -22,7 +22,7 @@
   },
   "scripts": {
     "start": "node scripts/run_python.mjs -m http.server 3690",
-    "test": "npm run test:runtime && npm run test:studio && npm run validate:public-release && npm run validate:adaptation && npm run test:external-assets && npm run test:unreal-export && npm run test:external-glb && npm run test:glb-preview && npm run test:cartridge-bridge && npm run test:spark-loader && npm run test:vr && npm run test:vr-glb && npm run test:vr-textures",
+    "test": "npm run test:runtime && npm run test:studio && npm run validate:public-release && npm run validate:adaptation && npm run test:external-assets && npm run test:unreal-export && npm run test:external-glb && npm run test:glb-preview && npm run test:cartridge-bridge && npm run test:spark-loader && npm run test:vr && npm run test:vr-glb && npm run test:vr-textures && npm run test:vr-viewport",
     "test:runtime": "node --test tests/runtime-*.test.js",
     "test:studio": "node tests/project-validator.test.js",
     "validate:demo": "node scripts/validate_project.js data/journey_to_parallax_institute.v5.0.demo.json",
@@ -166,7 +166,8 @@
     "test:spark-loader": "node --test tests/external-spark-loader-v1.test.js",
     "test:vr": "node --check vr-studio/world.js && node --check vr-studio/renderer.js && node --check vr-studio/studio.js && node --test tests/vr-studio.test.js",
     "test:vr-glb": "node --check vr-studio/glb-mesh.js && node --check vr-studio/renderer.js && node --check vr-studio/studio.js && node --test tests/vr-glb-mesh.test.js",
-    "test:vr-textures": "node --check vr-studio/glb-mesh.js && node --check vr-studio/renderer.js && node --check vr-studio/studio.js && node --test tests/vr-glb-mesh.test.js tests/vr-glb-texture.test.js"
+    "test:vr-textures": "node --check vr-studio/glb-mesh.js && node --check vr-studio/renderer.js && node --check vr-studio/studio.js && node --test tests/vr-glb-mesh.test.js tests/vr-glb-texture.test.js",
+    "test:vr-viewport": "node --check vr-studio/viewport-tools.js && node --check vr-studio/studio.js && node --check vr-studio/renderer.js && node --test tests/vr-viewport-tools.test.js"
   },
   "keywords": [
     "16-bit",

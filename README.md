@@ -15,6 +15,12 @@ The Studio and runtime layers stay deliberately separate. Creator tooling and ga
 - Local Ollama qualification is optional and remains outside required CI.
 - Human visual, pacing, combat-feel, commercial-depth, store-art, and value review remain separate from machine validation.
 
+## v5.38 VR Studio — Click-to-select and transform gizmos
+
+Worlds can now be edited from the 3D viewport: ray-to-bounding-box object selection, X/Y/Z move handles, configurable snapping, six accessible nudge controls and one-undo-entry drag gestures. Loaded GLB objects use their decoded bounds for coarse picking; unmatched local models remain selectable as proxies. This is **desktop scene editing**, not a qualified in-headset controller system.
+
+See [v5.38 viewport controls and acceptance notes](docs/V5_38_VIEWPORT_GIZMOS.md). Run `npm run test:vr-viewport`.
+
 ## v5.37 VR Studio — Embedded GLB texture previews
 
 v5.37 adds bounded browser-local **PNG/JPEG base-color textures** and FLOAT TEXCOORD_0 mapping to the real GLB world renderer. It preserves the original GLB's governed SHA-256 scene identity while uploading supported embedded images only to the browser's GPU memory. External image URLs, arbitrary material extensions, physics, animation, complete PBR/Unreal parity, and rights approval are not provided.
