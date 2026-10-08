@@ -97,18 +97,63 @@ export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) 
   const loc={vp:gl.getUniformLocation(prog,'uVP'),model:gl.getUniformLocation(prog,'uModel'),
     color:gl.getUniformLocation(prog,'uColor'),selected:gl.getUniformLocation(prog,'uSelected')};
   const camera={yaw:0.6,pitch:0.46,distance:17,target:[0,0.5,-4]};
+  const loadedMeshes=new Map();
+
+  // GPU data is scoped to this browser session. No GLB bytes are sent to Pages,
+  // embedded into scene JSON, or implicitly marked compatibility-approved.
+  function registerMesh(sha256,decoded) {
+    if(!/^[a-f0-9]{64}$/.test(sha256))throw new Error('Invalid SHA-256 identity.');
+    if(loadedMeshes.has(sha256))return loadedMeshes.get(sha256).report;
+    if(loadedMeshes.size>=8)throw new Error('Maximum eight unique in-memory GLB preview assets per session.');
+    if(!decoded||decoded.status!=='STATIC_GEOMETRY_PREVIEW_ONLY'||
+      !Array.isArray(decoded.meshes)||decoded.vertexCount>150000||decoded.vertexCount<=0)
+      throw new Error('Unqualified preview mesh payload.');
+    const parts=[];
+    try {
+      for(const m of decoded.meshes) {
+        if(!(m.vertices instanceof Float32Array)||m.vertices.length%6||m.vertices.length===0||
+          !m.color||m.color.length!==3)throw new Error('Invalid preview primitive.');
+        const vao=gl.createVertexArray(),buffer=gl.createBuffer();
+        if(!vao||!buffer)throw new Error('GPU resource allocation failed.');
+        parts.push({vao,buffer,count:m.vertices.length/6,color:m.color});
+        gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+        gl.bufferData(gl.ARRAY_BUFFER,m.vertices,gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,24,0);
+        gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,3,gl.FLOAT,false,24,12);
+      }
+    }catch(error){
+      for(const p of parts){gl.deleteBuffer(p.buffer);gl.deleteVertexArray(p.vao);}
+      throw error;
+    }
+    const report={status:decoded.status,meshCount:decoded.meshCount,
+      vertexCount:decoded.vertexCount,warnings:decoded.warnings};
+    loadedMeshes.set(sha256,{parts,report});
+    return report;
+  }
+  const hasMesh=sha256=>loadedMeshes.has(sha256);
+
   let xrSession=null;
   let xrReferenceSpace=null;
   let disposed=false;
 
   function paint(vp) {
-    gl.useProgram(prog);gl.bindVertexArray(vao);
+    gl.useProgram(prog);
     gl.uniformMatrix4fv(loc.vp,false,vp);
     for(const o of getWorld().objects) {
       gl.uniformMatrix4fv(loc.model,false,modelFor(o));
-      gl.uniform3fv(loc.color,rgb(o.color));
       gl.uniform1f(loc.selected,getSelected()===o.id?1:0);
-      gl.drawArrays(gl.TRIANGLES,0,36);
+      const asset=o.kind==='asset-proxy'&&o.asset?loadedMeshes.get(o.asset.sha256):null;
+      if(asset) {
+        for(const part of asset.parts) {
+          gl.bindVertexArray(part.vao);
+          gl.uniform3fv(loc.color,part.color);
+          gl.drawArrays(gl.TRIANGLES,0,part.count);
+        }
+      }else {
+        gl.bindVertexArray(vao);
+        gl.uniform3fv(loc.color,rgb(o.color));
+        gl.drawArrays(gl.TRIANGLES,0,36);
+      }
     }
   }
   function desktopLoop() {
@@ -162,5 +207,14 @@ export function createRenderer(canvas,getWorld,getSelected,onSessionEnd=()=>{}) 
   }
   function exitVR(){return xrSession?.end();}
   desktopLoop();
-  return {camera,enterVR,exitVR,dispose(){disposed=true;void exitVR();}};
+  return {camera,enterVR,exitVR,registerMesh,hasMesh,
+    dispose(){
+      disposed=true;void exitVR();
+      for(const mesh of loadedMeshes.values())for(const p of mesh.parts){
+        gl.deleteBuffer(p.buffer);gl.deleteVertexArray(p.vao);
+      }
+      gl.deleteBuffer(buf);gl.deleteVertexArray(vao);gl.deleteProgram(prog);
+      loadedMeshes.clear();
+    }
+  };
 }

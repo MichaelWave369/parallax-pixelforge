@@ -15,6 +15,12 @@ The Studio and runtime layers stay deliberately separate. Creator tooling and ga
 - Local Ollama qualification is optional and remains outside required CI.
 - Human visual, pacing, combat-feel, commercial-depth, store-art, and value review remain separate from machine validation.
 
+## v5.36 VR Studio — Native static GLB world import
+
+VR Studio can now render **supported real static GLB triangles inside authored scenes**, with bounded geometry decoding, node transforms and basic material base colors. The original source file is never committed or embedded in scene JSON. After a refresh, use **Rebind exact saved GLB** to restore an in-memory mesh by SHA-256. Unsupported geometry fails closed.
+
+This is **preview-only**: no texture parity, animation, physics, source-license approval, or certified VR performance. See [the v5.36 GLB World Import guide](docs/V5_36_VR_GLB_WORLD_IMPORT.md). Run `npm run test:vr-glb` for binary-import tests.
+
 ## v5.35 VR Studio — World Foundation
 
 The experimental [VR Studio](vr-studio/) starts with a usable, local-first desktop 3D world composer. It includes a validated scene graph, primitive placement, transforms, undo, scene save/import/export, and locally hashed Unreal GLB **proxy** staging. Capability-gated WebXR can preview that geometric scene on supported headsets, but remains unqualified without physical testing.

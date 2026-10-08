@@ -1,5 +1,6 @@
 import {newWorld,parseWorld,validateWorld,addObject,editObject,removeObject,renameWorld,MAX_OBJECTS} from './world.js';
 import {createRenderer} from './renderer.js';
+import {decodeGlbMesh} from './glb-mesh.js';
 
 const $ = id => document.getElementById(id);
 const STORAGE = 'pixelforge.vr-world.v1.local';
@@ -35,7 +36,10 @@ function redraw() {
     const button=document.createElement('button');
     button.type='button';button.className=o.id===selected?'selected':'';
     const name=document.createElement('strong');name.textContent=o.name;
-    const kind=document.createElement('span');kind.textContent=o.kind==='asset-proxy'?'GLB PROXY':o.kind.toUpperCase();
+    const kind=document.createElement('span');
+    kind.textContent=o.kind==='asset-proxy'
+      ? (renderer?.hasMesh(o.asset.sha256)?'GLB GEOMETRY':'GLB SOURCE NEEDED')
+      : o.kind.toUpperCase();
     button.append(name,kind);
     button.addEventListener('click',()=>{selected=o.id;redraw();});
     list.append(button);
@@ -44,7 +48,10 @@ function redraw() {
   $('nothing').hidden=!!o;$('fields').hidden=!o;
   if(!o)return;
   $('selectedId').textContent=o.id;
-  $('assetBadge').textContent=o.kind==='asset-proxy'?'UNQUALIFIED GLB PROXY':o.kind.toUpperCase();
+  $('assetBadge').textContent=o.kind==='asset-proxy'
+    ? (renderer?.hasMesh(o.asset.sha256)?'STATIC MESH PREVIEW':'GLB SOURCE MISSING')
+    : o.kind.toUpperCase();
+  $('rebindHolder').hidden=o.kind!=='asset-proxy';
   $('name').value=o.name;$('color').value=o.color;$('yaw').value=o.yaw;
   document.querySelectorAll('[data-vector]').forEach(input=>{
     input.value=o[input.dataset.vector][Number(input.dataset.axis)];
@@ -52,7 +59,9 @@ function redraw() {
   const facts=$('assetFacts');
   facts.hidden=!o.asset;
   facts.textContent=o.asset?o.asset.asset_id+' | '+o.asset.source_name+' | SHA-256 '+o.asset.sha256+
-    ' | '+o.asset.byte_length+' bytes | Source file is NOT embedded. Mesh import and rights qualification pending.':'';
+    ' | '+o.asset.byte_length+' bytes | '+(renderer?.hasMesh(o.asset.sha256)
+      ? 'Static GLB geometry shown. Material/physics/rights qualification pending.'
+      : 'Rebind the identical local GLB to display its mesh.'):'';
 }
 function safe(action) {
   try{action();}catch(error){status('REJECTED: '+error.message);}
@@ -148,11 +157,40 @@ $('glbFile').addEventListener('change',async event=>{
     const digest=await crypto.subtle.digest('SHA-256',buffer);
     const sha256=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
     const asset={asset_id:assetId,source_name:file.name,byte_length:file.size,sha256};
+    // Validate scene capacity first; no world mutation on import rejection.
     const next=addObject(world,'asset-proxy',asset);
+    if(!renderer)throw new Error('WebGL2 renderer unavailable.');
+    const decoded=decodeGlbMesh(buffer);
+    const report=renderer.registerMesh(sha256,decoded);
     selected=next.objects.at(-1).id;
-    change(next,'GLB identity staged as a PROXY. Mesh, license and VR use remain unqualified.');
+    change(next,'Static GLB geometry placed: '+report.meshCount+' primitives / '+report.vertexCount+
+      ' vertices. Local preview only; rights, PBR, collision, performance and VR remain unqualified.'+
+      (report.warnings.length?' Warnings: '+report.warnings.join(', '):''));
   }catch(error){status('ASSET REJECTED: '+error.message);}
 });
+// Rebind a scene's hash-bound GLB after a page reload or JSON import.
+// Never substitute a same-named or modified file for a saved world asset.
+$('rebindFile').addEventListener('change',async event=>{
+  const file=event.target.files?.[0];event.target.value='';
+  const selectedAsset=current()?.asset;
+  if(!file||!selectedAsset)return;
+  try{
+    if(!renderer)throw new Error('WebGL2 renderer unavailable.');
+    if(file.name!==selectedAsset.source_name||file.size!==selectedAsset.byte_length||
+       file.size>50000000||file.size<28)
+      throw new Error('Selected file name/size differs from saved asset identity.');
+    const bytes=await file.arrayBuffer();
+    const digest=await crypto.subtle.digest('SHA-256',bytes);
+    const sha256=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
+    if(sha256!==selectedAsset.sha256)throw new Error('SHA-256 mismatch: cannot silently replace scene asset.');
+    const report=renderer.registerMesh(sha256,decodeGlbMesh(bytes));
+    redraw();
+    status('Exact GLB rebound and rendered: '+report.vertexCount+
+      ' vertices. Static preview only; no rights/physics/headset qualification.'+
+      (report.warnings.length?' Warnings: '+report.warnings.join(', '):''));
+  }catch(error){status('GLB REBIND REJECTED: '+error.message);}
+});
+
 try{
   renderer=createRenderer($('stage'),()=>world,()=>selected,()=>{
     $('enterVR').disabled=false;$('exitVR').disabled=true;
