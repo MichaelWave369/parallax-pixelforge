@@ -154,7 +154,10 @@ $('glbFile').addEventListener('change',async event=>{
   }catch(error){status('ASSET REJECTED: '+error.message);}
 });
 try{
-  renderer=createRenderer($('stage'),()=>world,()=>selected);
+  renderer=createRenderer($('stage'),()=>world,()=>selected,()=>{
+    $('enterVR').disabled=false;$('exitVR').disabled=true;
+    status('WebXR session ended. Desktop editor restored.');
+  });
   status('Desktop 3D editor ready. World preview only; use inspector to select geometry.');
 }catch(error){status('WebGL2 unavailable: '+error.message);}
 let dragging=false,lastX=0,lastY=0;
