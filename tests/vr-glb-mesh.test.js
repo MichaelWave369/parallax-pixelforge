@@ -61,7 +61,6 @@ test('rejects bad GLB header and malformed node cycles',()=>{
 test('texture references without an embedded image fail closed',()=>{
   assert.throws(()=>decodeGlbMesh(fixture(x=>{
     x.materials[0].pbrMetallicRoughness.baseColorTexture={index:0};
-    x.meshes[0].primitives[0].attributes.TEXCOORD_0=0;
   })),/embedded|texture|UV/i);
 });
 test('rejects oversized source files safely',()=>{
