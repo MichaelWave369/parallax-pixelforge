@@ -104,3 +104,30 @@ input[type=color]{height:42px;padding:3px}button.full{width:100%}.fileButton{pos
 .handoffDetails{font-size:11px;color:#b8d4e5;overflow-wrap:anywhere;line-height:1.6;padding:10px;
   background:#0a1825;border-radius:7px;margin-bottom:11px}
 #clearHandoff{margin-bottom:4px;background:#293447;color:#ffe2b1;border-color:#64758a}
+
+/* v5.43: visual private asset gallery and operator-reviewed planning queue */
+.catalogThumbMeta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:2px 0 12px;color:#9dc3c6;font-size:11px}
+.catalogThumbMeta button{font-size:10px;padding:5px 8px}
+.catalogResults.assetGallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:460px}
+.catalogResults.assetGallery .catalogRow{gap:7px!important;padding:8px!important;align-content:start;min-height:160px}
+.assetGallery .catalogRow strong{font-size:11px;line-height:1.35;min-height:30px}
+.assetGallery .catalogRow span{font-size:9px;line-height:1.4}
+.assetPreview{position:relative;display:grid;place-items:center;width:100%;height:105px;
+  background:linear-gradient(145deg,#183248,#2b2d45);border-radius:8px;overflow:hidden}
+.assetPreview img{display:block;width:100%;height:100%;object-fit:cover}
+.assetPreview .assetNoPreview{color:#a2deca;font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:1px;text-align:center;padding:11px;overflow-wrap:anywhere}
+.exportQueue{margin-top:15px;border:1px solid #3a5968;background:#132536;padding:12px;border-radius:11px}
+.exportQueueHead{display:flex;justify-content:space-between;gap:10px;align-items:center;
+  color:#dffaf0;font-size:11px;letter-spacing:.6px;margin-bottom:11px}
+.exportQueueHead span{color:#9be5c9}
+.queueList{display:grid;gap:5px;max-height:170px;overflow-y:auto;margin:8px 0}
+.queueRow{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:7px 8px;
+  border:1px solid #375264;border-radius:7px;background:#0c1e2a;color:#c6dfed;font-size:10px}
+.queueRow span{overflow-wrap:anywhere;min-width:0}
+.queueRow button{padding:5px 7px;font-size:10px;flex-shrink:0}
+.queueApproval{display:flex;align-items:flex-start;gap:9px;line-height:1.5;
+  font-size:11px;margin:12px 0;color:#c7decf}
+.queueApproval input{width:17px;min-width:17px;height:17px;margin:0;accent-color:#69d8aa}
+#queueDownload{margin:0 0 9px}
+@media(max-width:740px){.catalogResults.assetGallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
