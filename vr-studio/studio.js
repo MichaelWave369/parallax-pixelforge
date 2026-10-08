@@ -1,6 +1,7 @@
 import {newWorld,parseWorld,validateWorld,addObject,editObject,removeObject,renameWorld,MAX_OBJECTS} from './world.js';
 import {createRenderer} from './renderer.js';
 import {decodeGlbMesh} from './glb-mesh.js';
+import {gizmoHandles,findGizmoHandle,pickWorldObject,draggedAxisPosition,AXES} from './viewport-tools.js';
 
 const $ = id => document.getElementById(id);
 const STORAGE = 'pixelforge.vr-world.v1.local';
@@ -46,7 +47,7 @@ function redraw() {
   }
   const o=current();
   $('nothing').hidden=!!o;$('fields').hidden=!o;
-  if(!o)return;
+  if(!o){drawGizmo();return;}
   $('selectedId').textContent=o.id;
   $('assetBadge').textContent=o.kind==='asset-proxy'
     ? (renderer?.hasMesh(o.asset.sha256)?'STATIC MESH PREVIEW':'GLB SOURCE MISSING')
@@ -62,6 +63,7 @@ function redraw() {
     ' | '+o.asset.byte_length+' bytes | '+(renderer?.hasMesh(o.asset.sha256)
       ? 'Static GLB geometry shown; basic embedded texture preview where supported. PBR/physics/rights qualification pending.'
       : 'Rebind the identical local GLB to display its mesh.'):'';
+  drawGizmo();
 }
 function safe(action) {
   try{action();}catch(error){status('REJECTED: '+error.message);}
@@ -198,24 +200,122 @@ try{
   });
   status('Desktop 3D editor ready. World preview only; use inspector to select geometry.');
 }catch(error){status('WebGL2 unavailable: '+error.message);}
-let dragging=false,lastX=0,lastY=0;
-$('stage').addEventListener('pointerdown',event=>{
-  dragging=true;lastX=event.clientX;lastY=event.clientY;
-  $('stage').setPointerCapture(event.pointerId);
+// Desktop viewport controls; no authority or executable scene changes.
+const stage=$('stage'),overlay=$('moveGizmo');
+const axisColor={x:'#ff747b',y:'#65e5a5',z:'#7baeff'};
+const svgNS='http://www.w3.org/2000/svg';
+function svgNode(tag,props) {
+  const el=document.createElementNS(svgNS,tag);
+  for(const [key,value] of Object.entries(props))el.setAttribute(key,String(value));
+  return el;
+}
+function drawGizmo() {
+  overlay.replaceChildren();
+  if(!renderer||!current())return;
+  const width=stage.clientWidth,height=stage.clientHeight;
+  if(width<1||height<1)return;
+  overlay.setAttribute('viewBox','0 0 '+width+' '+height);
+  const handles=gizmoHandles(renderer.camera,current().position,width,height);
+  if(!handles)return;
+  for(const handle of handles) {
+    const c=axisColor[handle.axis];
+    overlay.append(svgNode('line',{x1:handle.from.x,y1:handle.from.y,
+      x2:handle.to.x,y2:handle.to.y,stroke:c,'stroke-width':4}));
+    overlay.append(svgNode('circle',{cx:handle.to.x,cy:handle.to.y,
+      r:7,fill:c,stroke:'#d8f8ef','stroke-width':1.5}));
+    const t=svgNode('text',{x:handle.to.x+10,y:handle.to.y-9,fill:c});
+    t.textContent=handle.axis.toUpperCase();
+    overlay.append(t);
+  }
+  const c=handles[0].from;
+  overlay.append(svgNode('circle',{cx:c.x,cy:c.y,r:4,fill:'#f7fafc',stroke:'#122337','stroke-width':1.6}));
+}
+function pointerLocal(e) {
+  const r=stage.getBoundingClientRect();
+  return {x:e.clientX-r.left,y:e.clientY-r.top};
+}
+let gesture=null;
+stage.addEventListener('pointerdown',e=>{
+  if(e.button!==0||!renderer)return;
+  const {x,y}=pointerLocal(e);
+  const obj=current(),width=stage.clientWidth,height=stage.clientHeight;
+  const handles=obj?gizmoHandles(renderer.camera,obj.position,width,height):null;
+  const handle=findGizmoHandle(handles,x,y);
+  if(handle) {
+    gesture={pointerId:e.pointerId,mode:'gizmo',axisHandle:handle,
+      id:obj.id,startX:x,startY:y,startWorld:world,startPosition:[...obj.position]};
+  }else{
+    const id=pickWorldObject(world,renderer.camera,x,y,width,height,
+      sha=>renderer.getMeshBounds(sha));
+    if(id){selected=id;redraw();}
+    gesture={pointerId:e.pointerId,mode:id?'select':'orbit',startX:x,startY:y,lastX:x,lastY:y};
+  }
+  stage.setPointerCapture(e.pointerId);
 });
-$('stage').addEventListener('pointerup',()=>dragging=false);
-$('stage').addEventListener('pointercancel',()=>dragging=false);
-$('stage').addEventListener('pointermove',event=>{
-  if(!dragging||!renderer)return;
-  renderer.camera.yaw+=(event.clientX-lastX)*.007;
-  renderer.camera.pitch=Math.max(-1.25,Math.min(1.25,renderer.camera.pitch+(event.clientY-lastY)*.007));
-  lastX=event.clientX;lastY=event.clientY;
+stage.addEventListener('pointermove',e=>{
+  if(!gesture||gesture.pointerId!==e.pointerId||!renderer)return;
+  const {x,y}=pointerLocal(e);
+  if(gesture.mode==='gizmo') {
+    try{
+      const snapped=draggedAxisPosition(
+        gesture.startPosition,gesture.axisHandle,x-gesture.startX,y-gesture.startY,
+        Number($('moveSnap').value));
+      world=editObject(gesture.startWorld,gesture.id,{position:snapped});
+      const obj=current();
+      if(obj?.id===gesture.id)document.querySelectorAll('[data-vector="position"]').forEach(input=>{
+        input.value=obj.position[Number(input.dataset.axis)];
+      });
+      drawGizmo();
+    }catch(error){status('MOVE REJECTED: '+error.message);}
+    return;
+  }
+  if(gesture.mode==='select'&&Math.hypot(x-gesture.startX,y-gesture.startY)>5)
+    gesture.mode='orbit';
+  if(gesture.mode==='orbit'){
+    renderer.camera.yaw+=(x-gesture.lastX)*.007;
+    renderer.camera.pitch=Math.max(-1.25,Math.min(1.25,
+      renderer.camera.pitch+(y-gesture.lastY)*.007));
+    drawGizmo();
+  }
+  gesture.lastX=x;gesture.lastY=y;
 });
-$('stage').addEventListener('wheel',event=>{
+function finishGesture(e,cancel=false){
+  if(!gesture||gesture.pointerId!==e.pointerId)return;
+  const active=gesture;gesture=null;
+  if(active.mode==='gizmo'){
+    const candidate=world;
+    world=active.startWorld;
+    const after=candidate.objects.find(o=>o.id===active.id);
+    if(!cancel&&after&&after.position.some((v,i)=>v!==active.startPosition[i])){
+      change(candidate,'Moved '+active.id+' on '+active.axisHandle.axis.toUpperCase()+
+        ' axis; one undo step saved.');
+    }else redraw();
+  }
+  if(stage.hasPointerCapture(e.pointerId))stage.releasePointerCapture(e.pointerId);
+}
+stage.addEventListener('pointerup',e=>finishGesture(e));
+stage.addEventListener('pointercancel',e=>finishGesture(e,true));
+stage.addEventListener('wheel',e=>{
   if(!renderer)return;
-  event.preventDefault();
-  renderer.camera.distance=Math.max(2,Math.min(95,renderer.camera.distance*Math.exp(event.deltaY*.001)));
+  e.preventDefault();
+  renderer.camera.distance=Math.max(2,Math.min(95,
+    renderer.camera.distance*Math.exp(e.deltaY*.001)));
+  drawGizmo();
 },{passive:false});
+new ResizeObserver(drawGizmo).observe(stage);
+for(const button of document.querySelectorAll('[data-nudge]')){
+  button.addEventListener('click',()=>safe(()=>{
+    const obj=current();
+    if(!obj)throw Error('Select an object first.');
+    const [axis,direction]=button.dataset.nudge.split(':');
+    const idx=AXES.indexOf(axis);
+    const step=Number($('moveSnap').value);
+    if(idx<0||!Number.isFinite(step)||step<=0)throw Error('Invalid nudge settings.');
+    const pos=[...obj.position];
+    pos[idx]=Math.max(-100,Math.min(100,Math.round((pos[idx]+Number(direction)*step)*1000)/1000));
+    change(editObject(world,obj.id,{position:pos}),'Nudged '+obj.name+' on '+axis.toUpperCase()+'.');
+  }));
+}
 async function detectVR(){
   const button=$('enterVR');
   if(!renderer || !navigator.xr){button.textContent='VR Unavailable';return;}
