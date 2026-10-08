@@ -92,9 +92,22 @@ export function inspectPilot({repoRoot,jobPath=null,engineRoot=null,platform=pro
         }catch(error){add('operator_review','BLOCKED',error.message);}
       }else add('operator_review','WAITING','UE editor and valid bound job required before review.');
     } else {
-      add('operator_review',checkExists(reviewFile)?'INFO':'BLOCKED',
-        checkExists(reviewFile)?'Review file exists; output verification checked independently.':
-          'No saved operator review; outputs cannot be credited to guarded execution.');
+      if(checkExists(reviewFile)){
+        try {
+          const reviewed=readJson(reviewFile,16_000);
+          if(reviewed.schema!=='pixelforge.unreal-operator-review.v1'||
+             reviewed.state!=='REVIEW_REQUIRED'||
+             reviewed.authority!=='SINGLE_ASSET_OPERATOR_CONFIRMATION_ONLY'||
+             reviewed.record_id!==id||reviewed.job_sha256!==bound.jobHash||
+             reviewed.project_path!==bound.project||
+             reviewed.unreal_asset_path!==bound.job.source.unreal_asset_path||
+             (engineReady&&reviewed.editor_path!==exe))
+            throw Error('Operator review does not match the current bound job and engine.');
+          add('operator_review','PASS',
+            'Saved review matches the bound job identity and job hash. Execution still not inferred.');
+        }catch(error){add('operator_review','BLOCKED',error.message);}
+      }else add('operator_review','BLOCKED',
+        'No saved operator review; outputs cannot be credited to guarded execution.');
       if(hasModel!==hasReceipt){
         add('local_export','BLOCKED','Partial export: GLB and receipt must both exist; investigate before retry.');
       }else {
