@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PixelForge VR Studio | Static GLB World Import</title>
+<title>PixelForge VR Studio | Embedded GLB Textures</title>
 <link rel="stylesheet" href="./studio.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
   <header class="top">
     <div>
       <div class="eyebrow">PARALLAX PIXELFORGE / EXPERIMENTAL WORLD CREATOR</div>
-      <h1>VR <span>STUDIO</span> <small>v5.36 static mesh import</small></h1>
+      <h1>VR <span>STUDIO</span> <small>v5.37 texture preview</small></h1>
       <p>Build worlds in desktop 3D. Inspect a headset preview only where immersive WebXR is supported.</p>
     </div>
     <div class="toolbar">
@@ -36,7 +36,7 @@
       </select></label>
       <button id="add" class="primary full" type="button">+ Add to World</button>
       <h3>LOCAL GLB GEOMETRY</h3>
-      <p class="hint">Select a locally exported, governed GLB to draw supported <b>static TRIANGLES geometry</b> in this world. Unsupported features are rejected or explicitly warned. Source bytes remain in browser memory only.</p>
+      <p class="hint">Select a locally exported, governed GLB to draw supported <b>static TRIANGLES geometry with embedded PNG/JPEG base-color textures</b>. UVs and sampler modes are validated. Source bytes remain in browser memory only.</p>
       <label>Asset Passport ID<input id="assetId" pattern="ASSET-[0-9]{6}" value="ASSET-000021" maxlength="12"></label>
       <label class="fileButton">Import local GLB geometry<input id="glbFile" type="file" accept=".glb,model/gltf-binary"></label>
       <h3>SCENE GRAPH <span id="count">0 / 128</span></h3>
@@ -79,7 +79,7 @@
       </div>
       <p class="hint">Scene JSON contains transforms and asset hashes only, never purchased models or executable scripts. After a refresh, rebind your local GLB file by the same SHA-256 to display its mesh again.</p>
       <div class="receipt"><strong>QUALIFICATION BOUNDARY</strong>
-        <p>Supported static GLB geometry is drawn with simplified base colors. Textures, skeletal animation, PBR parity, collision, interaction, multiplayer, licensing, headset comfort and frame-rate qualification are not granted.</p>
+        <p>Supported static GLB geometry can display embedded base-color PNG/JPEG textures. This is a simple UV-shaded preview, not full glTF/PBR parity. External images, animation, physics, interaction, multiplayer, licensing, headset comfort and frame-rate qualification remain unsupported.</p>
       </div>
     </aside>
   </main>

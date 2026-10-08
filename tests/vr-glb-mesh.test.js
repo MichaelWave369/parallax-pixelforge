@@ -58,9 +58,10 @@ test('rejects bad GLB header and malformed node cycles',()=>{
   assert.throws(()=>decodeGlbMesh(bad));
   assert.throws(()=>decodeGlbMesh(fixture(x=>{x.nodes[0].children=[0];})),/cyclic/);
 });
-test('texture-bearing static GLB gives explicit fallback warning',()=>{
-  const report=decodeGlbMesh(fixture(x=>{x.materials[0].pbrMetallicRoughness.baseColorTexture={index:0};}));
-  assert.ok(report.warnings.includes('TEXTURES_NOT_RENDERED_BASE_COLOR_ONLY'));
+test('texture references without an embedded image fail closed',()=>{
+  assert.throws(()=>decodeGlbMesh(fixture(x=>{
+    x.materials[0].pbrMetallicRoughness.baseColorTexture={index:0};
+  })),/embedded|texture|UV/i);
 });
 test('rejects oversized source files safely',()=>{
   assert.ok(MAX_GLB_BYTES>=50_000_000);

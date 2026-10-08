@@ -15,6 +15,12 @@ The Studio and runtime layers stay deliberately separate. Creator tooling and ga
 - Local Ollama qualification is optional and remains outside required CI.
 - Human visual, pacing, combat-feel, commercial-depth, store-art, and value review remain separate from machine validation.
 
+## v5.37 VR Studio — Embedded GLB texture previews
+
+v5.37 adds bounded browser-local **PNG/JPEG base-color textures** and FLOAT TEXCOORD_0 mapping to the real GLB world renderer. It preserves the original GLB's governed SHA-256 scene identity while uploading supported embedded images only to the browser's GPU memory. External image URLs, arbitrary material extensions, physics, animation, complete PBR/Unreal parity, and rights approval are not provided.
+
+Run `npm run test:vr-textures`. See [the v5.37 texture acceptance and safety guide](docs/V5_37_VR_EMBEDDED_TEXTURES.md).
+
 ## v5.36 VR Studio — Native static GLB world import
 
 VR Studio can now render **supported real static GLB triangles inside authored scenes**, with bounded geometry decoding, node transforms and basic material base colors. The original source file is never committed or embedded in scene JSON. After a refresh, use **Rebind exact saved GLB** to restore an in-memory mesh by SHA-256. Unsupported geometry fails closed.

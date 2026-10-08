@@ -69,12 +69,14 @@ function accessor(json,bin,index,kind) {
   const a=json.accessors?.[index];
   if(!a||a.sparse||!Number.isSafeInteger(a.count)||a.count<1||a.count>MAX_PREVIEW_VERTICES)
     throw Error('Unsupported or unsafe glTF accessor.');
-  const isPos=kind==='position';
-  if(a.type!==(isPos?'VEC3':'SCALAR')||!([5121,5123,5125].includes(a.componentType)||isPos&&a.componentType===5126))
+  const isPos=kind==='position',isUv=kind==='uv';
+  const expected=isPos?'VEC3':isUv?'VEC2':'SCALAR';
+  if(a.type!==expected||!([5121,5123,5125].includes(a.componentType)||((isPos||isUv)&&a.componentType===5126)))
     throw Error('Unsupported accessor type.');
-  if(isPos&&a.componentType!==5126)throw Error('POSITION must use FLOAT.');
+  if((isPos||isUv)&&a.componentType!==5126)
+    throw Error('POSITION and TEXCOORD_0 require FLOAT in this preview.');
   const size={5121:1,5123:2,5125:4,5126:4}[a.componentType];
-  const components=isPos?3:1,byteWidth=size*components;
+  const components=isPos?3:isUv?2:1,byteWidth=size*components;
   const bv=json.bufferViews?.[a.bufferView];
   if(!bv||!Number.isSafeInteger(bv.byteLength)||bv.byteLength<0||bv.buffer!==0&&bv.buffer!==undefined)
     throw Error('Missing or external GLB buffer view.');
@@ -97,6 +99,35 @@ function accessor(json,bin,index,kind) {
   return {values:result,count:a.count};
 }
 const norm=a=>{const d=Math.hypot(...a)||1;return a.map(v=>v/d)};
+function embeddedTexture(json,bin,index) {
+  if(!Number.isSafeInteger(index)||index<0)throw Error('Invalid GLB texture index.');
+  const texture=json.textures?.[index];
+  if(!texture||texture.extensions||!Number.isSafeInteger(texture.source))
+    throw Error('Only embedded base-color image textures are supported.');
+  const image=json.images?.[texture.source];
+  if(!image||image.uri||image.extensions||
+    !['image/png','image/jpeg'].includes(image.mimeType))
+    throw Error('Texture must use an embedded PNG or JPEG bufferView.');
+  const view=json.bufferViews?.[image.bufferView];
+  if(!view||(view.buffer??0)!==0)throw Error('Texture image uses an external buffer.');
+  const offset=view.byteOffset??0,length=view.byteLength;
+  if(!Number.isSafeInteger(offset)||!Number.isSafeInteger(length)||
+    length<1||length>6_000_000||offset<0||offset+length>bin.byteLength)
+    throw Error('Embedded image exceeds binary bounds or 6 MB limit.');
+  const sampler=texture.sampler===undefined?{}:json.samplers?.[texture.sampler];
+  if(!sampler||sampler.extensions)throw Error('Invalid or extended GLB texture sampler.');
+  const allowed=(value,options)=>value===undefined||options.includes(value);
+  if(!allowed(sampler.wrapS,[33071,33648,10497])||
+     !allowed(sampler.wrapT,[33071,33648,10497])||
+     !allowed(sampler.magFilter,[9728,9729])||
+     !allowed(sampler.minFilter,[9728,9729,9984,9985,9986,9987]))
+     throw Error('Unsupported GLB sampler mode.');
+  return {index,mimeType:image.mimeType,
+    bytes:new Uint8Array(bin.buffer,bin.byteOffset+offset,length).slice(),
+    sampler:{wrapS:sampler.wrapS??10497,wrapT:sampler.wrapT??10497,
+      magFilter:sampler.magFilter??9729,minFilter:sampler.minFilter??9987}};
+}
+
 export function decodeGlbMesh(buffer) {
   const {json,bin}=extract(buffer);
   const roots=json.scenes?.[json.scene??0]?.nodes;
@@ -105,7 +136,7 @@ export function decodeGlbMesh(buffer) {
   if(json.nodes.length>256)throw Error('Too many GLB nodes for world preview.');
   const materials=json.materials||[];
   const warnings=new Set();
-  const meshes=[];
+  const meshes=[],textures=new Map();
   const bounds={min:[Infinity,Infinity,Infinity],max:[-Infinity,-Infinity,-Infinity]};
   let count=0,nodesVisited=0;
   const visit=(idx,parent,stack)=>{
@@ -127,7 +158,8 @@ export function decodeGlbMesh(buffer) {
           : accessor(json,bin,primitive.indices,'index').values;
         if(indices.length%3)throw Error('Triangle index count must be divisible by three.');
         if(count+indices.length>MAX_PREVIEW_VERTICES)throw Error('GLB preview vertex budget exceeded.');
-        let color=[0.7,0.85,0.88];
+        let color=[0.7,0.85,0.88],textureIndex=null;
+        let uv=null;
         if(primitive.material!==undefined) {
           const mat=materials[primitive.material];
           if(!mat)throw Error('Missing material.');
@@ -137,11 +169,27 @@ export function decodeGlbMesh(buffer) {
             if(factor.some(x=>x<0||x>1))throw Error('Base color factor out of range.');
             color=factor.slice(0,3);
           }
-          if(pbr.baseColorTexture||mat.normalTexture||mat.occlusionTexture||mat.emissiveTexture)
-            warnings.add('TEXTURES_NOT_RENDERED_BASE_COLOR_ONLY');
+          if(pbr.baseColorTexture) {
+            const slot=pbr.baseColorTexture;
+            if(slot.extensions||(slot.texCoord??0)!==0)
+              throw Error('Only untransformed TEXCOORD_0 base-color textures are supported.');
+            if(primitive.attributes.TEXCOORD_0===undefined)
+              throw Error('Textured mesh lacks TEXCOORD_0.');
+            uv=accessor(json,bin,primitive.attributes.TEXCOORD_0,'uv');
+            if(uv.count!==positions.count)throw Error('UV count does not match positions.');
+            textureIndex=slot.index;
+            if(!textures.has(textureIndex)) {
+              if(textures.size>=8)throw Error('GLB preview allows eight embedded textures maximum.');
+              textures.set(textureIndex,embeddedTexture(json,bin,textureIndex));
+            }
+          }
+          if(mat.normalTexture||mat.occlusionTexture||mat.emissiveTexture)
+            warnings.add('NON_BASE_COLOR_MAPS_NOT_RENDERED');
+          if(pbr.metallicRoughnessTexture||pbr.metallicFactor!==undefined||pbr.roughnessFactor!==undefined)
+            warnings.add('PBR_METALLIC_ROUGHNESS_SIMPLIFIED');
           if(mat.alphaMode&&mat.alphaMode!=='OPAQUE')warnings.add('ALPHA_MODE_NOT_RENDERED');
         }
-        const triangles=new Float32Array(indices.length*6);
+        const triangles=new Float32Array(indices.length*8);
         for(let i=0;i<indices.length;i+=3) {
           const points=[];
           for(let j=0;j<3;j++){
@@ -159,9 +207,13 @@ export function decodeGlbMesh(buffer) {
           const u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]];
           const v=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
           const normal=norm([u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]]);
-          for(let j=0;j<3;j++)triangles.set([...points[j],...normal],(i+j)*6);
+          for(let j=0;j<3;j++) {
+            const k=indices[i+j];
+            const coords=uv?uv.values.slice(k*2,k*2+2):[0,0];
+            triangles.set([...points[j],...normal,...coords],(i+j)*8);
+          }
         }
-        meshes.push({vertices:triangles,color});
+        meshes.push({vertices:triangles,color,textureIndex});
         count+=indices.length;
         if(meshes.length>128)throw Error('Too many mesh primitives.');
       }
@@ -172,6 +224,6 @@ export function decodeGlbMesh(buffer) {
   for(const root of roots)visit(root,identity(),new Set());
   if(!meshes.length||!count)throw Error('No supported GLB mesh primitives to draw.');
   if((json.extensionsUsed||[]).length)warnings.add('OPTIONAL_EXTENSIONS_NOT_APPLIED');
-  return {meshes,vertexCount:count,meshCount:meshes.length,bounds,warnings:[...warnings],
+  return {meshes,textures:[...textures.values()],vertexCount:count,meshCount:meshes.length,bounds,warnings:[...warnings],
     status:'STATIC_GEOMETRY_PREVIEW_ONLY'};
 }
