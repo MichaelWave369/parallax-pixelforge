@@ -23,6 +23,16 @@ The experimental [VR Studio](vr-studio/) starts with a usable, local-first deskt
 
 Open `http://localhost:3690/vr-studio/` after `npm run start`. Run `npm run test:vr` for the scene-contract tests.
 
+## React GitHub Pages portal (proposed)
+
+PixelForge now has a separate React/Vite public portal in [`site/`](site/) that launches the existing Studio, WebGL2 VR Studio and GLB Inspector. It is a navigational **React application**, not yet a React rewrite of the legacy Studio editor.
+
+Once [GitHub Pages is enabled with GitHub Actions](docs/REACT_GITHUB_PAGES.md) and the deploy workflow passes on `main`, the planned link is **https://michaelwave369.github.io/parallax-pixelforge/**. PRs validate the site but do not publish it.
+
+`npm --prefix site install --no-audit --no-fund && npm --prefix site test && npm --prefix site run build`
+
+See [React GitHub Pages deployment, safety and route guide](docs/REACT_GITHUB_PAGES.md).
+
 ## Quick start
 
 Prerequisites:
