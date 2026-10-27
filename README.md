@@ -511,3 +511,7 @@ npm run github:preflight
 ## ΦPACK universal game-content prototype (v0.1)
 
 PixelForge now includes a browser-based [ΦPACK Workshop](phipack/index.html) and a [portable package specification](docs/PHIPACK_V0_1.md). It wraps existing v5.11 Runtime Composer scene JSON in validated, private-by-default `.phipack` ZIP packages. Run `npm run test:phipack` to qualify the codec. This is the first content adapter, not automatic compatibility with other game engines.
+
+## Michael & Ori source-archive ΦWAD integration (experimental)
+
+The [game-owned loader installer](docs/PHIWAD_GAME_INTEGRATION_V0_4.md) makes a **new, opt-in copy** of the public Michael & Ori source ZIP with a title-screen custom-mission importer. It preserves the six original sectors and original save namespace, uses the existing Xbox controller path, and is not deployed to the live game site. GitHub Actions offers a manual **Build Michael & Ori ΦWAD Edition** workflow to produce the patched game ZIP. Manual browser/controller QA is still required.
