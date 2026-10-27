@@ -249,6 +249,23 @@ npm run runtime:serve:reference
 
 See `docs/RUNTIME_JSONL_TRANSPORT_V1.md`.
 
+## Local FramefieldStudio GLB Compatibility Preflight
+
+PixelForge's GLB preview supports features that Framefield's current browser importer
+does not (multiple meshes, node transforms, full texture preview). Run an **offline,
+read-only advisory check** against one selected GLB before the Framefield handoff:
+
+```bash
+npm run asset:framefield:preflight -- /path/to/your-private-model.glb
+```
+
+The command reports exact static-mesh blockers, limits and original-byte SHA-256.
+It does **not** export Unreal assets, make runtime compatibility claims, establish
+licensing permission, upload files or authorize BPC XR publication. A separate
+pinned-source CI test runs PixelForge fixtures through the **actual Framefield
+importer and BPC XR exporter**. No purchased asset or physical headset is part
+of CI. See [Framefield GLB Preflight v1](docs/FRAMEFIELD_GLB_PREFLIGHT_V1.md).
+
 ## v5.31 Native WebGL2 GLB Preview
 
 v5.31 renders supported qualified GLB assets directly in PixelForge with a zero-dependency WebGL2 viewer.
