@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ΦPACK Workshop | PixelForgeStudio</title>
+  <style>
+    :root {color-scheme:dark; font:16px system-ui,sans-serif; background:#0b1020; color:#eff4ff}
+    * {box-sizing:border-box}
+    main {max-width:850px; margin:4rem auto; padding:0 1rem}
+    h1 {margin-bottom:.35rem}
+    p {line-height:1.5; color:#becbe2}
+    article {background:#141d32; border:1px solid #354761; border-radius:14px; padding:1.3rem; margin:1rem 0}
+    input,button {font:inherit; padding:.7rem; max-width:100%; border-radius:7px}
+    input {display:block; width:100%; margin:1rem 0; background:#1c2842; color:#fff}
+    button {background:#6ae6be; color:#091a1a; border:0; font-weight:700; cursor:pointer}
+    button:focus-visible,input:focus-visible {outline:3px solid #ffdf8f; outline-offset:3px}
+    pre {background:#080c18; padding:1rem; overflow:auto; border-radius:10px; white-space:pre-wrap; word-break:break-word}
+    small {color:#b5c5df}
+  </style>
+</head>
+<body>
+<main>
+  <h1>ΦPACK Workshop</h1>
+  <p>Portable game content for PixelForgeStudio. First adapter: v5.11 Runtime Composer scenes. Offline-friendly, local browser processing, no script execution.</p>
+  <article>
+    <h2>Export scene to .phipack</h2>
+    <label for="source">Choose a v5.11 Runtime Scene JSON export</label>
+    <input id="source" type="file" accept=".json,application/json">
+    <button id="export">Export ΦPACK</button>
+  </article>
+  <article>
+    <h2>Inspect .phipack</h2>
+    <label for="pack">Choose a local .phipack</label>
+    <input id="pack" type="file" accept=".phipack,application/zip">
+    <button id="inspect">Validate and inspect</button>
+  </article>
+  <article>
+    <h2>Result</h2>
+    <pre id="result" role="status" aria-live="polite">No file selected yet.</pre>
+    <small>Every export defaults to private. File CRC32 checks are not authenticity signatures. Gameplay import requires a supported engine adapter.</small>
+  </article>
+  <p><a href="../index.html" style="color:#6ae6be">Return to PixelForgeStudio</a></p>
+</main>
+<script type="module">
+import { makeRuntimeScenePack, loadRuntimeScenePack } from './core.js';
+const source = document.getElementById('source');
+const pack = document.getElementById('pack');
+const result = document.getElementById('result');
+document.getElementById('export').addEventListener('click', async () => {
+  try {
+    if (!source.files?.[0]) throw new Error('Choose a Runtime Scene JSON file first.');
+    const scene = JSON.parse(await source.files[0].text());
+    const bytes = makeRuntimeScenePack(scene);
+    const blob = new Blob([bytes], { type:'application/zip' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = String(scene.sceneId || 'pixelforge-scene').replace(/[^a-zA-Z0-9_-]+/g, '-') + '.phipack';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    result.textContent = 'Created private ΦPACK from scene: ' + String(scene.title || scene.sceneId) + '\nBytes: ' + bytes.length;
+  } catch (error) { result.textContent = 'Export failed: ' + error.message; }
+});
+document.getElementById('inspect').addEventListener('click', async () => {
+  try {
+    if (!pack.files?.[0]) throw new Error('Choose a .phipack file first.');
+    const bytes = new Uint8Array(await pack.files[0].arrayBuffer());
+    const { manifest, scene } = loadRuntimeScenePack(bytes);
+    result.textContent = JSON.stringify({
+      valid: true, id: manifest.id, title: manifest.title,
+      profile: manifest.profile, assetCount: manifest.assets.length,
+      redistributionAllowed: manifest.rights.redistributionAllowed,
+      scene: { id: scene.sceneId, width: scene.map.width, height: scene.map.height }
+    }, null, 2);
+  } catch (error) { result.textContent = 'Import failed: ' + error.message; }
+});
+</script>
+</body></html>

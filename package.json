@@ -22,7 +22,7 @@
   },
   "scripts": {
     "start": "node scripts/run_python.mjs -m http.server 3690",
-    "test": "npm run test:runtime && npm run test:studio && npm run validate:public-release && npm run validate:adaptation && npm run test:external-assets && npm run test:unreal-export && npm run test:external-glb && npm run test:glb-preview && npm run test:cartridge-bridge && npm run test:spark-loader && npm run test:vr && npm run test:vr-glb && npm run test:vr-textures && npm run test:vr-viewport && npm run test:vr-transform && npm run test:vr-lighting && npm run test:vr-catalog && npm run test:vr-handoff && npm run test:vr-shelf && npm run test:unreal:guard && npm run test:unreal:pilot",
+    "test": "npm run test:phipack && npm run test:runtime && npm run test:studio && npm run validate:public-release && npm run validate:adaptation && npm run test:external-assets && npm run test:unreal-export && npm run test:external-glb && npm run test:glb-preview && npm run test:cartridge-bridge && npm run test:spark-loader && npm run test:vr && npm run test:vr-glb && npm run test:vr-textures && npm run test:vr-viewport && npm run test:vr-transform && npm run test:vr-lighting && npm run test:vr-catalog && npm run test:vr-handoff && npm run test:vr-shelf && npm run test:unreal:guard && npm run test:unreal:pilot",
     "test:runtime": "node --test tests/runtime-*.test.js",
     "test:studio": "node tests/project-validator.test.js",
     "validate:demo": "node scripts/validate_project.js data/journey_to_parallax_institute.v5.0.demo.json",
@@ -178,7 +178,11 @@
     "asset:unreal:guard": "node scripts/guarded_unreal_export.js",
     "test:unreal:guard": "node --check scripts/lib/guarded_unreal_runner.js && node --check scripts/guarded_unreal_export.js && node --test tests/guarded-unreal-runner.test.js",
     "asset:unreal:pilot": "node scripts/unreal_first_run_pilot.js",
-    "test:unreal:pilot": "node --check scripts/unreal_first_run_pilot.js && node --check scripts/lib/unreal_first_run_pilot.js && node --test tests/unreal-first-run-pilot.test.js"
+    "test:unreal:pilot": "node --check scripts/unreal_first_run_pilot.js && node --check scripts/lib/unreal_first_run_pilot.js && node --test tests/unreal-first-run-pilot.test.js",
+    "test:phipack": "node --test tests/phipack*.test.js",
+    "phipack:build": "node scripts/phipack.mjs build",
+    "phipack:inspect": "node scripts/phipack.mjs inspect",
+    "phipack:validate": "node scripts/phipack.mjs validate"
   },
   "keywords": [
     "16-bit",

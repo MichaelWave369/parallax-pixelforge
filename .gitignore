@@ -11,3 +11,6 @@ coverage/
 exports/**/*.tmp
 local-assets/
 exports/external-assets/
+
+# Creator-owned portable game content is private until explicitly published
+*.phipack
