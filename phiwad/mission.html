@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ΦWAD Mission Builder | PixelForgeStudio</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui,sans-serif;background:#0a1020;color:#f1f5ff}
+*{box-sizing:border-box}main{max-width:950px;margin:2rem auto;padding:0 16px}
+h1{margin-bottom:0}p{color:#c2cee6;line-height:1.5}
+section{border:1px solid #3e5270;background:#131e34;border-radius:14px;padding:1.1rem;margin:1rem 0}
+input,select,button{font:inherit;max-width:100%;padding:.6rem;border-radius:6px}
+input,select{background:#202d46;color:#fff}
+input[type=file]{display:block;width:100%;margin:8px 0}
+button{background:#77edc5;color:#081c18;border:0;font-weight:700;cursor:pointer;margin:.4rem .4rem .4rem 0}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,canvas:focus-visible{outline:3px solid #ffe69c;outline-offset:3px}
+label{display:block;margin:12px 0}canvas{display:block;width:100%;max-width:580px;aspect-ratio:29/25;background:#05080f;border:2px solid #475b80;image-rendering:pixelated;touch-action:manipulation;cursor:crosshair}
+pre{white-space:pre-wrap;word-break:break-word;max-height:270px;overflow:auto;background:#0b1120;border-radius:8px;padding:1rem;font-size:.86rem}
+small{color:#b5c5df}a{color:#8bffdb}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+</style></head><body><main>
+<h1>ΦWAD Mission Builder</h1>
+<p>Turn a raycaster map into an author-reviewed <strong>Michael & Ori style relay mission</strong>. Place two relays, the gold key and an extraction portal, then test reachability before exporting. This does not patch the original game's executable or checkpoint system.</p>
+<section>
+  <h2>1. Import an authored .phiwad</h2>
+  <label for="packFile">Choose a ΦWAD raycaster level<input id="packFile" type="file" accept=".phiwad,.phipack,application/zip"></label>
+  <button id="open">Open level</button>
+  <p><small>Maps must fit the current game's 29 × 25 grid; smaller maps are centered on export. Locked doors, secrets and texture assets require a later adapter.</small></p>
+</section>
+<section>
+<h2>2. Place mission objects</h2>
+<div class="controls">
+<label for="tool">Paint tool
+<select id="tool">
+<option value="relay0">Control relay 1</option>
+<option value="relay1">Control relay 2</option>
+<option value="key">Golden access key</option>
+<option value="exit">Extraction portal</option>
+<option value="enemy:plugged">Enemy: plugged host</option>
+<option value="enemy:repeater">Enemy: repeater</option>
+<option value="enemy:enforcer">Enemy: enforcer</option>
+<option value="enemy:crawler">Enemy: crawler</option>
+<option value="enemy:warden">Enemy: Warden</option>
+<option value="item:health">Pickup: health</option>
+<option value="item:armor">Pickup: armor</option>
+<option value="item:energy">Pickup: energy</option>
+<option value="item:artifact">Pickup: artifact</option>
+<option value="captive">Captive mind</option>
+<option value="erase">Erase placed object</option>
+</select></label>
+</div>
+<canvas id="map" width="464" height="400" tabindex="0" aria-label="Interactive top down level map. Click to place mission items."></canvas>
+<p><small>Dark cells are solid. Cyan is walkable. The white marker is player spawn; green/red/yellow/purple markers identify mission targets. Select a tool and click a walkable tile. Coordinate placement also works with keyboard: focus map, use arrows to move the selection, and press Enter to place.</small></p>
+</section>
+<section>
+<h2>3. Validate and export</h2>
+<button id="validate" disabled>Validate mission</button>
+<button id="export" disabled>Download mission .phiwad</button>
+<button id="handoff" disabled>Download 29×25 handoff JSON</button>
+<pre id="status" role="status" aria-live="polite">Import a .phiwad to begin.</pre>
+<p><small>Exports are local-only and preserve the imported package's author-supplied rights declaration. The handoff is review-only until Michael & Ori's own loader accepts it.</small></p>
+</section>
+<p><a href="./">Back to ΦWAD Workshop</a> · <a href="../">PixelForgeStudio</a></p>
+</main><script type="module">
+import { loadPhiWad } from './level.js';
+import { MISSION_PROFILE,validateMission,createMissionPack,toMichaelOriHandoff } from './mission.js';
+const get=id=>document.getElementById(id);
+const cv=get('map'),ctx=cv.getContext('2d'),message=get('status');
+let level=null,manifest=null,mission=null,selection={x:1,y:1};
+const empty=()=>({profile:MISSION_PROFILE,relays:[null,null],key:null,exit:null,enemies:[],items:[],captives:[]});
+function tile(pos){return pos?Math.floor(pos.x)+','+Math.floor(pos.y):''}
+function allObjects(){
+ if(!mission)return [];
+ return [['R1',mission.relays[0],'#74f4c2'],['R2',mission.relays[1],'#74f4c2'],
+ ['K',mission.key,'#ffdb75'],['X',mission.exit,'#d191ff'],
+ ...mission.enemies.map(x=>['E',x,'#ff8886']),
+ ...mission.items.map(x=>['+',x,'#a9d6fc']),
+ ...mission.captives.map(x=>['C',x,'#fff4b3'])].filter(x=>x[1]);
+}
+function draw(){
+ const w=level?.width||29,h=level?.height||25,t=16;
+ cv.width=w*t;cv.height=h*t;cv.style.aspectRatio=w+'/'+h;
+ ctx.fillStyle='#070c18';ctx.fillRect(0,0,cv.width,cv.height);
+ if(!level)return;
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const wall=level.walls[y*w+x];
+  ctx.fillStyle=wall?'#232f45':'#17505b';
+  ctx.fillRect(x*t,y*t,t-1,t-1);
+ }
+ ctx.fillStyle='#fff';ctx.fillRect(Math.floor(level.spawn.x)*t+3,Math.floor(level.spawn.y)*t+3,10,10);
+ for(const [label,pos,color] of allObjects()){
+  ctx.fillStyle=color;ctx.fillRect(Math.floor(pos.x)*t+1,Math.floor(pos.y)*t+1,14,14);
+  ctx.fillStyle='#08121d';ctx.font='bold 9px monospace';
+  ctx.fillText(label,Math.floor(pos.x)*t+2,Math.floor(pos.y)*t+11);
+ }
+ ctx.strokeStyle='#fffd9d';ctx.lineWidth=2;
+ ctx.strokeRect(selection.x*t+1,selection.y*t+1,t-2,t-2);
+}
+function validTile(x,y){
+ return level && x>=1 && y>=1 && x<level.width-1 && y<level.height-1 && level.walls[y*level.width+x]===0;
+}
+function updateStatus(){
+ if(!level)return;
+ const report=validateMission(level,mission);
+ message.textContent=JSON.stringify({missionValid:report.ok,errors:report.errors,reachableTiles:report.reachableCount,
+  objects:{relays:mission.relays.filter(Boolean).length,key:!!mission.key,exit:!!mission.exit,
+   enemies:mission.enemies.length,pickups:mission.items.length,captives:mission.captives.length}},null,2);
+ get('export').disabled=!report.ok;get('handoff').disabled=!report.ok;
+}
+function place(x,y){
+ if(!level)return;
+ selection={x,y};
+ const tool=get('tool').value;
+ const spot={x:x+.5,y:y+.5};
+ if(tool==='erase'){
+  mission.relays=mission.relays.map(p=>tile(p)===tile(spot)?null:p);
+  for(const field of ['key','exit'])if(tile(mission[field])===tile(spot))mission[field]=null;
+  for(const field of ['enemies','items','captives'])mission[field]=mission[field].filter(p=>tile(p)!==tile(spot));
+ }else if(validTile(x,y)){
+  if(tool==='relay0'||tool==='relay1')mission.relays[Number(tool.at(-1))]=spot;
+  else if(tool==='key'||tool==='exit')mission[tool]=spot;
+  else if(tool==='captive')mission.captives.push(spot);
+  else{
+   const [kind,type]=tool.split(':');
+   if(kind==='enemy'&&mission.enemies.length<64)mission.enemies.push({...spot,type});
+   if(kind==='item'&&mission.items.length<64)mission.items.push({...spot,type});
+  }
+ }
+ draw();updateStatus();
+}
+cv.addEventListener('click',e=>{
+ const box=cv.getBoundingClientRect();
+ if(!level)return;
+ const x=Math.floor((e.clientX-box.left)/box.width*cv.width/16);
+ const y=Math.floor((e.clientY-box.top)/box.height*cv.height/16);
+ place(x,y);
+});
+cv.addEventListener('keydown',e=>{
+ if(!level)return;
+ const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];
+ if(d){e.preventDefault();selection={x:Math.max(0,Math.min(level.width-1,selection.x+d[0])),
+ y:Math.max(0,Math.min(level.height-1,selection.y+d[1]))};draw();}
+ if(e.key==='Enter'||e.key===' '){e.preventDefault();place(selection.x,selection.y);}
+});
+get('open').addEventListener('click',async()=>{
+ try{
+  if(!get('packFile').files?.[0])throw Error('Choose a .phiwad file first.');
+  const data=new Uint8Array(await get('packFile').files[0].arrayBuffer());
+  const imported=loadPhiWad(data);
+  level=imported.level;manifest=imported.manifest;
+  mission=level.mission?.profile===MISSION_PROFILE?structuredClone(level.mission):empty();
+  selection={x:Math.floor(level.spawn.x),y:Math.floor(level.spawn.y)};
+  if(level.width>29||level.height>25)throw Error('This map is larger than the game currently supports.');
+  get('validate').disabled=false;draw();updateStatus();cv.focus();
+ }catch(error){message.textContent='Import failed: '+error.message;level=null;mission=null;
+  get('validate').disabled=true;get('export').disabled=true;get('handoff').disabled=true;draw();}
+});
+get('validate').addEventListener('click',updateStatus);
+function save(bytes,name,type){
+ const url=URL.createObjectURL(new Blob([bytes],{type}));
+ const a=document.createElement('a');a.href=url;a.download=name;a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+get('export').addEventListener('click',()=>{
+ try{
+  const result=createMissionPack(level,mission,{id:manifest.id,title:manifest.title,
+   license:manifest.rights.license,redistributionAllowed:manifest.rights.redistributionAllowed});
+  save(result,level.id.replace(/[^a-zA-Z0-9_-]/g,'-')+'-mission.phiwad','application/zip');
+ }catch(error){message.textContent='Export failed: '+error.message}
+});
+get('handoff').addEventListener('click',()=>{
+ try{
+  const result=toMichaelOriHandoff(level,mission);
+  save(new TextEncoder().encode(JSON.stringify(result,null,2)),level.id.replace(/[^a-zA-Z0-9_-]/g,'-')+'-game-handoff.json','application/json');
+ }catch(error){message.textContent='Handoff failed: '+error.message}
+});
+draw();
+</script></body></html>
