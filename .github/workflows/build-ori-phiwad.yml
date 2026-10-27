@@ -1,0 +1,35 @@
+name: Build Michael & Ori ΦWAD Edition
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PixelForge integration
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Run guarded installer regression tests
+        run: python -m unittest discover -s tests -p phiwad_integration_test.py -v
+      - name: Fetch the game's original public source ZIP
+        run: |
+          curl --fail --location --retry 3 --connect-timeout 15 --max-time 90 \
+            --output game-source.zip \
+            "https://michael-wave-ori-break-the-matrix.microneesia79.chatgpt.site/game-source.zip"
+      - name: Build a separate ΦWAD-enabled copy
+        run: python scripts/install_ori_phiwad.py game-source.zip Michael-Ori-PhiWad-v0.3.0.zip
+      - name: Verify output archive integrity
+        run: python -m zipfile -t Michael-Ori-PhiWad-v0.3.0.zip
+      - name: Publish downloadable patched game source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Michael-Ori-PhiWad-v0.3.0
+          path: Michael-Ori-PhiWad-v0.3.0.zip
+          retention-days: 30
