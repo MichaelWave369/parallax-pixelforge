@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { convertRuntimeSceneToRaycaster, validateRaycasterLevel, buildPhiWad, loadPhiWad, PHIWAD_PROFILE } from '../phiwad/level.js';
 import { loadRuntimeScenePack, makeRuntimeScenePack } from '../phipack/core.js';
-import { createPixelForgeRegistry } from '../phipack/registry.js';
+import { createPixelForgeRegistry, createReferenceRaycasterRegistry } from '../phipack/registry.js';
 
 const scene = JSON.parse(fs.readFileSync(
   'games/the-legend-of-more-bounce/runtime/bouncehome-grove.runtime-scene.v5.11.json', 'utf8'));
@@ -53,4 +53,11 @@ test('runtime scene adapter remains independent and raycaster adapter is not imp
   const scenePack=makeRuntimeScenePack(scene);
   assert.equal(registry.load('pixelforge-runtime-composer',scenePack).scene.sceneId,scene.sceneId);
   assert.throws(() => registry.load('phi369-raycaster',buildPhiWad(scene)),/No adapter/);
+});
+
+test('reference raycaster opt-in adapter loads only its declared level profile', () => {
+  const registry = createReferenceRaycasterRegistry();
+  const bytes = buildPhiWad(scene);
+  assert.equal(registry.load('phiwad-reference-raycaster', bytes).level.format, PHIWAD_PROFILE);
+  assert.throws(() => registry.load('phiwad-reference-raycaster', makeRuntimeScenePack(scene)), /does not support/);
 });
