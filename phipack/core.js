@@ -27,7 +27,7 @@ function crc32(data) {
   }
   return (c ^ 0xffffffff) >>> 0;
 }
-const hexCRC = data => crc32(data).toString(16).padStart(8, '0');
+export const hexCRC = data => crc32(data).toString(16).padStart(8, '0');
 const u16 = (dv, at, n) => dv.setUint16(at, n, true);
 const u32 = (dv, at, n) => dv.setUint32(at, n >>> 0, true);
 function concat(chunks) {
@@ -44,7 +44,9 @@ export function validateManifest(m) {
   if (m.format !== 'phipack' || m.formatVersion !== PHIPACK_VERSION) errors.push('Unsupported format or version');
   if (typeof m.id !== 'string' || !/^[a-z0-9][a-z0-9._-]{2,79}$/i.test(m.id)) errors.push('Invalid package id');
   if (typeof m.title !== 'string' || !m.title.trim() || m.title.length > 160) errors.push('Invalid title');
-  if (m.kind !== 'scene' || m.profile !== 'pixelforge.runtime-scene.v5.11') errors.push('Unsupported scene kind/profile');
+  if (!((m.kind === 'scene' && m.profile === 'pixelforge.runtime-scene.v5.11') ||
+        (m.kind === 'level' && m.profile === 'phi369.raycaster-level.v0.1')))
+    errors.push('Unsupported kind/profile combination');
   try { safePath(m.entry); } catch { errors.push('Invalid entry path'); }
   if (!Array.isArray(m.assets) || !m.assets.length || m.assets.length >= MAX_FILES) {
     errors.push('Invalid assets array');
