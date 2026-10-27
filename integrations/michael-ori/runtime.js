@@ -22,7 +22,8 @@ function missionSector(layout, title) {
     rooms: [[1, 1, 27, 23]], halls: [], doors: [], pillars: [],
     relays: layout.relays.map(toCoords), key: toCoords(layout.key),
     exit: toCoords(layout.exit), enemies, items,
-    captives: layout.captives.map(toCoords), secret: [1, 1]
+    captives: layout.captives.map(toCoords), secret: [1, 1],
+    theme: { rooms: ['CUSTOM SIGNAL'], signs: [], props: [] }
   };
 }
 function assertHandoff(data) {
@@ -41,10 +42,11 @@ function assertHandoff(data) {
 export function installPhiWadLoader({
   game, sectors, titleScreen, enterGame, restartCampaign, notify
 }) {
-  if (!game || !Array.isArray(sectors) || sectors.length !== 6 ||
+  if (!game || !Array.isArray(sectors) || sectors.length < 6 || sectors.length > 48 ||
       !titleScreen || typeof enterGame !== 'function' ||
       typeof restartCampaign !== 'function')
     throw new Error('ΦWAD loader requires the canonical v0.2.1 game shell');
+  const campaignSectorCount = sectors.length;
   let addedIndex = null;
   let loading = false;
   const input = document.createElement('input');
@@ -80,8 +82,8 @@ export function installPhiWadLoader({
       const handoff = toMichaelOriHandoff(level, mission);
       const l = assertHandoff(handoff);
       if (addedIndex !== null) exitCustom();
-      if (sectors.length !== 6) throw new Error('Campaign sector count has changed');
-      addedIndex = sectors.length;
+      if (sectors.length !== campaignSectorCount) throw new Error('Campaign sector count has changed');
+      addedIndex = campaignSectorCount;
       sectors.push(missionSector(l, manifest.title));
       try {
         game.totalFreed = 0; game.totalArtifacts = 0;

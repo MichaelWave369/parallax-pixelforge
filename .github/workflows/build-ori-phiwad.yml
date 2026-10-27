@@ -2,6 +2,12 @@ name: Build Michael & Ori ΦWAD Edition
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "integrations/michael-ori/runtime.js"
+      - "scripts/install_ori_phiwad.py"
+      - "tests/phiwad_integration_test.py"
+      - ".github/workflows/build-ori-phiwad.yml"
 
 permissions:
   contents: read
@@ -26,7 +32,21 @@ jobs:
       - name: Build a separate ΦWAD-enabled copy
         run: python scripts/install_ori_phiwad.py game-source.zip Michael-Ori-PhiWad-v0.3.0.zip
       - name: Verify output archive integrity
-        run: python -m zipfile -t Michael-Ori-PhiWad-v0.3.0.zip
+        run: |
+          python -m zipfile -t Michael-Ori-PhiWad-v0.3.0.zip
+          python - <<'PY'
+          from zipfile import ZipFile
+          with ZipFile('Michael-Ori-PhiWad-v0.3.0.zip') as z:
+              files = z.namelist()
+              roots = [name[:-len('src/phi-content/runtime.js')] for name in files if name.endswith('src/phi-content/runtime.js') and '/dist/' not in name]
+              assert len(roots) == 1, roots
+              root = roots[0]
+              main = z.read(root+'dist/src/main.js').decode('utf-8')
+              sw = z.read(root+'dist/sw.js').decode('utf-8')
+              assert 'LOAD ΦWAD CUSTOM MISSION' in z.read(root+'dist/src/phi-content/runtime.js').decode('utf-8')
+              assert "import {installPhiWadLoader}" in main
+              assert 'phi-content/runtime.js' in sw
+          PY
       - name: Publish downloadable patched game source artifact
         uses: actions/upload-artifact@v4
         with:
