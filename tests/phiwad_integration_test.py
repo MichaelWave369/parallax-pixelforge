@@ -52,11 +52,40 @@ class PhiWadInstallerTest(unittest.TestCase):
             self.assertIn("installPhiWadLoader(",js)
             self.assertIn("ΦWAD CUSTOM MISSION COMPLETE",js)
             self.assertIn("import {installPhiWadLoader}",js)
-            self.assertIn("||{rooms:[],signs:[],props:[]}",result[PREFIX+side+"src/expansion.js"].decode())
+            self.assertIn("||def.theme||{rooms:[],signs:[],props:[]}",result[PREFIX+side+"src/expansion.js"].decode())
             for dest in PATCH.COPIES:
                 self.assertIn(PREFIX+side+"src/"+dest,result)
         self.assertIn("phi-content/runtime.js",result[PREFIX+"dist/sw.js"].decode())
         self.assertEqual(result[PREFIX+"dist/src/core.js"],b"// Original game code left unchanged.")
+
+    def test_current_multiact_source_uses_newline_result_anchor_and_theme_fallback(self):
+        # Latest live build moved the closing brace to the next line and
+        # expanded to twelve authored sectors with def.theme fallback.
+        modern = MAIN.replace(
+            "function result(){showScreen('result-screen');}",
+            "function result(){\n"
+            "  const continuation = game.levelIndex < SECTORS.length - 1;\n"
+            "  $('result-btn').innerHTML = continuation ? 'NEXT ACT' : 'AGAIN';\n"
+            "  showScreen('result-screen');\n"
+            "}"
+        )
+        patched = PATCH.patch_main(modern)
+        self.assertEqual(patched.count("ΦWAD CUSTOM MISSION COMPLETE"), 1)
+        self.assertEqual(patched.count("showScreen('result-screen');"), 1)
+        expanded = EXPANSION.replace(
+            "const theme=THEMES[index];",
+            "const theme=THEMES[index]||def.theme;"
+        )
+        upgraded = PATCH.patch_expansion(expanded)
+        self.assertIn("THEMES[index]||def.theme||{rooms:[],signs:[],props:[]}", upgraded)
+        self.assertEqual(upgraded.count("const theme=THEMES[index]"), 1)
+
+    def test_runtime_supports_additive_custom_sector_after_any_valid_campaign(self):
+        runtime = (ROOT / "integrations/michael-ori/runtime.js").read_text("utf-8")
+        self.assertIn("const campaignSectorCount = sectors.length", runtime)
+        self.assertIn("addedIndex = campaignSectorCount", runtime)
+        self.assertIn("theme: { rooms: ['CUSTOM SIGNAL']", runtime)
+        self.assertNotIn("sectors.length !== 6", runtime)
 
     def test_rejects_version_drift_and_double_patch(self):
         orig=MAIN.replace("function saveCheckpoint(){if(game.player.health<=0)return;","function saveCheckpoint(){return;")
