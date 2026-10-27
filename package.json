@@ -179,7 +179,7 @@
     "test:unreal:guard": "node --check scripts/lib/guarded_unreal_runner.js && node --check scripts/guarded_unreal_export.js && node --test tests/guarded-unreal-runner.test.js",
     "asset:unreal:pilot": "node scripts/unreal_first_run_pilot.js",
     "test:unreal:pilot": "node --check scripts/unreal_first_run_pilot.js && node --check scripts/lib/unreal_first_run_pilot.js && node --test tests/unreal-first-run-pilot.test.js",
-    "test:phipack": "node --test tests/phipack.test.js",
+    "test:phipack": "node --test tests/phipack*.test.js",
     "phipack:build": "node scripts/phipack.mjs build",
     "phipack:inspect": "node scripts/phipack.mjs inspect",
     "phipack:validate": "node scripts/phipack.mjs validate"
