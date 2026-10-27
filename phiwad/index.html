@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ΦWAD Raycaster Workshop | PixelForgeStudio</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui,sans-serif;background:#0a0e1c;color:#f1f5ff}
+*{box-sizing:border-box}body{margin:0}main{max-width:1050px;margin:2rem auto;padding:0 16px}
+h1{margin-bottom:.3rem}p{color:#c0cbe1;line-height:1.5}
+.panel{background:#141e33;border:1px solid #34445e;padding:16px;border-radius:12px;margin:16px 0}
+button,input{font:inherit;padding:10px;color:inherit;border-radius:8px}input{display:block;max-width:100%;margin:8px 0;width:100%;background:#1a2842}
+button{color:#07231c;background:#78efc6;border:0;cursor:pointer;font-weight:700;margin:4px 4px 4px 0}
+button:focus-visible,input:focus-visible,canvas:focus-visible{outline:3px solid #fbd580;outline-offset:3px}
+label{display:block;margin:10px 0}
+canvas{width:100%;height:auto;max-width:960px;border:2px solid #3c5473;background:#05080e;image-rendering:pixelated}
+pre{max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-word;background:#0c1323;padding:12px;border-radius:8px}
+a{color:#78efc6}
+small{color:#afc3de}
+</style>
+</head>
+<body>
+<main>
+<h1>ΦWAD Raycaster Workshop</h1>
+<p>Convert PixelForge Runtime Composer collision geometry into a portable, data-only raycaster level. Inspect, test-walk and export. This is a <strong>reference player</strong>, not a Michael & Ori game integration.</p>
+<section class="panel">
+<h2>Author a .phiwad</h2>
+<label>PixelForge v5.11 Runtime Scene JSON
+<input id="sceneFile" type="file" accept=".json,application/json"></label>
+<button id="convert">Convert and preview</button><button id="download" disabled>Download .phiwad</button>
+</section>
+<section class="panel">
+<h2>Inspect an existing .phiwad</h2>
+<label>ΦWAD portable level ZIP
+<input id="wadFile" type="file" accept=".phiwad,.phipack,application/zip"></label>
+<button id="load">Validate and preview</button>
+</section>
+<section class="panel">
+<h2>Reference raycaster</h2>
+<canvas id="stage" width="640" height="360" tabindex="0" aria-label="Raycaster first-person preview"></canvas>
+<p><small>Controls: WASD move/strafe, left and right arrows turn. Xbox controller: left stick move/strafe, right stick horizontal turn. All local, no shooting or enemies in this reference preview.</small></p>
+<pre id="status" aria-live="polite">Demo map loaded. Choose a Runtime Scene JSON to export a ΦWAD.</pre>
+</section>
+<p><a href="../index.html">Return to PixelForgeStudio</a> · <a href="../phipack/">ΦPACK Workshop</a></p>
+</main>
+<script type="module">
+import { buildPhiWad, loadPhiWad } from './level.js';
+const canvas=document.getElementById('stage'),ctx=canvas.getContext('2d');
+const message=document.getElementById('status'),download=document.getElementById('download');
+const sceneInput=document.getElementById('sceneFile'),wadInput=document.getElementById('wadFile');
+const keys=new Set();let bytes=null, level=null, pos=null, angle=0, previous=performance.now();
+function demo(){
+ const w=16,h=12,walls=Array(w*h).fill(0);
+ for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+   if(!x||!y||x===w-1||y===h-1||((x===6||x===10)&&y>2&&y<9)) walls[y*w+x]=1;
+ }
+ walls[5*w+6]=0;walls[7*w+10]=0;
+ return {id:'demo',title:'Reference Demo',width:w,height:h,walls,spawn:{x:3.5,y:5.5,angle:0},exits:[]};
+}
+function activate(data){
+ level=data;pos={x:level.spawn.x,y:level.spawn.y};angle=level.spawn.angle;
+ canvas.focus();
+}
+activate(demo());
+function solid(x,y){
+ const tx=Math.floor(x),ty=Math.floor(y);
+ return tx<0||ty<0||tx>=level.width||ty>=level.height||level.walls[ty*level.width+tx]===1;
+}
+function allowed(x,y){
+ const r=.16;
+ return !solid(x-r,y-r)&&!solid(x+r,y-r)&&!solid(x-r,y+r)&&!solid(x+r,y+r);
+}
+function movement(dt){
+ let forward=Number(keys.has('w')||keys.has('ArrowUp'))-Number(keys.has('s')||keys.has('ArrowDown'));
+ let strafe=Number(keys.has('d'))-Number(keys.has('a'));
+ let turn=Number(keys.has('ArrowRight'))-Number(keys.has('ArrowLeft'));
+ const pad=navigator.getGamepads?.().find(p=>p&&p.connected);
+ if(pad){
+   const dead=v=>Math.abs(v)>0.16?v:0;
+   forward+=-dead(pad.axes[1]||0);
+   strafe+=dead(pad.axes[0]||0);
+   turn+=dead(pad.axes[2]||0)*1.5;
+ }
+ angle+=turn*2.3*dt;
+ const mag=Math.max(1,Math.hypot(forward,strafe));
+ forward/=mag;strafe/=mag;
+ const vx=(Math.cos(angle)*forward+Math.cos(angle+Math.PI/2)*strafe)*3*dt;
+ const vy=(Math.sin(angle)*forward+Math.sin(angle+Math.PI/2)*strafe)*3*dt;
+ if(allowed(pos.x+vx,pos.y))pos.x+=vx;
+ if(allowed(pos.x,pos.y+vy))pos.y+=vy;
+}
+function render(){
+ const w=canvas.width,h=canvas.height;
+ ctx.fillStyle='#25334c';ctx.fillRect(0,0,w,h/2);
+ ctx.fillStyle='#131723';ctx.fillRect(0,h/2,w,h/2);
+ const FOV=Math.PI/2.7,columns=160,strip=w/columns;
+ for(let i=0;i<columns;i++){
+   const diff=(i/(columns-1)-.5)*FOV;
+   const rayAngle=angle+diff,rx=Math.cos(rayAngle),ry=Math.sin(rayAngle);
+   let gridX=Math.floor(pos.x),gridY=Math.floor(pos.y);
+   const dx=Math.abs(1/(rx||1e-9)),dy=Math.abs(1/(ry||1e-9));
+   const stepX=rx<0?-1:1,stepY=ry<0?-1:1;
+   let sideX=(rx<0?pos.x-gridX:gridX+1-pos.x)*dx;
+   let sideY=(ry<0?pos.y-gridY:gridY+1-pos.y)*dy;
+   let side=0,dist=100;
+   for(let j=0;j<256;j++){
+     if(sideX<sideY){dist=sideX;sideX+=dx;gridX+=stepX;side=0}
+     else{dist=sideY;sideY+=dy;gridY+=stepY;side=1}
+     if(gridX<0||gridY<0||gridX>=level.width||gridY>=level.height||
+       level.walls[gridY*level.width+gridX]===1)break;
+   }
+   const corrected=Math.max(.05,dist*Math.cos(diff));
+   const height=Math.min(h*3,h/Math.max(.1,corrected));
+   const lum=Math.max(23,170-Math.min(125,corrected*12)-(side?35:0));
+   ctx.fillStyle='rgb('+Math.floor(lum*.6)+','+Math.floor(lum*.82)+','+Math.floor(lum)+')';
+   ctx.fillRect(Math.floor(i*strip),Math.floor(h/2-height/2),Math.ceil(strip)+1,Math.ceil(height));
+ }
+ ctx.fillStyle='rgba(7,11,20,.78)';ctx.fillRect(10,10,Math.min(390,w-20),39);
+ ctx.fillStyle='#eafcff';ctx.font='bold 15px monospace';ctx.fillText(level.title.slice(0,36),20,34);
+ ctx.strokeStyle='#dbe7fb';ctx.beginPath();ctx.moveTo(w/2-9,h/2);ctx.lineTo(w/2+9,h/2);
+ ctx.moveTo(w/2,h/2-9);ctx.lineTo(w/2,h/2+9);ctx.stroke();
+}
+function tick(now){
+ const dt=Math.min(.04,(now-previous)/1000||0);previous=now;
+ movement(dt);render();requestAnimationFrame(tick);
+}
+window.addEventListener('keydown',event=>{
+ const k=event.key.length===1?event.key.toLowerCase():event.key;
+ if(['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(k)){
+   event.preventDefault();keys.add(k);
+ }
+});
+window.addEventListener('keyup',event=>keys.delete(event.key.length===1?event.key.toLowerCase():event.key));
+window.addEventListener('blur',()=>keys.clear());
+document.getElementById('convert').addEventListener('click',async()=>{
+ try {
+  if(!sceneInput.files?.[0])throw Error('Choose a Runtime Scene JSON first.');
+  const scene=JSON.parse(await sceneInput.files[0].text());
+  const output=buildPhiWad(scene),parsed=loadPhiWad(output);
+  activate(parsed.level);bytes=output;download.disabled=false;
+  message.textContent=JSON.stringify({
+   status:'Converted and validated',sourceScene:scene.sceneId,
+   dimensions:[parsed.level.width,parsed.level.height],
+   exits:parsed.level.exits.length,bytes:output.length,
+   note:'Geometry only. No imported enemies, textures or gameplay rules.',
+   omittedFeatures:parsed.level.omittedFeatures
+  },null,2);
+ }catch(error){message.textContent='Conversion failed: '+error.message}
+});
+document.getElementById('download').addEventListener('click',()=>{
+ if(!bytes||!level)return;
+ const url=URL.createObjectURL(new Blob([bytes],{type:'application/zip'}));
+ const a=document.createElement('a');a.href=url;
+ a.download=String(level.id||'level').replace(/[^a-zA-Z0-9_-]/g,'-')+'.phiwad';a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+document.getElementById('load').addEventListener('click',async()=>{
+ try{
+  if(!wadInput.files?.[0])throw Error('Choose a .phiwad file first.');
+  const data=new Uint8Array(await wadInput.files[0].arrayBuffer());
+  const parsed=loadPhiWad(data);activate(parsed.level);bytes=data;download.disabled=false;
+  message.textContent=JSON.stringify({
+   status:'Verified portable package',id:parsed.manifest.id,
+   profile:parsed.manifest.profile,
+   dimensions:[parsed.level.width,parsed.level.height],
+   rights:parsed.manifest.rights,
+   note:'Reference preview only. Engine-specific gameplay loading is not yet connected.'
+  },null,2);
+ }catch(error){message.textContent='Import failed: '+error.message}
+});
+requestAnimationFrame(tick);
+</script>
+</body></html>
