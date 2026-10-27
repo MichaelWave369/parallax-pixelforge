@@ -73,7 +73,7 @@ def patch_main(text):
 def patch_expansion(text):
     # The game evolved from six sectors to twelve. Modern versions already
     # have a def.theme fallback, which must be retained for official acts.
-    pattern = r"const theme=THEMES\\[index\\](?:\\|\\|def\\.theme)?;"
+    pattern = r"const theme=THEMES\[index\](?:\|\|def\.theme)?;"
     replacement = "const theme=THEMES[index]||def.theme||{rooms:[],signs:[],props:[]};"
     patched, count = re.subn(pattern, replacement, text)
     if count != 1:
