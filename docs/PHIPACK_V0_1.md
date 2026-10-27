@@ -59,3 +59,25 @@ Games can integrate via an adapter that takes the package's validated scene and 
 5. Integrate BackyardProductionCompany, Domistika, PhiCade, NightCircuit and PhiOS XR through separately qualified adapters.
 
 **Guiding rule:** author content once, reuse it only where a game's adapter explicitly supports it.
+
+
+## Multi-engine adapter negotiation
+
+phipack/registry.js exports createAdapterRegistry() and createPixelForgeRegistry().
+Host games register trusted engine-owned adapters with an engineId, supported profile
+strings, and a load(bytes) implementation. The registry first verifies the pack,
+checks whether that engine explicitly supports the profile, and then invokes its
+adapter. Unknown engines and profiles are rejected. A loaded pack never registers
+its own adapter.
+
+Example:
+
+~~~js
+import { createPixelForgeRegistry } from './phipack/registry.js';
+const registry = createPixelForgeRegistry();
+const result = registry.load('pixelforge-runtime-composer', bytes);
+// result.scene contains the validated v5.11 scene. The host decides what to do.
+~~~
+
+The registry contract is a foundation for future ΦWAD/arcade/3D/XR translators,
+not an assertion that those translators already exist.
