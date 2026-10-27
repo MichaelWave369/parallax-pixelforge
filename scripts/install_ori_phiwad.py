@@ -48,13 +48,13 @@ def patch_main(text):
     )
     text = exact_replace(
         text,
-        "showScreen('result-screen');}",
+        "showScreen('result-screen');",
         """if(game.phiwadCustom&&!dead){
       $('result-eyebrow').textContent='ΦWAD CUSTOM MISSION COMPLETE';
       $('result-copy').textContent='Mission liberated. The original campaign remains unchanged.';
       $('result-btn').textContent='RETURN TO CAMPAIGN';
     }
-    showScreen('result-screen');}""",
+    showScreen('result-screen');""",
         "custom completion screen",
     )
     text = exact_replace(
@@ -71,12 +71,14 @@ def patch_main(text):
 
 
 def patch_expansion(text):
-    return exact_replace(
-        text,
-        "  const theme=THEMES[index];",
-        "  const theme=THEMES[index]||{rooms:[],signs:[],props:[]};",
-        "optional seventh-sector decoration",
-    )
+    # The game evolved from six sectors to twelve. Modern versions already
+    # have a def.theme fallback, which must be retained for official acts.
+    pattern = r"const theme=THEMES\\[index\\](?:\\|\\|def\\.theme)?;"
+    replacement = "const theme=THEMES[index]||def.theme||{rooms:[],signs:[],props:[]};"
+    patched, count = re.subn(pattern, replacement, text)
+    if count != 1:
+        raise ValueError(f"level decorator: expected exactly one theme anchor; got {count}")
+    return patched
 
 
 def patch_sw(text, token):
