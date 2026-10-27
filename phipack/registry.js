@@ -3,6 +3,8 @@
  * An adapter never receives authority to execute code or mutate the host runtime.
  */
 import { decodePack, loadRuntimeScenePack } from './core.js';
+import { loadPhiWad, PHIWAD_PROFILE } from '../phiwad/level.js';
+
 
 export function createAdapterRegistry() {
   const adapters = new Map();
@@ -55,6 +57,17 @@ export function createPixelForgeRegistry() {
     engineId: 'pixelforge-runtime-composer',
     profiles: ['pixelforge.runtime-scene.v5.11'],
     load: loadRuntimeScenePack,
+  });
+  return registry;
+}
+
+/** Explicit opt-in adapter for the reference raycaster viewer, not a game-level auto-loader. */
+export function createReferenceRaycasterRegistry() {
+  const registry = createAdapterRegistry();
+  registry.register({
+    engineId: 'phiwad-reference-raycaster',
+    profiles: [PHIWAD_PROFILE],
+    load: loadPhiWad,
   });
   return registry;
 }
