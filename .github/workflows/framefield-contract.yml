@@ -1,0 +1,36 @@
+name: PixelForge to Framefield pinned contract
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/lib/framefield_glb_preflight.js'
+      - 'scripts/framefield_glb_preflight.js'
+      - 'tests/framefield-glb-preflight.test.js'
+      - 'tests/framefield-pinned-contract.test.js'
+      - 'package.json'
+      - '.github/workflows/framefield-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  framefield-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out PixelForge under review
+        uses: actions/checkout@v4
+      - name: Check out reviewed Framefield importer (pinned; read only)
+        uses: actions/checkout@v4
+        with:
+          repository: MichaelWave369/FramefieldStudio
+          ref: 54be5e82019fc4943021899dcc2e611d0b7b6682
+          path: _framefield_partner
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PixelForge offline GLB preflight tests
+        run: npm run test:framefield:preflight
+      - name: Real cross-repository importer and BPC export contract
+        run: node --test tests/framefield-pinned-contract.test.js
