@@ -80,7 +80,7 @@ export function preflightFramefieldGlb(input){
       'Export uncompressed standard triangle geometry without required extensions.');
   }
   if(doc.animations?.length||doc.skins?.length||
-    doc.nodes?.some(n=>n?.skin!==undefined)){
+    (Array.isArray(doc.nodes)&&doc.nodes.some(n=>n?.skin!==undefined))){
     fail('RIGGING_ANIMATION','GLB rigging and authored animations are not supported.',
       'Export one static mesh and animate object transforms inside Framefield.');
   }
@@ -117,7 +117,8 @@ export function preflightFramefieldGlb(input){
   }
   if(primitive.material!==undefined){
     const index=primitive.material,mat=doc.materials?.[index];
-    if(!integer(index)||!mat||typeof mat!=='object'||Array.isArray(mat)){
+    if(!integer(index)||!Array.isArray(doc.materials)||!mat||
+      typeof mat!=='object'||Array.isArray(mat)){
       fail('MATERIAL_REFERENCE','Material reference is missing or invalid.','Repair material index in the GLB.');
     }else{
       const pbr=mat.pbrMetallicRoughness,factor=pbr?.baseColorFactor??[1,1,1,1];
@@ -137,6 +138,12 @@ export function preflightFramefieldGlb(input){
       !integer(a.count)||a.count<1||a.sparse||a.normalized||!integer(a.bufferView)){
       fail(label+'_ACCESSOR','Unsupported '+label.toLowerCase()+' accessor.',
         'Use tightly packed non-sparse accessors with supported component types.');
+      return null;
+    }
+    if((label==='POSITION'&&a.count>FRAMEFIELD_PROFILE.max_vertices)||
+      (label==='INDICES'&&a.count>FRAMEFIELD_PROFILE.max_triangles*3)){
+      fail(label+'_BUDGET','Declared accessor count exceeds the Framefield budget.',
+        'Simplify or triangulate a smaller mesh before exporting.');
       return null;
     }
     const view=doc.bufferViews?.[a.bufferView];
