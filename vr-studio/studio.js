@@ -249,7 +249,7 @@ showEngine();
 $('engineBrief').addEventListener('click',()=>safe(()=>{
   const entry=getEngineProfile(enginePick.value);
   const brief=createEngineHandoff(world,entry.id);
-  download('pixelforge-'+entry.id+'-handoff.v1.json',JSON.stringify(brief,null,2)+'\\n');
+  download('pixelforge-'+entry.id+'-handoff.v1.json',JSON.stringify(brief,null,2)+'\n');
   status(entry.name+' advisory engine handoff downloaded. Not an installed adapter or playable game.');
 }));
 $('universalGlb').addEventListener('click',()=>safe(()=>{
