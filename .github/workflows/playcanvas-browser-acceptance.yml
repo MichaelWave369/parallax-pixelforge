@@ -1,0 +1,105 @@
+name: PlayCanvas Native Browser Acceptance
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/playcanvas-browser-acceptance.yml"
+      - "tests/engine-acceptance/playcanvas-*"
+      - "vr-studio/playcanvas-project.js"
+      - "vr-studio/playcanvas-visibility.js"
+      - "vr-studio/universal-glb.js"
+      - "vr-studio/gameplay-keys.js"
+      - "vr-studio/world.js"
+      - "vr-studio/godot-package.js"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/playcanvas-browser-acceptance.yml"
+      - "tests/engine-acceptance/playcanvas-*"
+      - "vr-studio/playcanvas-project.js"
+      - "vr-studio/playcanvas-visibility.js"
+      - "vr-studio/universal-glb.js"
+      - "vr-studio/gameplay-keys.js"
+      - "vr-studio/world.js"
+      - "vr-studio/godot-package.js"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chromium-playcanvas:
+    name: PlayCanvas 2.23.3 actual Chromium import and gameplay
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Export real PixelForge interaction ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/playcanvas-native"
+          node --check tests/engine-acceptance/playcanvas-fixture.mjs
+          node tests/engine-acceptance/playcanvas-fixture.mjs "$RUNNER_TEMP/playcanvas-native"
+          unzip -q "$RUNNER_TEMP/playcanvas-native/project.zip" -d "$RUNNER_TEMP/playcanvas-native/project"
+          cp tests/engine-acceptance/playcanvas-browser-smoke.mjs "$RUNNER_TEMP/playcanvas-native/project/playcanvas-browser-smoke.mjs"
+          test -s "$RUNNER_TEMP/playcanvas-native/project/public/world.glb"
+          test -s "$RUNNER_TEMP/playcanvas-native/project/public/gameplay.json"
+
+      - name: Install pinned native engine, Vite and browser tester
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/playcanvas-native/project"
+          npm install --no-audit --no-fund
+          npm install --no-save --no-package-lock --no-audit --no-fund playwright@1.64.1
+          npx playwright install --with-deps chromium
+          test -d node_modules/playcanvas
+          test -d node_modules/vite
+
+      - name: Build unmodified exported PlayCanvas project
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/playcanvas-native/project"
+          npm run build
+          test -s dist/index.html
+          test -s dist/world.glb
+          # Test-only probe: expose imported entity graph in ephemeral source.
+          # Does NOT alter production ZIP or code committed in PixelForge.
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const file='src/main.js',original=readFileSync(file,'utf8');
+          const anchor='  const imported=asset.resource.instantiateRenderEntity();';
+          if(original.split(anchor).length!==2)
+            throw Error('Native PlayCanvas import probe anchor missing or duplicated');
+          writeFileSync(file,original.replace(anchor,
+            anchor+'\n  window.__PIXELFORGE_ACCEPTANCE_GRAPH=imported;'));
+          NODE
+
+      - name: Real Chromium glTF import and keyboard behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/playcanvas-native/project"
+          node --check playcanvas-browser-smoke.mjs
+          node playcanvas-browser-smoke.mjs | tee "$RUNNER_TEMP/playcanvas-native/acceptance.log"
+          for mark in GLB_IMPORT HIDE_E SHOW_SPACE INPUT_GUARDS; do
+            grep -q "^PIXELFORGE_PLAYCANVAS_BROWSER_PASS:$mark$" "$RUNNER_TEMP/playcanvas-native/acceptance.log"
+          done
+
+      - name: Upload browser screenshot and acceptance manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playcanvas-native-browser-evidence
+          path: |
+            ${{ runner.temp }}/playcanvas-native/project/playcanvas-acceptance.png
+            ${{ runner.temp }}/playcanvas-native/project/manifest.json
+            ${{ runner.temp }}/playcanvas-native/acceptance.log
+          if-no-files-found: ignore
+          retention-days: 7
