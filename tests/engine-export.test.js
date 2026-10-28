@@ -46,7 +46,8 @@ test('asset proxies fail closed unless a user explicitly chooses layout placehol
   assert.equal(exportWithProxy.report.status,'STATIC_LAYOUT_WITH_EXPLICIT_PROXIES');
   assert.match(exportWithProxy.content,/metadata\/pixelforge_placeholder_only = true/);
   assert.match(exportWithProxy.content,/ASSET-000021/);
-  assert.doesNotMatch(exportWithProxy.content,/private\.glb/);
+  assert.match(exportWithProxy.content,/metadata\/pixelforge_name = "private\.glb"/);
+  assert.doesNotMatch(exportWithProxy.content,/^\[ext_resource /m); // no GLB file reference or bytes bundled
 });
 test('invalid source data and export options do not create partially trusted exports',()=>{
   const w=newWorld();
