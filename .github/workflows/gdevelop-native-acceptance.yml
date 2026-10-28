@@ -105,6 +105,52 @@ jobs:
             echo "::endgroup::"
           done
 
+      - name: Install Chromium test tools in an ephemeral directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/pixelforge-gdevelop-native"
+          mkdir -p "$root/browser-test"
+          cp tests/engine-acceptance/gdevelop-browser-smoke.mjs "$root/browser-test/gdevelop-browser-smoke.mjs"
+          cd "$root/browser-test"
+          printf '{"name":"pixelforge-gdevelop-acceptance","private":true,"type":"module"}\n' > package.json
+          npm install --no-save --no-audit --no-fund playwright@1.64.1
+          npx playwright install --with-deps chromium
+          node --check gdevelop-browser-smoke.mjs
+
+      - name: Run exported GDevelop HTML5 games inside real Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/pixelforge-gdevelop-native"
+          for fixture in plain hide-e show-space; do
+            project="$root/$fixture"
+            # Add a temporary visibility probe to the *exported runtime copy*,
+            # never to the production PixelForge GDevelop source ZIP.
+            node --input-type=module - "$project/build/index.html" <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const file=process.argv[2],src=readFileSync(file,'utf8');
+          const marker='game.getRenderer().createStandardCanvas(document.body);';
+          if(src.split(marker).length!==2)
+            throw Error('GDevelop native-runtime probe anchor missing/ambiguous.');
+          writeFileSync(file,src.replace(marker,
+            'window.__PF_GDEVELOP_NATIVE_GAME=game;\n'+marker));
+          NODE
+            echo "::group::GDevelop real browser runtime: $fixture"
+            cd "$root/browser-test"
+            node gdevelop-browser-smoke.mjs "$project" "$fixture" \
+              2>&1 | tee "$root/gdevelop-browser-$fixture.log"
+            grep -Fq "PIXELFORGE_GDEVELOP_BROWSER_PASS:SCENE_$(echo "$fixture" | tr '[:lower:]-' '[:upper:]_')" \
+              "$root/gdevelop-browser-$fixture.log"
+            if [ "$fixture" = "hide-e" ]; then
+              grep -Fq 'PIXELFORGE_GDEVELOP_BROWSER_PASS:HIDE_E' "$root/gdevelop-browser-$fixture.log"
+            fi
+            if [ "$fixture" = "show-space" ]; then
+              grep -Fq 'PIXELFORGE_GDEVELOP_BROWSER_PASS:SHOW_SPACE' "$root/gdevelop-browser-$fixture.log"
+            fi
+            echo "::endgroup::"
+          done
+
       - name: Upload source and native export evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -112,6 +158,8 @@ jobs:
           name: gdevelop-native-editor-acceptance
           path: |
             ${{ runner.temp }}/pixelforge-gdevelop-native/gdevelop-*.log
+            ${{ runner.temp }}/pixelforge-gdevelop-native/gdevelop-browser-*.log
+            ${{ runner.temp }}/pixelforge-gdevelop-native/*/gdevelop-*.png
             ${{ runner.temp }}/pixelforge-gdevelop-native/*/pixelforge-manifest.json
           if-no-files-found: ignore
           retention-days: 7

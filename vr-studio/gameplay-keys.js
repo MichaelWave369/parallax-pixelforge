@@ -44,7 +44,7 @@ export function compileGDevelopVisibilityEvents(world,blueprint){
     const target='PF_Obj_'+String(index+1).padStart(3,'0');
     return {
       type:'BuiltinCommonInstructions::Standard',
-      conditions:[{type:{value:'KeyReleased'},parameters:['',rule.key]}],
+      conditions:[{type:{value:'KeyReleased'},parameters:['',rule.key==='space'?'Space':rule.key]}],
       actions:[{type:{value:rule.effect==='hide'?'Hide':'Show'},
         parameters:rule.effect==='hide'?[target]:[target,'']}]
     };
