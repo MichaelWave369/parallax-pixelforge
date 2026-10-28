@@ -1,6 +1,8 @@
 import {newWorld,parseWorld,validateWorld,addObject,editObject,removeObject,renameWorld,editWorldLighting,replaceWorldLighting,MAX_OBJECTS} from './world.js';
 import {exportSceneForEngine} from './engine-export.js';
 import {createGodotProjectPack,MAX_GODOT_PACK_BYTES} from './godot-package.js';
+import {exportUniversalGlb} from './universal-glb.js';
+import {ENGINE_PROFILES,createEngineHandoff,getEngineProfile} from './engine-registry.js';
 import {DEFAULT_LIGHTING,resolvedLighting,lightingPreset,matchingLightingPreset} from './world-lighting.js';
 import {createRenderer} from './renderer.js';
 import {decodeGlbMesh} from './glb-mesh.js';
@@ -228,6 +230,36 @@ $('godotPack').addEventListener('click',async()=>{
   }catch(error){status('GODOT PACK REFUSED: '+error.message);}
   finally{button.disabled=false;}
 });
+// Engine Shelf: an offline-first content handoff. Never launches/install external editors.
+const enginePick=$('engineTarget');
+for(const entry of ENGINE_PROFILES){
+  const option=document.createElement('option');
+  option.value=entry.id;option.textContent=entry.name;
+  enginePick.append(option);
+}
+function showEngine(){
+  const entry=getEngineProfile(enginePick.value);
+  $('engineInfo').textContent=entry.license+' | '+entry.route+' | '+entry.note;
+  $('engineOfficial').href=entry.url;
+  $('engineOfficial').textContent='Official '+entry.name+' site';
+}
+enginePick.value='godot4';
+enginePick.addEventListener('change',showEngine);
+showEngine();
+$('engineBrief').addEventListener('click',()=>safe(()=>{
+  const entry=getEngineProfile(enginePick.value);
+  const brief=createEngineHandoff(world,entry.id);
+  download('pixelforge-'+entry.id+'-handoff.v1.json',JSON.stringify(brief,null,2)+'\\n');
+  status(entry.name+' advisory engine handoff downloaded. Not an installed adapter or playable game.');
+}));
+$('universalGlb').addEventListener('click',()=>safe(()=>{
+  const proxies=world.objects.some(o=>o.kind==='asset-proxy');
+  if(proxies&&!confirm('PRIVATE ASSET WARNING: this standalone GLB CANNOT include your imported mesh files. Export only clearly labeled CUBOID PLACEHOLDERS for them? Cancel to preserve the original assets.'))return;
+  const item=exportUniversalGlb(world,{allowPlaceholders:proxies});
+  download(item.filename,item.bytes,item.mime);
+  status('Universal glTF 2.0 GLB exported: '+item.report.objectCount+
+    ' static cuboids, '+item.report.placeholderCount+' placeholders. Engine import is NOT verified.');
+}));
 $('import').addEventListener('change',async event=>{
   const file=event.target.files?.[0];event.target.value='';
   if(!file)return;
