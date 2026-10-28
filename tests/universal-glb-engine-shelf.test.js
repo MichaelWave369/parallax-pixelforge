@@ -75,6 +75,7 @@ test('engine shelf covers all vetted recommendations without claiming integratio
   }
   assert.throws(()=>getEngineProfile('unknown'));
   assert.equal(createEngineHandoff(newWorld(),'godot4').availableArtifacts.includes('Godot 4 .tscn'),true);
+  assert.equal(createEngineHandoff(newWorld(),'godot4').availableArtifacts.includes('Godot key visibility interaction project ZIP'),true);
   assert.equal(createEngineHandoff(newWorld(),'brutal').availableArtifacts.includes('Godot 4 .tscn'),false);
   assert.equal(createEngineHandoff(newWorld(),'playcanvas').availableArtifacts.includes('Standalone PlayCanvas Engine project ZIP'),true);
   assert.equal(createEngineHandoff(newWorld(),'gdevelop').availableArtifacts.includes('GDevelop native 3D cube project ZIP'),true);
