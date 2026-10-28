@@ -1,4 +1,5 @@
 import {newWorld,parseWorld,validateWorld,addObject,editObject,removeObject,renameWorld,editWorldLighting,replaceWorldLighting,MAX_OBJECTS} from './world.js';
+import {exportSceneForEngine} from './engine-export.js';
 import {DEFAULT_LIGHTING,resolvedLighting,lightingPreset,matchingLightingPreset} from './world-lighting.js';
 import {createRenderer} from './renderer.js';
 import {decodeGlbMesh} from './glb-mesh.js';
@@ -187,8 +188,8 @@ $('save').addEventListener('click',()=>safe(()=>{
   localStorage.setItem(STORAGE,JSON.stringify(validateWorld(world)));
   status('Saved scene to this browser only.');
 }));
-function download(name,raw) {
-  const blob=new Blob([raw],{type:'application/json'});
+function download(name,raw,mime='application/json') {
+  const blob=new Blob([raw],{type:mime});
   const href=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=href;a.download=name;a.click();
   setTimeout(()=>URL.revokeObjectURL(href),1000);
@@ -196,6 +197,14 @@ function download(name,raw) {
 $('export').addEventListener('click',()=>safe(()=>{
   download('pixelforge-vr-world.v1.json',JSON.stringify(validateWorld(world),null,2)+'\n');
   status('Portable scene JSON exported. No assets or executable content included.');
+}));
+$('godotExport').addEventListener('click',()=>safe(()=>{
+  const hasProxies=world.objects.some(object=>object.kind==='asset-proxy');
+  if(hasProxies && !confirm('This world contains private GLB assets. Their real mesh bytes are NOT in the Godot scene. Export clearly labeled layout-only placeholder boxes instead?'))return;
+  const artifact=exportSceneForEngine(world,'godot4',{allowPlaceholders:hasProxies});
+  download(artifact.filename,artifact.content,artifact.mime);
+  status('Godot 4 static scene downloaded: '+artifact.report.objectCount+
+    ' objects, '+artifact.report.proxyCount+' placeholders. No scripts, physics, or GLB bytes.');
 }));
 $('import').addEventListener('change',async event=>{
   const file=event.target.files?.[0];event.target.value='';
