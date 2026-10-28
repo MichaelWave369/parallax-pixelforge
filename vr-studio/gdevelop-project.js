@@ -4,6 +4,7 @@
 // Produces editable cube instances and empty visual event sheet, not a playable game.
 import {validateWorld} from './world.js';
 import {zipStore} from './godot-package.js';
+import {validateGameplayBlueprint,compileGDevelopVisibilityEvents} from './gameplay-keys.js';
 
 const encode=x=>new TextEncoder().encode(x);
 const PNG_WHITE=Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGP4DwQACfsD/fteaysAAAAASUVORK5CYII='),c=>c.charCodeAt(0));
@@ -127,24 +128,27 @@ function makeNativeProject(world){
 export function exportGDevelopProject(world,options={}){
   validateWorld(world);
   if(!options||typeof options!=='object'||Array.isArray(options)||
-      Object.keys(options).some(k=>k!=='allowPlaceholders')||
+      Object.keys(options).some(k=>!['allowPlaceholders','behavior'].includes(k))||
       (options.allowPlaceholders!==undefined && typeof options.allowPlaceholders!=='boolean'))
     throw Error('Invalid GDevelop export options.');
   const proxies=world.objects.filter(o=>o.kind==='asset-proxy');
   if(proxies.length&&!options.allowPlaceholders)
     throw Error('GDevelop cannot embed private GLB models via this native cube adapter. Explicitly approve cuboid placeholders.');
   const native=makeNativeProject(world);
+  const behavior=options.behavior===undefined?null:validateGameplayBlueprint(world,options.behavior);
+  if(behavior)native.layouts[0].events=compileGDevelopVisibilityEvents(world,behavior);
   const manifest={
     schema:'pixelforge.gdevelop-cubes.v1',sourceFormat:world.format,
     sourceTitle:world.title,
     objectCount:world.objects.length,proxyPlaceholders:proxies.length,
+    behavior:behavior?{schema:behavior.schema,rules:behavior.rules}:null,
     sourceToObject:world.objects.map((o,i)=>({
       id:o.id,name:o.name,kind:o.kind,gdevelopObjectName:renderName(i),
       sourceColor:o.color,placeholderOnly:o.kind==='asset-proxy'
     })),
-    status:'NATIVE_PROJECT_JSON_GENERATED_GDEVELOP_EDITOR_UNTESTED',
+    status:behavior?'NATIVE_VISIBILITY_EVENTS_EDITOR_UNTESTED':'NATIVE_PROJECT_JSON_GENERATED_GDEVELOP_EDITOR_UNTESTED',
     notes:[
-      '3D cuboids with editable GDevelop object definitions and instances, plus blank visual event sheet',
+      behavior?'3D cuboids and native KeyReleased to Hide/Show visual events, user defined; editor acceptance pending':'3D cuboids with editable GDevelop object definitions and instances, plus blank visual event sheet',
       'Source X/Y/Z are mapped to GDevelop X/Z vertical/Y ground (100 units per source unit)',
       '3D rotations and camera framing are approximations until real GDevelop editor acceptance',
       'No native sprite character, movement events, interactions, physics, scripts or imported GLB bytes',
@@ -157,7 +161,7 @@ export function exportGDevelopProject(world,options={}){
     'Extract into a new local directory. In GDevelop desktop, open game.json as a project.',
     'Inspect the PixelForgeWorld scene and its 3D cubes in the scene editor.',
     'Objects can be edited and visual events added using GDevelop native tools.',
-    'The event sheet is initially EMPTY; this is a scaffold, not a playable game.',
+    behavior?'The visual event sheet includes native KeyReleased and Hide/Show actions; not yet verified in GDevelop Editor.':'The event sheet is initially EMPTY; this is a scaffold, not a playable game.',
     '',
     'Coordinate handoff: PixelForge X -> GDevelop X, -Z -> GDevelop Y, Y -> GDevelop Z.',
     'World units scale by 100, and source centers are converted to GDevelop instance origins.',
@@ -183,6 +187,6 @@ export function exportGDevelopProject(world,options={}){
     mime:'application/zip',bytes:zipStore(files),
     project:native,
     report:Object.freeze({status:manifest.status,
-      objects:world.objects.length,placeholders:proxies.length})
+      objects:world.objects.length,placeholders:proxies.length,behaviorCount:behavior?.rules.length||0})
   });
 }

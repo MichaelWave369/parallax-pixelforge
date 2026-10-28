@@ -4,6 +4,7 @@ import {createGodotProjectPack,MAX_GODOT_PACK_BYTES} from './godot-package.js';
 import {exportUniversalGlb} from './universal-glb.js';
 import {exportPlayCanvasProject} from './playcanvas-project.js';
 import {exportGDevelopProject} from './gdevelop-project.js';
+import {createGameplayBlueprint} from './gameplay-keys.js';
 import {ENGINE_PROFILES,createEngineHandoff,getEngineProfile} from './engine-registry.js';
 import {DEFAULT_LIGHTING,resolvedLighting,lightingPreset,matchingLightingPreset} from './world-lighting.js';
 import {createRenderer} from './renderer.js';
@@ -253,6 +254,25 @@ $('engineBrief').addEventListener('click',()=>safe(()=>{
   const brief=createEngineHandoff(world,entry.id);
   download('pixelforge-'+entry.id+'-handoff.v1.json',JSON.stringify(brief,null,2)+'\n');
   status(entry.name+' advisory engine handoff downloaded. Not an installed adapter or playable game.');
+}));
+function selectedBehavior(){
+  const object=current();
+  if(!object)throw Error('Select an existing world object first.');
+  return createGameplayBlueprint(world,object.id,$('gameplayKey').value,$('gameplayEffect').value);
+}
+$('gameplayBlueprint').addEventListener('click',()=>safe(()=>{
+  const blueprint=selectedBehavior();
+  download('pixelforge-gameplay-key-visibility.v1.json',JSON.stringify(blueprint,null,2)+'\n');
+  status('Portable gameplay rule exported for '+current().name+'. This is a declarative sidecar, not executable code.');
+}));
+$('gdevelopBehaviorPack').addEventListener('click',()=>safe(()=>{
+  const proxies=world.objects.some(o=>o.kind==='asset-proxy');
+  if(proxies&&!confirm('Private GLB meshes are not exported into GDevelop. Include only labeled placeholder cuboids?'))return;
+  const behavior=selectedBehavior();
+  const pack=exportGDevelopProject(world,{allowPlaceholders:proxies,behavior});
+  download('pixelforge-gdevelop-key-visibility-project.zip',pack.bytes,pack.mime);
+  status('GDevelop native KeyReleased to '+behavior.rules[0].effect+' event generated for '+current().name+
+    '. Actual editor compatibility remains untested.');
 }));
 $('gdevelopPack').addEventListener('click',()=>safe(()=>{
   const proxies=world.objects.some(o=>o.kind==='asset-proxy');
