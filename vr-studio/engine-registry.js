@@ -10,7 +10,7 @@ p('defold','Defold','Free source-available · custom Defold License','Lightweigh
 p('bevy','Bevy','MIT OR Apache-2.0','Rust ECS / code-first','https://bevy.org/','ADVISORY_GLTF_ONLY','GLB may be used via the engine’s asset loaders. No native Bevy scene or ECS components generated.'),
 p('stride','Stride','MIT · royalty-free','C# 3D / VR','https://www.stride3d.net/','ADVISORY_GLTF_ONLY','Editor import and materials require real Stride acceptance testing.'),
 p('o3de','Open 3D Engine (O3DE)','Apache-2.0 · review third-party components','Large 3D / simulation','https://o3de.org/','ADVISORY_GLTF_ONLY','Gem/asset-processor handoff needs native adapter qualification.'),
-p('playcanvas','PlayCanvas','MIT engine and open-source editor · hosting plans separate','Web 3D / WebXR','https://playcanvas.com/','ADVISORY_GLTF_ONLY','GLB scene/asset import needs actual PlayCanvas Editor verification.'),
+p('playcanvas','PlayCanvas','MIT engine and open-source editor · hosting plans separate','Web 3D / WebXR','https://playcanvas.com/','LOCAL_ENGINE_PROJECT_GENERATED','Standalone PlayCanvas Engine npm/Vite viewer ZIP generated. Real browser and Quest validation remain pending.'),
 p('unreal5','Unreal Engine 5','Source-available proprietary · royalties may apply','High-end 3D / VR','https://www.unrealengine.com/','ADVISORY_GLTF_ONLY','Existing governed Unreal -> GLB export is separate; reverse PixelForge -> Unreal world import unqualified.'),
 p('unity','Unity','Proprietary · Personal eligibility threshold','General-purpose 2D / 3D','https://unity.com/','ADVISORY_GLTF_ONLY','Unity usually needs an explicit glTF importer; no built-in scene equivalence is claimed.'),
 p('gamemaker','GameMaker / GMRT','Proprietary · GMRT commercial change scheduled Jan 2027','2D production','https://gamemaker.io/','RESEARCH_2D_VISUAL','New GMRT policy does not automatically cover every editor/runtime/export option.'),
@@ -34,7 +34,8 @@ export function createEngineHandoff(world,id){
     route:profile.route,
     instructions:profile.note,
     availableArtifacts:['pixelforge.vr-world.v1 JSON (separate export)','universal standalone static GLB (separate export)']
-      .concat(id==='godot4'?['Godot 4 .tscn','Godot private GLB project ZIP']:[]),
+      .concat(id==='godot4'?['Godot 4 .tscn','Godot private GLB project ZIP']:[])
+      .concat(id==='playcanvas'?['Standalone PlayCanvas Engine project ZIP']:[]),
     assetProxyCount:world.objects.filter(o=>o.kind==='asset-proxy').length,
     disclosures:[
       'This file is an advisory handoff plan, not a native engine project, importer, playable game or proof of compatibility.',

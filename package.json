@@ -166,7 +166,7 @@
     "qualify:spark": "node scripts/qualify_spark_runtime.mjs",
     "validate:v5.34": "npm run test:spark-loader && node scripts/validate_v534.js",
     "test:spark-loader": "node --test tests/external-spark-loader-v1.test.js",
-    "test:engine-exports": "node --check vr-studio/engine-export.js && node --check vr-studio/godot-package.js && node --check vr-studio/universal-glb.js && node --check vr-studio/engine-registry.js && node --test tests/engine-export.test.js tests/godot-package.test.js tests/universal-glb-engine-shelf.test.js",
+    "test:engine-exports": "node --check vr-studio/engine-export.js && node --check vr-studio/godot-package.js && node --check vr-studio/universal-glb.js && node --check vr-studio/engine-registry.js && node --check vr-studio/playcanvas-project.js && node --test tests/engine-export.test.js tests/godot-package.test.js tests/universal-glb-engine-shelf.test.js tests/playcanvas-project.test.js",
     "test:vr": "node --check vr-studio/world.js && node --check vr-studio/renderer.js && node --check vr-studio/studio.js && node --test tests/vr-studio.test.js && npm run test:engine-exports",
     "test:vr-glb": "node --check vr-studio/glb-mesh.js && node --check vr-studio/renderer.js && node --check vr-studio/studio.js && node --test tests/vr-glb-mesh.test.js",
     "test:vr-textures": "node --check vr-studio/glb-mesh.js && node --check vr-studio/renderer.js && node --check vr-studio/studio.js && node --test tests/vr-glb-mesh.test.js tests/vr-glb-texture.test.js",
