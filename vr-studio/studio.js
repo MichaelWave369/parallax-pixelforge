@@ -3,6 +3,7 @@ import {exportSceneForEngine} from './engine-export.js';
 import {createGodotProjectPack,MAX_GODOT_PACK_BYTES} from './godot-package.js';
 import {exportUniversalGlb} from './universal-glb.js';
 import {exportPlayCanvasProject} from './playcanvas-project.js';
+import {exportGDevelopProject} from './gdevelop-project.js';
 import {ENGINE_PROFILES,createEngineHandoff,getEngineProfile} from './engine-registry.js';
 import {DEFAULT_LIGHTING,resolvedLighting,lightingPreset,matchingLightingPreset} from './world-lighting.js';
 import {createRenderer} from './renderer.js';
@@ -252,6 +253,14 @@ $('engineBrief').addEventListener('click',()=>safe(()=>{
   const brief=createEngineHandoff(world,entry.id);
   download('pixelforge-'+entry.id+'-handoff.v1.json',JSON.stringify(brief,null,2)+'\n');
   status(entry.name+' advisory engine handoff downloaded. Not an installed adapter or playable game.');
+}));
+$('gdevelopPack').addEventListener('click',()=>safe(()=>{
+  const proxies=world.objects.some(o=>o.kind==='asset-proxy');
+  if(proxies&&!confirm('GDevelop exports native cube objects, not your private GLB meshes. Export labeled placeholder cubes for imported assets?'))return;
+  const result=exportGDevelopProject(world,{allowPlaceholders:proxies});
+  download(result.filename,result.bytes,result.mime);
+  status('GDevelop native project ZIP downloaded: '+result.report.objects+
+    ' editable cubes / '+result.report.placeholders+' placeholders. Open game.json in GDevelop; editor validation pending.');
 }));
 $('playcanvasPack').addEventListener('click',()=>safe(()=>{
   const proxies=world.objects.some(o=>o.kind==='asset-proxy');
