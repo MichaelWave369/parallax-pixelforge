@@ -17,7 +17,7 @@ async function waitForServer(){
 }
 try{
   server=spawn('npm',['run','dev','--','--port','5179','--strictPort'],{
-    cwd:process.cwd(),env:process.env,stdio:['ignore','pipe','pipe']
+    cwd:process.cwd(),env:process.env,stdio:['ignore','pipe','pipe'],detached:true
   });
   server.stdout.on('data',data=>diagnostics.push('Vite: '+data.toString()));
   server.stderr.on('data',data=>diagnostics.push('Vite stderr: '+data.toString()));
@@ -80,5 +80,9 @@ try{
   process.exitCode=1;
 }finally{
   if(browser)await browser.close();
-  if(server?.exitCode===null)server.kill('SIGTERM');
+  if(server?.pid){
+    try{process.kill(-server.pid,'SIGTERM');}catch{}
+  }
+  server?.stdout?.destroy();
+  server?.stderr?.destroy();
 }
