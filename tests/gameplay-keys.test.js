@@ -19,6 +19,13 @@ test('portable behavior blueprint is declarative, immutable to source, and has n
   }]);
   assert.deepEqual(compileGDevelopVisibilityEvents(world,blueprint),events);
 });
+test('portable space compiles to case-sensitive GDevelop Space key token',()=>{
+  const world=newWorld(),blueprint=createGameplayBlueprint(world,'obj-3','space','show');
+  assert.equal(blueprint.rules[0].key,'space');
+  const event=compileGDevelopVisibilityEvents(world,blueprint)[0];
+  assert.deepEqual(event.conditions,[{type:{value:'KeyReleased'},parameters:['','Space']}]);
+  assert.deepEqual(event.actions,[{type:{value:'Show'},parameters:['PF_Obj_003','']}]);
+});
 test('show action compiles through actual GDevelop Show action parameters',()=>{
   const world=newWorld(),blueprint=createGameplayBlueprint(world,'obj-3','f','show');
   assert.deepEqual(compileGDevelopVisibilityEvents(world,blueprint)[0].actions,[
