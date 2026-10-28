@@ -228,10 +228,12 @@
       <div class="actions">
         <button id="save" type="button">Save Local</button>
         <button id="export" type="button">Export JSON</button>
+        <button id="godotExport" type="button">Export Godot 4 (.tscn)</button>
         <label class="fileButton">Import JSON<input id="import" type="file" accept=".json,application/json"></label>
         <button id="undo" type="button">Undo</button>
         <button id="reset" class="danger" type="button">Reset</button>
       </div>
+      <p class="hint">Godot export writes a static cuboid scene. Private GLB meshes require a separate asset handoff; optionally export labeled placeholder boxes only. Unreal, Unity and Bevy scene adapters remain planned. No game runtime is generated.</p>
       <p class="hint">Scene JSON contains transforms and asset hashes only, never purchased models or executable scripts. After a refresh, rebind your local GLB file by the same SHA-256 to display its mesh again.</p>
       <div class="receipt"><strong>QUALIFICATION BOUNDARY</strong>
         <p>Supported static GLB geometry can display embedded base-color PNG/JPEG textures. This is a simple UV-shaded preview, not full glTF/PBR parity. External images, animation, physics, interaction, multiplayer, licensing, headset comfort and frame-rate qualification remain unsupported.</p>
