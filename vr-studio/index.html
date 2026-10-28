@@ -238,6 +238,19 @@
         <button id="gdevelopPack" type="button">Export GDevelop Native Project ZIP</button>
       </div>
       <p class="hint">The universal GLB contains only PixelForge-authored cuboid meshes, transforms and simple colors. The PlayCanvas ZIP includes these meshes with local npm/Vite viewer source and orbit camera, not the engine library itself. The GDevelop ZIP creates native editable 3D cube objects with an empty visual event sheet and a neutral original texture. Imported third-party models are never bundled; an explicit placeholder-only export is available. No real gameplay, physics, AI or verified XR support is generated.</p>
+      <h2 class="separated">GAMEPLAY RULES · FIRST PORTABLE BEHAVIOR</h2>
+      <p class="hint">Select an object in the editor. Then make one simple engine-neutral rule: when the chosen key is released, show or hide that object.</p>
+      <label>Keyboard input
+        <select id="gameplayKey"><option value="e">E</option><option value="f">F</option><option value="space">Space</option></select>
+      </label>
+      <label>Visibility action
+        <select id="gameplayEffect"><option value="hide">Hide selected object</option><option value="show">Show selected object</option></select>
+      </label>
+      <div class="actions">
+        <button id="gameplayBlueprint" type="button">Export Gameplay Rule JSON</button>
+        <button id="gdevelopBehaviorPack" type="button">Export GDevelop Interaction ZIP</button>
+      </div>
+      <p class="hint">Exports a single, bounded key-release visibility rule for the currently selected object. The separate JSON is engine-neutral. The GDevelop ZIP translates it into native visual events. It does not modify the canonical PixelForge world or claim NPCs, physics, interactions by proximity, or a complete game.</p>
       <h2 class="separated">WORLD FILE</h2>
       <div class="actions">
         <button id="save" type="button">Save Local</button>
