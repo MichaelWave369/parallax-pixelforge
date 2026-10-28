@@ -1,0 +1,92 @@
+name: Godot 4 Native Engine Acceptance
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/godot-native-acceptance.yml"
+      - "tests/engine-acceptance/**"
+      - "vr-studio/godot-gameplay-project.js"
+      - "vr-studio/gameplay-keys.js"
+      - "vr-studio/engine-export.js"
+      - "vr-studio/world.js"
+      - "vr-studio/godot-package.js"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/godot-native-acceptance.yml"
+      - "tests/engine-acceptance/**"
+      - "vr-studio/godot-gameplay-project.js"
+      - "vr-studio/gameplay-keys.js"
+      - "vr-studio/engine-export.js"
+      - "vr-studio/world.js"
+      - "vr-studio/godot-package.js"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-godot:
+    name: Verify generated Godot 4 project in Godot 4.7.2
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Download verified official Godot 4.7.2 Linux editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pixelforge-godot-bin"
+          cd "$RUNNER_TEMP/pixelforge-godot-bin"
+          curl --fail --location --retry 3 --silent --show-error \
+            "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" \
+            --output godot.zip
+          # SHA-256 published on the official godotengine/godot-builds GitHub release.
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  godot.zip" | sha256sum --check --status
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.2-stable_linux.x86_64
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --version
+
+      - name: Generate and extract real PixelForge interaction project ZIPs
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PF_GODOT_TEST_ROOT="$RUNNER_TEMP/pixelforge-godot-acceptance"
+          node --check tests/engine-acceptance/prepare-godot-fixtures.mjs
+          node tests/engine-acceptance/prepare-godot-fixtures.mjs "$PF_GODOT_TEST_ROOT"
+          for scenario in hide show multi; do
+            mkdir -p "$PF_GODOT_TEST_ROOT/$scenario"
+            unzip -q "$PF_GODOT_TEST_ROOT/$scenario.zip" -d "$PF_GODOT_TEST_ROOT/$scenario"
+            cp tests/engine-acceptance/visibility-smoke.gd "$PF_GODOT_TEST_ROOT/$scenario/visibility-smoke.gd"
+            test -s "$PF_GODOT_TEST_ROOT/$scenario/scene.tscn"
+            test -s "$PF_GODOT_TEST_ROOT/$scenario/scripts/visibility_rules.gd"
+          done
+
+      - name: Run real Godot headless editor imports and visibility tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot="$RUNNER_TEMP/pixelforge-godot-bin/Godot_v4.7.2-stable_linux.x86_64"
+          root="$RUNNER_TEMP/pixelforge-godot-acceptance"
+          for scenario in hide show multi; do
+            echo "::group::Godot 4.7.2 acceptance: $scenario"
+            "$godot" --headless --path "$root/$scenario" --import 2>&1 | tee "$RUNNER_TEMP/godot-import-$scenario.log"
+            if grep -Eq 'SCRIPT ERROR|Parse Error|ERROR: Failed' "$RUNNER_TEMP/godot-import-$scenario.log"; then
+              echo "::error::Godot import reported an error ($scenario)"
+              exit 1
+            fi
+            "$godot" --headless --path "$root/$scenario" \
+              --script res://visibility-smoke.gd 2>&1 | tee "$RUNNER_TEMP/godot-run-$scenario.log"
+            # A zero exit code without this marker is not accepted as a passing engine test.
+            grep -Eq '^PIXELFORGE_GODOT_NATIVE_PASS:(hide|show):(e|f|space)$' "$RUNNER_TEMP/godot-run-$scenario.log"
+            if grep -Eq 'SCRIPT ERROR|Parse Error|PIXELFORGE_GODOT_NATIVE_FAILURE' "$RUNNER_TEMP/godot-run-$scenario.log"; then
+              echo "::error::Godot smoke script reported an error ($scenario)"
+              exit 1
+            fi
+            echo "::endgroup::"
+          done
