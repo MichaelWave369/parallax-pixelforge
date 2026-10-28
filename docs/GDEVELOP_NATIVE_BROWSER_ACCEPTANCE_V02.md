@@ -21,3 +21,7 @@ WebGL software rendering in CI is used where needed. Browser acceptance remains 
 All source models are original PixelForge cuboids. Purchased/private GLBs are never copied into the test or any repository.
 
 Official runtime API references: https://github.com/4ian/GDevelop/tree/master/GDJS/Runtime
+
+## Native key-name compatibility
+
+The portable gameplay contract uses lowercase `space`, but GDevelop's case-sensitive `gdjs.evtTools.input` key table uses `Space`. The GDevelop translator normalizes that engine-specific token while preserving the original portable behavior sidecar. Real Chromium acceptance must cover the space-release show action to prevent regressions.
