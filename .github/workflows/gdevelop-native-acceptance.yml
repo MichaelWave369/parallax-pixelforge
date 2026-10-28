@@ -1,0 +1,117 @@
+name: GDevelop Native Editor Export Acceptance
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/gdevelop-native-acceptance.yml"
+      - "tests/engine-acceptance/gdevelop-*"
+      - "vr-studio/gdevelop-project.js"
+      - "vr-studio/gameplay-keys.js"
+      - "vr-studio/world.js"
+      - "vr-studio/godot-package.js"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/gdevelop-native-acceptance.yml"
+      - "tests/engine-acceptance/gdevelop-*"
+      - "vr-studio/gdevelop-project.js"
+      - "vr-studio/gameplay-keys.js"
+      - "vr-studio/world.js"
+      - "vr-studio/godot-package.js"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gdevelop-native-export:
+    name: GDevelop 5.6.285 real editor CLI project export
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Prepare original PixelForge GDevelop fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/pixelforge-gdevelop-native"
+          mkdir -p "$root"
+          node --check tests/engine-acceptance/gdevelop-fixture.mjs
+          node tests/engine-acceptance/gdevelop-fixture.mjs "$root"
+          for fixture in plain hide-e show-space; do
+            mkdir -p "$root/$fixture"
+            unzip -q "$root/$fixture.zip" -d "$root/$fixture"
+            test -s "$root/$fixture/game.json"
+            test -s "$root/$fixture/assets/neutral-white.png"
+            node -e 'const p=require(process.argv[1]);if(!p.layouts?.[0]||p.layouts[0].objects.length!==3)process.exit(1)' "$root/$fixture/game.json"
+          done
+
+      - name: Install Linux Electron runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libnss3 libasound2t64 libgtk-3-0 libgbm1
+
+      - name: Download verified official GDevelop 5.6.285 editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/pixelforge-gdevelop-native"
+          mkdir -p "$root/editor"
+          cd "$root"
+          curl --fail --location --retry 3 --silent --show-error \
+            "https://github.com/4ian/GDevelop/releases/download/v5.6.285/GDevelop-5-5.6.285-linux.zip" \
+            --output gdevelop-linux.zip
+          echo "4728cf6df5c30aab0c8b211875c0a0a9c6d026da8781a28a389cafe6f3266839  gdevelop-linux.zip" | sha256sum --check
+          unzip -q gdevelop-linux.zip -d editor
+          bin="$(find "$root/editor" -maxdepth 5 -type f \( -name gdevelop -o -name GDevelop \) | head -1)"
+          if [ -z "$bin" ]; then
+            echo "::error::No GDevelop executable in official verified Linux release."
+            exit 1
+          fi
+          chmod +x "$bin"
+          printf '%s\n' "$bin" > "$root/editor-path.txt"
+          echo "PIXELFORGE_GDEVELOP_NATIVE_BINARY_VERIFIED"
+
+      - name: Import generated projects and export to HTML5 with real GDevelop editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/pixelforge-gdevelop-native"
+          bin="$(cat "$root/editor-path.txt")"
+          for fixture in plain hide-e show-space; do
+            echo "::group::GDevelop native editor: $fixture"
+            project="$root/$fixture"
+            # Actual GDevelop 5 command; both project diagnostics and export errors fail CI.
+            timeout --signal=TERM 360s xvfb-run -a "$bin" \
+              --no-sandbox --disable-update-check --disable-gpu \
+              --block-on-diagnostic-errors \
+              --run-command EXPORT_HTML5_EXTERNAL "$project/game.json" \
+              2>&1 | tee "$root/gdevelop-$fixture.log"
+            grep -Fq 'Command "EXPORT_HTML5_EXTERNAL" finished successfully.' "$root/gdevelop-$fixture.log"
+            test -s "$project/build/index.html"
+            test "$(stat -c %s "$project/build/index.html")" -gt 200
+            count="$(find "$project/build" -type f | wc -l)"
+            if [ "$count" -lt 3 ]; then
+              echo "::error::GDevelop exported suspiciously few files: $count"
+              exit 1
+            fi
+            echo "PIXELFORGE_GDEVELOP_NATIVE_PASS:$fixture:$count"
+            echo "::endgroup::"
+          done
+
+      - name: Upload source and native export evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gdevelop-native-editor-acceptance
+          path: |
+            ${{ runner.temp }}/pixelforge-gdevelop-native/gdevelop-*.log
+            ${{ runner.temp }}/pixelforge-gdevelop-native/*/pixelforge-manifest.json
+          if-no-files-found: ignore
+          retention-days: 7
