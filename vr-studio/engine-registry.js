@@ -5,7 +5,7 @@ import {validateWorld} from './world.js';
 const p=(id,name,license,category,url,route,note)=>Object.freeze({id,name,license,category,url,route,note});
 export const ENGINE_PROFILES=Object.freeze([
 p('godot4','Godot 4','MIT · royalty-free','Native scene target','https://godotengine.org/','GODOT_TSCN_AND_PRIVATE_GLB_PACK','Existing PixelForge Godot 4 .tscn and private project ZIP adapters. Universal GLB is an additional static handoff.'),
-p('gdevelop','GDevelop','MIT engine/editor · optional service limits','No-code / visual events','https://gdevelop.io/','RESEARCH_2D_VISUAL','Research native event/layout schema. Universal GLB alone is not a GDevelop project or event sheet.'),
+p('gdevelop','GDevelop','MIT engine/editor · optional service limits','No-code / visual events','https://gdevelop.io/','NATIVE_CUBES_PROJECT_GENERATED','GDevelop-native editable 3D cube project ZIP with blank visual event sheet; GDevelop editor import remains untested.'),
 p('defold','Defold','Free source-available · custom Defold License','Lightweight 2D / mobile','https://defold.com/','RESEARCH_2D_MOBILE','Lua/runtime asset pipeline needs separate validation. Not MIT or Apache.'),
 p('bevy','Bevy','MIT OR Apache-2.0','Rust ECS / code-first','https://bevy.org/','ADVISORY_GLTF_ONLY','GLB may be used via the engine’s asset loaders. No native Bevy scene or ECS components generated.'),
 p('stride','Stride','MIT · royalty-free','C# 3D / VR','https://www.stride3d.net/','ADVISORY_GLTF_ONLY','Editor import and materials require real Stride acceptance testing.'),
@@ -35,7 +35,8 @@ export function createEngineHandoff(world,id){
     instructions:profile.note,
     availableArtifacts:['pixelforge.vr-world.v1 JSON (separate export)','universal standalone static GLB (separate export)']
       .concat(id==='godot4'?['Godot 4 .tscn','Godot private GLB project ZIP']:[])
-      .concat(id==='playcanvas'?['Standalone PlayCanvas Engine project ZIP']:[]),
+      .concat(id==='playcanvas'?['Standalone PlayCanvas Engine project ZIP']:[])
+      .concat(id==='gdevelop'?['GDevelop native 3D cube project ZIP']:[]),
     assetProxyCount:world.objects.filter(o=>o.kind==='asset-proxy').length,
     disclosures:[
       'This file is an advisory handoff plan, not a native engine project, importer, playable game or proof of compatibility.',

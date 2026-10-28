@@ -65,7 +65,7 @@ test('engine shelf covers all vetted recommendations without claiming integratio
   assert.equal(new Set(ENGINE_PROFILES.map(p=>p.id)).size,12);
   for(const p of ENGINE_PROFILES){
     assert.ok(p.name&&p.license&&p.note&&p.url.startsWith('https://'));
-    assert.ok(['GODOT_TSCN_AND_PRIVATE_GLB_PACK','ADVISORY_GLTF_ONLY','RESEARCH_2D_VISUAL','RESEARCH_2D_MOBILE','RESEARCH_FRAMEWORK','ADVISORY_GODOT_COMPAT','LOCAL_ENGINE_PROJECT_GENERATED'].includes(p.route));
+    assert.ok(['GODOT_TSCN_AND_PRIVATE_GLB_PACK','ADVISORY_GLTF_ONLY','RESEARCH_2D_VISUAL','RESEARCH_2D_MOBILE','RESEARCH_FRAMEWORK','ADVISORY_GODOT_COMPAT','LOCAL_ENGINE_PROJECT_GENERATED','NATIVE_CUBES_PROJECT_GENERATED'].includes(p.route));
     assert.equal(getEngineProfile(p.id),p);
     const brief=createEngineHandoff(newWorld(),p.id);
     assert.equal(brief.engine.id,p.id);
@@ -77,4 +77,5 @@ test('engine shelf covers all vetted recommendations without claiming integratio
   assert.equal(createEngineHandoff(newWorld(),'godot4').availableArtifacts.includes('Godot 4 .tscn'),true);
   assert.equal(createEngineHandoff(newWorld(),'brutal').availableArtifacts.includes('Godot 4 .tscn'),false);
   assert.equal(createEngineHandoff(newWorld(),'playcanvas').availableArtifacts.includes('Standalone PlayCanvas Engine project ZIP'),true);
+  assert.equal(createEngineHandoff(newWorld(),'gdevelop').availableArtifacts.includes('GDevelop native 3D cube project ZIP'),true);
 });
