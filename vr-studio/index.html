@@ -224,6 +224,18 @@
       </div>
       <button id="resetLighting" type="button" class="full">Restore neutral lighting</button>
       <p class="hint">Lighting is basic diffuse shading and exponential distance fog. No shadow maps, volumetric effects or physical color calibration are claimed.</p>
+      <h2 class="separated">ENGINE SHELF · MULTI-ENGINE HANDOFF</h2>
+      <p class="hint">Build here, carry a portable static GLB to other engines. Native scene/gameplay conversion is not implied. Engine guides are advisory, not integrations.</p>
+      <label>Target engine
+        <select id="engineTarget" aria-label="Engine target"></select>
+      </label>
+      <p class="hint" id="engineInfo"></p>
+      <p class="hint"><a id="engineOfficial" href="https://godotengine.org/" target="_blank" rel="noopener noreferrer">Official engine site</a></p>
+      <div class="actions">
+        <button id="universalGlb" type="button">Export Universal GLB</button>
+        <button id="engineBrief" type="button">Export Engine Handoff JSON</button>
+      </div>
+      <p class="hint">The universal GLB contains only PixelForge-authored cuboid meshes, positions, rotation, scale and simple colors. Imported third-party models are never bundled. No installed engines, scripts, physics, quests, AI or XR support are created by this button.</p>
       <h2 class="separated">WORLD FILE</h2>
       <div class="actions">
         <button id="save" type="button">Save Local</button>
