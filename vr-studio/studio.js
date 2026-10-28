@@ -1,5 +1,6 @@
 import {newWorld,parseWorld,validateWorld,addObject,editObject,removeObject,renameWorld,editWorldLighting,replaceWorldLighting,MAX_OBJECTS} from './world.js';
 import {exportSceneForEngine} from './engine-export.js';
+import {createGodotProjectPack,MAX_GODOT_PACK_BYTES} from './godot-package.js';
 import {DEFAULT_LIGHTING,resolvedLighting,lightingPreset,matchingLightingPreset} from './world-lighting.js';
 import {createRenderer} from './renderer.js';
 import {decodeGlbMesh} from './glb-mesh.js';
@@ -16,6 +17,12 @@ const undo = [];
 let renderer = null;
 const status = msg => { $('status').textContent = msg; };
 let activeHandoff=null; // memory-only: never saved to scene JSON or browser storage
+const godotAssets=new Map(); // explicit file bytes retained in this tab only, never saved/uploaded
+function retainGodotAsset(hash,buffer){
+  if(godotAssets.has(hash))return;
+  const currentBytes=[...godotAssets.values()].reduce((total,bytes)=>total+bytes.byteLength,0);
+  if(currentBytes+buffer.byteLength<=MAX_GODOT_PACK_BYTES)godotAssets.set(hash,buffer);
+}
 function renderHandoff(){
   const bound=activeHandoff!==null;
   $('handoffBadge').textContent=bound?'HASH-BOUND HANDOFF':'MANUAL / UNVERIFIED';
@@ -182,7 +189,7 @@ $('undo').addEventListener('click',()=>safe(()=>{
 }));
 $('reset').addEventListener('click',()=>{
   if(!confirm('Reset the active VR world? You can undo once.'))return;
-  const next=newWorld();selected='obj-2';change(next,'Fresh starter world created.');
+  const next=newWorld();selected='obj-2';change(next,'Fresh starter world created.');godotAssets.clear();
 });
 $('save').addEventListener('click',()=>safe(()=>{
   localStorage.setItem(STORAGE,JSON.stringify(validateWorld(world)));
@@ -206,6 +213,21 @@ $('godotExport').addEventListener('click',()=>safe(()=>{
   status('Godot 4 static scene downloaded: '+artifact.report.objectCount+
     ' objects, '+artifact.report.proxyCount+' placeholders. No scripts, physics, or GLB bytes.');
 }));
+$('godotPack').addEventListener('click',async()=>{
+  const button=$('godotPack');
+  if(button.disabled)return;
+  button.disabled=true;
+  try{
+    const copy=structuredClone(validateWorld(world));
+    const count=copy.objects.filter(o=>o.kind==='asset-proxy').length;
+    if(count && !confirm('PRIVATE ASSETS: Export exact, locally selected GLB files into a Godot project ZIP for your own use? Review all asset licenses. Never distribute purchased assets without permission.'))return;
+    const pack=await createGodotProjectPack(copy,godotAssets);
+    download(pack.filename,pack.bytes,'application/zip');
+    status('Godot project ZIP: '+pack.report.objects+' objects, '+
+      pack.report.uniqueGlbs+' locally verified GLBs. Real Godot editor acceptance is still pending.');
+  }catch(error){status('GODOT PACK REFUSED: '+error.message);}
+  finally{button.disabled=false;}
+});
 $('import').addEventListener('change',async event=>{
   const file=event.target.files?.[0];event.target.value='';
   if(!file)return;
@@ -249,6 +271,7 @@ $('glbFile').addEventListener('change',async event=>{
     if(!renderer)throw new Error('WebGL2 renderer unavailable.');
     const decoded=decodeGlbMesh(buffer);
     const report=await renderer.registerMesh(sha256,decoded);
+    retainGodotAsset(sha256,buffer);
     selected=next.objects.at(-1).id;
     change(next,'GLB geometry placed: '+report.meshCount+' primitives / '+report.vertexCount+' vertices / '+report.textureCount+' embedded textures. '+ 
       (activeHandoff?'Local export handoff hash MATCH; ':'Manual import UNVERIFIED; ')+
@@ -272,6 +295,7 @@ $('rebindFile').addEventListener('change',async event=>{
     const sha256=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
     if(sha256!==selectedAsset.sha256)throw new Error('SHA-256 mismatch: cannot silently replace scene asset.');
     const report=await renderer.registerMesh(sha256,decodeGlbMesh(bytes));
+    retainGodotAsset(sha256,bytes);
     redraw();
     status('Exact GLB rebound and rendered: '+report.vertexCount+' vertices / '+report.textureCount+' embedded textures. '+
       'Static preview only; no rights/physics/headset qualification.'+
