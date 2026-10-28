@@ -4,6 +4,7 @@ import {createGodotProjectPack,MAX_GODOT_PACK_BYTES} from './godot-package.js';
 import {exportUniversalGlb} from './universal-glb.js';
 import {exportPlayCanvasProject} from './playcanvas-project.js';
 import {exportGDevelopProject} from './gdevelop-project.js';
+import {exportGodotVisibilityProject} from './godot-gameplay-project.js';
 import {createGameplayBlueprint} from './gameplay-keys.js';
 import {ENGINE_PROFILES,createEngineHandoff,getEngineProfile} from './engine-registry.js';
 import {DEFAULT_LIGHTING,resolvedLighting,lightingPreset,matchingLightingPreset} from './world-lighting.js';
@@ -273,6 +274,15 @@ $('playcanvasBehaviorPack').addEventListener('click',()=>safe(()=>{
   download('pixelforge-playcanvas-key-visibility-project.zip',pack.bytes,pack.mime);
   status('PlayCanvas key-release '+behavior.rules[0].effect+' rule exported for '+current().name+
     '. Browser runtime validation remains pending.');
+}));
+$('godotBehaviorPack').addEventListener('click',()=>safe(()=>{
+  const proxies=world.objects.some(o=>o.kind==='asset-proxy');
+  if(proxies&&!confirm('Private GLB source files are NEVER included in this Godot interaction ZIP. Export clearly labeled cuboid placeholders for the imported models instead?'))return;
+  const behavior=selectedBehavior();
+  const pack=exportGodotVisibilityProject(world,{behavior,allowPlaceholders:proxies});
+  download(pack.filename,pack.bytes,pack.mime);
+  status('Godot 4 project exported: '+pack.report.ruleCount+' key-release visibility rule(s).'+
+    ' Open project.godot with Godot 4 to verify the generated GDScript and camera.');
 }));
 $('gdevelopBehaviorPack').addEventListener('click',()=>safe(()=>{
   const proxies=world.objects.some(o=>o.kind==='asset-proxy');

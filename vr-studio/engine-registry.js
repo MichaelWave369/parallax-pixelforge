@@ -4,7 +4,7 @@ import {validateWorld} from './world.js';
 
 const p=(id,name,license,category,url,route,note)=>Object.freeze({id,name,license,category,url,route,note});
 export const ENGINE_PROFILES=Object.freeze([
-p('godot4','Godot 4','MIT · royalty-free','Native scene target','https://godotengine.org/','GODOT_TSCN_AND_PRIVATE_GLB_PACK','Existing PixelForge Godot 4 .tscn and private project ZIP adapters. Universal GLB is an additional static handoff.'),
+p('godot4','Godot 4','MIT · royalty-free','Native scene target','https://godotengine.org/','GODOT_TSCN_AND_PRIVATE_GLB_PACK','Godot 4 .tscn and private GLB project ZIP, plus opt-in key-release visibility interaction ZIP. Engine/editor acceptance remains unverified.'),
 p('gdevelop','GDevelop','MIT engine/editor · optional service limits','No-code / visual events','https://gdevelop.io/','NATIVE_CUBES_PROJECT_GENERATED','GDevelop-native editable 3D cube project ZIP with blank visual event sheet; GDevelop editor import remains untested.'),
 p('defold','Defold','Free source-available · custom Defold License','Lightweight 2D / mobile','https://defold.com/','RESEARCH_2D_MOBILE','Lua/runtime asset pipeline needs separate validation. Not MIT or Apache.'),
 p('bevy','Bevy','MIT OR Apache-2.0','Rust ECS / code-first','https://bevy.org/','ADVISORY_GLTF_ONLY','GLB may be used via the engine’s asset loaders. No native Bevy scene or ECS components generated.'),
@@ -34,7 +34,7 @@ export function createEngineHandoff(world,id){
     route:profile.route,
     instructions:profile.note,
     availableArtifacts:['pixelforge.vr-world.v1 JSON (separate export)','universal standalone static GLB (separate export)']
-      .concat(id==='godot4'?['Godot 4 .tscn','Godot private GLB project ZIP']:[])
+      .concat(id==='godot4'?['Godot 4 .tscn','Godot private GLB project ZIP','Godot key visibility interaction project ZIP']:[])
       .concat(id==='playcanvas'?['Standalone PlayCanvas Engine project ZIP']:[])
       .concat(id==='gdevelop'?['GDevelop native 3D cube project ZIP']:[]),
     assetProxyCount:world.objects.filter(o=>o.kind==='asset-proxy').length,
@@ -42,7 +42,7 @@ export function createEngineHandoff(world,id){
       'This file is an advisory handoff plan, not a native engine project, importer, playable game or proof of compatibility.',
       'External GLB assets never accompany the universal GLB; use a separately governed original asset workflow.',
       'Respect engine and third-party asset licensing before distribution.',
-      'No behavior, physics, navigation, shaders, NPCs, scripts, quests or VR qualification is transferred.'
+      'This advisory manifest transfers no executable behavior. Use the separate opt-in gameplay exports; no physics, navigation, NPCs, quests or VR qualification is implied.'
     ]
   });
 }
