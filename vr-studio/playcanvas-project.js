@@ -34,15 +34,12 @@ export function exportPlayCanvasProject(world,settings={}){
     ]
   };
   const entries=[
-    {path:'package.json',bytes:encode(JSON.stringify(project,null,2)+'
-')},
+    {path:'package.json',bytes:encode(JSON.stringify(project,null,2)+'\n')},
     {path:'index.html',bytes:encode(HTML)},
     {path:'src/main.js',bytes:encode(VIEWER)},
-    {path:'vite.config.js',bytes:encode("export default {base:'./'};
-")},
+    {path:'vite.config.js',bytes:encode("export default {base:'./'};\n")},
     {path:'public/world.glb',bytes:artifact.bytes},
-    {path:'manifest.json',bytes:encode(JSON.stringify(manifest,null,2)+'
-')},
+    {path:'manifest.json',bytes:encode(JSON.stringify(manifest,null,2)+'\n')},
     {path:'README.md',bytes:encode(README)}
   ];
   return Object.freeze({
