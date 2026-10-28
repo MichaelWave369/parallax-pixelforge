@@ -45,7 +45,13 @@ test('GLB export does not silently clone private assets into placeholder geometr
   const out=exportUniversalGlb(world,{allowPlaceholders:true});
   assert.equal(out.report.placeholderCount,1);
   assert.equal(jsonOf(out.bytes).nodes[3].extras.placeholderOnly,true);
-  assert.doesNotMatch(decode.decode(out.bytes),/private\.glb/);
+  const doc=jsonOf(out.bytes);
+  assert.equal(doc.nodes[3].name,'private.glb'); // retained as a user-visible label, not an asset file
+  assert.equal(doc.buffers.length,1);
+  assert.equal(doc.buffers[0].byteLength,648); // only deterministic shared cuboid geometry
+  assert.equal(doc.images,undefined);
+  assert.equal(doc.buffers[0].uri,undefined);
+  assert.equal(doc.nodes[3].extras.placeholderOnly,true);
 });
 test('rejects invalid source and option values',()=>{
   const w=newWorld();
