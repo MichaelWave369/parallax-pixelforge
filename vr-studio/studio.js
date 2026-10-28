@@ -2,6 +2,7 @@ import {newWorld,parseWorld,validateWorld,addObject,editObject,removeObject,rena
 import {exportSceneForEngine} from './engine-export.js';
 import {createGodotProjectPack,MAX_GODOT_PACK_BYTES} from './godot-package.js';
 import {exportUniversalGlb} from './universal-glb.js';
+import {exportPlayCanvasProject} from './playcanvas-project.js';
 import {ENGINE_PROFILES,createEngineHandoff,getEngineProfile} from './engine-registry.js';
 import {DEFAULT_LIGHTING,resolvedLighting,lightingPreset,matchingLightingPreset} from './world-lighting.js';
 import {createRenderer} from './renderer.js';
@@ -251,6 +252,15 @@ $('engineBrief').addEventListener('click',()=>safe(()=>{
   const brief=createEngineHandoff(world,entry.id);
   download('pixelforge-'+entry.id+'-handoff.v1.json',JSON.stringify(brief,null,2)+'\n');
   status(entry.name+' advisory engine handoff downloaded. Not an installed adapter or playable game.');
+}));
+$('playcanvasPack').addEventListener('click',()=>safe(()=>{
+  const proxies=world.objects.some(o=>o.kind==='asset-proxy');
+  if(proxies && !confirm('This PlayCanvas starter includes only cuboid placeholders for imported private models, NOT their real bytes. Export a layout-only preview?'))return;
+  const pack=exportPlayCanvasProject(world,{allowPlaceholders:proxies});
+  download(pack.filename,pack.bytes,pack.mime);
+  status('PlayCanvas local project ZIP: '+pack.report.objectCount+
+    ' cuboid objects / '+pack.report.placeholderCount+
+    ' placeholders. Run npm install and npm run dev in extracted folder; engine acceptance pending.');
 }));
 $('universalGlb').addEventListener('click',()=>safe(()=>{
   const proxies=world.objects.some(o=>o.kind==='asset-proxy');
