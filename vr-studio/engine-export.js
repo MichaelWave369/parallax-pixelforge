@@ -21,15 +21,26 @@ export function exportSceneForEngine(world,target='godot4',options={}) {
   validateWorld(world);
   if(target!=='godot4')throw new Error('No qualified scene exporter for '+String(target)+'.');
   if(!options || typeof options!=='object' || Array.isArray(options) ||
-     Object.keys(options).some(key=>key!=='allowPlaceholders') ||
-     (options.allowPlaceholders!==undefined && typeof options.allowPlaceholders!=='boolean'))
+     Object.keys(options).some(key=>!['allowPlaceholders','referenceAssets'].includes(key)) ||
+     (options.allowPlaceholders!==undefined && typeof options.allowPlaceholders!=='boolean') ||
+     (options.referenceAssets!==undefined && typeof options.referenceAssets!=='boolean') ||
+     (options.referenceAssets===true && options.allowPlaceholders===true))
     throw new Error('Invalid export options.');
   const proxies=world.objects.filter(object=>object.kind==='asset-proxy');
-  if(proxies.length && options.allowPlaceholders!==true)
+  if(proxies.length && options.allowPlaceholders!==true && options.referenceAssets!==true)
     throw new Error('Scene has '+proxies.length+' asset proxy/proxies. Rebind and export assets separately; approve placeholder geometry for a layout-only Godot export.');
-  const lines=['[gd_scene load_steps='+String(world.objects.length*2+1)+' format=3]',''];
+  const referencing=options.referenceAssets===true;
+  const hashes=[...new Set(proxies.map(o=>o.asset.sha256))].sort();
+  const primitiveCount=world.objects.length-(referencing?proxies.length:0);
+  const lines=['[gd_scene load_steps='+String(primitiveCount*2+(referencing?hashes.length:0)+1)+' format=3]',''];
+  if(referencing){
+    for(let i=0;i<hashes.length;i++)
+      lines.push('[ext_resource type="PackedScene" path="res://assets/'+hashes[i]+'.glb" id="GLB_'+idOf(i)+'"]');
+    if(hashes.length)lines.push('');
+  }
   for(let i=0;i<world.objects.length;i++){
     const object=world.objects[i],id=idOf(i);
+    if(referencing && object.kind==='asset-proxy')continue;
     lines.push('[sub_resource type="StandardMaterial3D" id="Mat_'+id+'"]',
       'albedo_color = '+color(object.color),'',
       '[sub_resource type="BoxMesh" id="Mesh_'+id+'"]',
@@ -40,17 +51,19 @@ export function exportSceneForEngine(world,target='godot4',options={}) {
     'metadata/pixelforge_title = '+quoted(world.title),'');
   for(let i=0;i<world.objects.length;i++){
     const object=world.objects[i],id=idOf(i);
-    lines.push('[node name="Obj_'+id+'" type="MeshInstance3D" parent="."]',
+    lines.push(referencing && object.kind==='asset-proxy'
+      ? '[node name="Obj_'+id+'" parent="." instance=ExtResource("GLB_'+idOf(hashes.indexOf(object.asset.sha256))+'")]'
+      : '[node name="Obj_'+id+'" type="MeshInstance3D" parent="."]',
       'position = '+vector(object.position),
       'rotation = '+vector([0,object.yaw*Math.PI/180,0]),
-      'scale = '+vector(object.scale),
-      'mesh = SubResource("Mesh_'+id+'")',
-      'metadata/pixelforge_id = '+quoted(object.id),
+      'scale = '+vector(object.scale));
+    if(!(referencing && object.kind==='asset-proxy'))lines.push('mesh = SubResource("Mesh_'+id+'")');
+    lines.push('metadata/pixelforge_id = '+quoted(object.id),
       'metadata/pixelforge_name = '+quoted(object.name),
       'metadata/pixelforge_kind = '+quoted(object.kind));
     if(object.kind==='asset-proxy'){
-      lines.push('metadata/pixelforge_placeholder_only = true',
-        'metadata/pixelforge_asset_id = '+quoted(object.asset.asset_id),
+      if(!referencing)lines.push('metadata/pixelforge_placeholder_only = true');
+      lines.push('metadata/pixelforge_asset_id = '+quoted(object.asset.asset_id),
         'metadata/pixelforge_asset_sha256 = '+quoted(object.asset.sha256));
     }
     lines.push('');
@@ -61,10 +74,10 @@ export function exportSceneForEngine(world,target='godot4',options={}) {
     mime:'text/plain;charset=utf-8',
     content:lines.join('\n')+'\n',
     report:Object.freeze({
-      status:proxies.length?'STATIC_LAYOUT_WITH_EXPLICIT_PROXIES':'STATIC_PRIMITIVES_ONLY',
+      status:referencing?'REFERENCED_GLB_FILES_REQUIRED':proxies.length?'STATIC_LAYOUT_WITH_EXPLICIT_PROXIES':'STATIC_PRIMITIVES_ONLY',
       objectCount:world.objects.length,
       proxyCount:proxies.length,
-      limitations:Object.freeze(['No external GLB bytes or licensed assets included',
+      limitations:Object.freeze([referencing?'External GLB assets MUST accompany this scene; references alone are not files':'No external GLB bytes or licensed assets included',
         'No collision, physics, navigation, quests, agents, save data, playable controller or verified VR compatibility',
         'Lighting and fog are not translated; material appearance may differ by renderer'])
     })
