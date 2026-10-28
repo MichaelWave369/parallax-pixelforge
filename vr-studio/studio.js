@@ -265,6 +265,15 @@ $('gameplayBlueprint').addEventListener('click',()=>safe(()=>{
   download('pixelforge-gameplay-key-visibility.v1.json',JSON.stringify(blueprint,null,2)+'\n');
   status('Portable gameplay rule exported for '+current().name+'. This is a declarative sidecar, not executable code.');
 }));
+$('playcanvasBehaviorPack').addEventListener('click',()=>safe(()=>{
+  const proxies=world.objects.some(o=>o.kind==='asset-proxy');
+  if(proxies&&!confirm('Private GLBs will not be included in this PlayCanvas interaction ZIP. Use explicitly labeled cuboid placeholders instead?'))return;
+  const behavior=selectedBehavior();
+  const pack=exportPlayCanvasProject(world,{allowPlaceholders:proxies,behavior});
+  download('pixelforge-playcanvas-key-visibility-project.zip',pack.bytes,pack.mime);
+  status('PlayCanvas key-release '+behavior.rules[0].effect+' rule exported for '+current().name+
+    '. Browser runtime validation remains pending.');
+}));
 $('gdevelopBehaviorPack').addEventListener('click',()=>safe(()=>{
   const proxies=world.objects.some(o=>o.kind==='asset-proxy');
   if(proxies&&!confirm('Private GLB meshes are not exported into GDevelop. Include only labeled placeholder cuboids?'))return;

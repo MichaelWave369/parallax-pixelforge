@@ -249,8 +249,9 @@
       <div class="actions">
         <button id="gameplayBlueprint" type="button">Export Gameplay Rule JSON</button>
         <button id="gdevelopBehaviorPack" type="button">Export GDevelop Interaction ZIP</button>
+        <button id="playcanvasBehaviorPack" type="button">Export PlayCanvas Interaction ZIP</button>
       </div>
-      <p class="hint">Exports a single, bounded key-release visibility rule for the currently selected object. The separate JSON is engine-neutral. The GDevelop ZIP translates it into native visual events. It does not modify the canonical PixelForge world or claim NPCs, physics, interactions by proximity, or a complete game.</p>
+      <p class="hint">Exports a single, bounded key-release visibility rule for the currently selected object. The separate JSON is engine-neutral. The GDevelop ZIP translates it into native visual events; PlayCanvas generates a locally editable viewer with a bounded keyup show/hide handler and stable object ID mapping. Neither modifies the source world nor claims NPCs, physics, spatial interactions, or a complete game.</p>
       <h2 class="separated">WORLD FILE</h2>
       <div class="actions">
         <button id="save" type="button">Save Local</button>
