@@ -15,7 +15,7 @@ test('public assembly preserves all three frontends and leaves local assets unpu
    await mkdir(dist,{recursive:true});
    await writeFile(path.join(dist,'index.html'),'<div id="root"></div>');
    await make('index.html','<html><head><title>Studio</title></head><body><script src="app.js"></script></body></html>');
-   for(const dir of ['assets','community','data','games','pocketgames','runtime','vr-studio','external-preview'])
+   for(const dir of ['assets','community','data','games','pocketgames','runtime','vr-studio','external-preview','layer-studio'])
      await make(dir+'/placeholder.txt');
    for(const f of ['app.js','styles.css','sprite-studio.js','tile-studio.js','runtime-composer.js'])
      await make(f);
@@ -26,6 +26,7 @@ test('public assembly preserves all three frontends and leaves local assets unpu
    const legacy=await readFile(path.join(dist,'studio/index.html'),'utf8');
    assert.match(legacy,/<base href="\.\.\/"\s*\/>/);
    assert.match(await readFile(path.join(dist,'index.html'),'utf8'),/id="root"/);
+   await access(path.join(dist,'layer-studio/placeholder.txt'));
    await access(path.join(dist,'vr-studio/placeholder.txt'));
    await access(path.join(dist,'external-preview/placeholder.txt'));
    await assert.rejects(access(path.join(dist,'local-assets/private-asset.glb')));
