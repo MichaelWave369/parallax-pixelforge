@@ -7,7 +7,7 @@ import path from 'node:path';
 
 const scriptPath = fileURLToPath(import.meta.url);
 const projectRoot = path.resolve(path.dirname(scriptPath),'../..');
-const publicRoots = ['assets','community','data','games','pocketgames','runtime','vr-studio','external-preview'];
+const publicRoots = ['assets','community','data','games','pocketgames','runtime','vr-studio','external-preview','layer-studio'];
 const publicFiles = ['app.js','styles.css','sprite-studio.js','tile-studio.js','runtime-composer.js'];
 
 async function exists(source) {
@@ -40,7 +40,7 @@ export async function assemble(repoRoot,outDir) {
   // Do not publish all scripts: many others are local-only tools.
   await copyRelative(repoRoot,outDir,'scripts/lib/glb_preview_plan.js');
   await writeFile(path.join(outDir,'.nojekyll'),'');
-  return {pages:'React portal + legacy Studio + WebGL2 VR/GLB tools',roots:publicRoots.length};
+  return {pages:'React portal + legacy Studio + Layer Studio + WebGL2 VR/GLB tools',roots:publicRoots.length};
 }
 
 if(path.resolve(process.argv[1]||'')===scriptPath) {
