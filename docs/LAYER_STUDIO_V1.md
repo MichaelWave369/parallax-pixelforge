@@ -12,7 +12,8 @@
 
 - Seven original, independent depth planes in a true back-to-front canvas 2D compositor; 1–24 layers supported.
 - Per-plane parallax factor, x/y offset, opacity, visibility and reordering.
-- Independent motion (none, float, sway, drift) and separately animated overlay (stars, mist, dust, runes, rain, embers or fireflies) with speed and intensity.
+- Independent motion (none, float, sway, drift) and separately animated procedural overlay (stars, mist, dust, runes, rain, embers or fireflies) with speed and intensity.
+- **Independent image/spritesheet overlay on every plane**: upload a second transparent sprite strip, set its own FPS, frames and x/y offset. This overlay animates above the plane's base scenery rather than replacing it.
 - Camera scrub and canvas drag; an **Explode Depth** diagnostic moves planes apart temporarily.
 - Solo a layer, play/pause animation, local save, portable scene JSON import/export, PNG frame capture.
 - Upload PNG/JPEG/WebP or horizontal frame-strip spritesheets (1–64 frames, 0.1–60 FPS) onto any image plane. Uploaded image bytes are embedded as data URLs in exported JSON; there is no background download or remote asset request.
@@ -21,7 +22,7 @@
 
 ## Scope and limitations
 
-This is a **working browser scene editor and renderer**, not yet a full platformer engine. There is no physics, collision editor, map authoring, sprite-anchored gameplay rig, bone animation, particle GPU backend, lighting normal maps or cross-game serialization adapter. Spritesheets must be laid out in **one horizontal row**. Art remains private to the browser or inside JSON intentionally exported by the operator.
+This is a **working browser scene editor and renderer**, not yet a full platformer engine. There is no physics, collision editor, map authoring, sprite-anchored gameplay rig, bone animation, particle GPU backend, lighting normal maps or cross-game serialization adapter. Spritesheets (base or overlay) must be laid out in **one horizontal row**. Art remains private to the browser or inside JSON intentionally exported by the operator.
 
 Imported JSON is normalized and bounded, external URL assets are rejected, SVG is not allowed, and image uploads are limited to 2MB per image. Large scenes may exceed browser local storage; use Export JSON. GitHub Pages will only host example source and public editor assets, not user-generated imported images.
 
