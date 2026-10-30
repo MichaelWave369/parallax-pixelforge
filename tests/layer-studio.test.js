@@ -25,6 +25,12 @@ test('import clamps untrusted authored values and excludes external URLs',()=>{
   assert.equal(isSafeAsset('https://site/image.png'),false);
   assert.equal(isSafeAsset('data:image/svg+xml;base64,AAAA'),false);
   assert.equal(isSafeAsset('data:image/png;base64,AA=='),true);
+  s.layers[0].overlay.asset={dataUrl:'data:image/png;base64,AA==',frames:250,fps:100};
+  const withOverlay=normalizeScene(s).layers[0].overlay.asset;
+  assert.equal(withOverlay.frames,64);
+  assert.equal(withOverlay.fps,60);
+  s.layers[0].overlay.asset={dataUrl:'https://some.site/animated.png',frames:12,fps:8};
+  assert.equal(normalizeScene(s).layers[0].overlay.asset,null);
   assert.throws(()=>normalizeScene({schema:'other',layers:[]}),/Not a PixelForge/);
   assert.throws(()=>normalizeScene({schema:SCHEMA,layers:[]}),/1 to 24/);
 });
@@ -56,7 +62,7 @@ test('renderer paints multiple bounded procedural planes without external assets
 test('browser editor and launcher contain required functional surfaces',()=>{
   const html=readFileSync(new URL('../layer-studio/index.html',import.meta.url),'utf8');
   const js=readFileSync(new URL('../layer-studio/studio.js',import.meta.url),'utf8');
-  for(const id of ['sceneCanvas','layerList','layerDepth','overlayType','imageFile','assetFrames','snapshot','exportScene','importScene'])
+  for(const id of ['sceneCanvas','layerList','layerDepth','overlayType','imageFile','assetFrames','overlayFile','overlayFrames','overlayFps','snapshot','exportScene','importScene'])
     assert.match(html,new RegExp('id="'+id+'"'));
   assert.match(js,/requestAnimationFrame/);
   assert.match(js,/normalizeScene/);
