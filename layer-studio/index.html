@@ -70,6 +70,12 @@
         <label>EFFECT<select id="overlayType"></select></label>
         <label>EFFECT INTENSITY <output id="intensityValue">0.75</output><input id="overlayIntensity" type="range" min="0" max="2" step=".05"></label>
         <label>EFFECT SPEED <output id="effectSpeedValue">1.00</output><input id="overlaySpeed" type="range" min="0" max="8" step=".05"></label>
+        <p class="small-note">Optional: place a transparent animated image or spritesheet over this plane. It has its own playback rate, separate from the base art.</p>
+        <label class="file-button">Import animated overlay <input id="overlayFile" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
+        <div class="field-duo"><label>OVERLAY FRAMES<input id="overlayFrames" type="number" min="1" max="64" step="1"></label><label>OVERLAY FPS<input id="overlayFps" type="number" min=".1" max="60" step=".1"></label></div>
+        <div class="field-duo"><label>OVERLAY X<input id="overlayX" type="number" min="-2000" max="2000"></label><label>OVERLAY Y<input id="overlayY" type="number" min="-2000" max="2000"></label></div>
+        <p id="overlayAssetStatus" class="small-note">No animated image overlay assigned.</p>
+        <button type="button" id="clearOverlay" class="subtle">Clear overlay art</button>
         <div class="field-rule"><span>YOUR ARTWORK</span></div>
         <p class="small-note">Choose Image as the source. Upload PNG, JPG or WebP. Horizontal sprite sheets animate by frames and FPS. Files are embedded in exported JSON.</p>
         <label class="file-button">Import image / sprite sheet <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
