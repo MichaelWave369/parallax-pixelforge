@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Layer Studio | PixelForge</title>
+  <link rel="stylesheet" href="./studio.css">
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <a class="brand" href="../"><span class="brand-icon">✣</span><span><b>PIXELFORGE</b><small>LAYERS / 2.5D SCENE LAB</small></span></a>
+    <div class="top-center">DEPTH IS A COMPOSITION <span>·</span> MOTION IS A LAYER</div>
+    <div class="actions">
+      <button id="newScene" type="button">New demo</button>
+      <button id="importScene" type="button">Import JSON</button>
+      <button id="saveScene" type="button">Save local</button>
+      <button id="exportScene" type="button" class="primary">Export JSON ↗</button>
+      <input type="file" id="sceneFile" accept=".json,application/json" hidden>
+    </div>
+  </header>
+  <main class="workspace">
+    <aside class="sidebar left">
+      <div class="section-heading"><div><span class="micro">COMPOSITION</span><h2>Depth stack</h2></div><span class="counter" id="layerCount">07</span></div>
+      <p class="intro">Back to front. Every plane owns its motion and animated overlay.</p>
+      <div class="layer-list" id="layerList" aria-label="Scene layers"></div>
+      <div class="stack-actions">
+        <button type="button" id="addLayer">+ Add plane</button>
+        <button type="button" id="duplicateLayer">Duplicate</button>
+        <button type="button" id="moveUp" title="Move closer to camera">↑ Front</button>
+        <button type="button" id="moveDown" title="Move farther from camera">↓ Back</button>
+        <button type="button" id="deleteLayer">Delete</button>
+      </div>
+      <div class="sidebar-foot"><b>CANVAS ENGINE / V1</b><span>No server. No remote assets. Everything stays in the browser until you export it.</span></div>
+    </aside>
+    <section class="center">
+      <div class="scene-head">
+        <div><span class="micro">LIVE COMPOSITE</span><h1 id="sceneTitle">The Lantern Vault</h1></div>
+        <div class="scene-pills"><span>960 × 540</span><span id="fpsBadge">ANIMATED</span><span id="statusIndicator" class="status">READY</span></div>
+      </div>
+      <div class="stage-wrap">
+        <div class="stage-frame">
+          <canvas id="sceneCanvas" width="960" height="540" aria-label="Layered animated scene preview"></canvas>
+          <div class="stage-watermark"><span>Φ</span> LAYER STUDIO</div>
+        </div>
+        <div class="stage-footer"><span>DRAG CAMERA / SCRUB DEPTH / ISOLATE A PLANE</span><button type="button" id="snapshot" class="subtle">Snapshot PNG ↗</button></div>
+      </div>
+      <div class="transport">
+        <button id="playPause" type="button" class="play" aria-pressed="false">Ⅱ Pause</button>
+        <label class="range-row">CAMERA X <input id="cameraX" type="range" min="-1200" max="1200" value="0" step="1"><output id="cameraXValue">0</output></label>
+        <label class="range-row">EXPLODE DEPTH <input id="spread" type="range" min="0" max="100" value="0" step="1"><output id="spreadValue">0</output></label>
+        <label class="toggle"><input type="checkbox" id="solo"> Solo plane</label>
+      </div>
+      <div class="help-strip"><span>01 / CAMERA PARALLAX</span><span>02 / INDEPENDENT MOTION</span><span>03 / ANIMATED EFFECTS</span><span>04 / IMAGE OR SPRITESHEET</span></div>
+    </section>
+    <aside class="sidebar inspector">
+      <div class="section-heading"><div><span class="micro">SELECTED PLANE</span><h2>Inspector</h2></div><span id="selectedNumber" class="counter">01</span></div>
+      <div class="inspector-content">
+        <label>NAME<input id="layerName" type="text" maxlength="80"></label>
+        <label>ART / SOURCE<select id="layerKind"></select></label>
+        <div class="field-duo"><label>X POSITION<input id="layerX" type="number" min="-4000" max="4000" step="1"></label><label>Y POSITION<input id="layerY" type="number" min="-2000" max="2000" step="1"></label></div>
+        <label>PARALLAX / CAMERA RESPONSE <output id="depthValue">0.50</output><input id="layerDepth" type="range" min="0" max="2.5" step=".01"></label>
+        <label>OPACITY <output id="opacityValue">100%</output><input id="layerOpacity" type="range" min="0" max="1" step=".01"></label>
+        <div class="field-rule"><span>PLANE ANIMATION</span></div>
+        <label>MOTION TYPE<select id="motionType"></select></label>
+        <label>AMPLITUDE <output id="amplitudeValue">9</output><input id="motionAmplitude" type="range" min="0" max="160" step="1"></label>
+        <label>MOTION SPEED <output id="speedValue">0.38</output><input id="motionSpeed" type="range" min="0" max="8" step=".05"></label>
+        <div class="field-rule"><span>ANIMATED OVERLAY</span></div>
+        <label>EFFECT<select id="overlayType"></select></label>
+        <label>EFFECT INTENSITY <output id="intensityValue">0.75</output><input id="overlayIntensity" type="range" min="0" max="2" step=".05"></label>
+        <label>EFFECT SPEED <output id="effectSpeedValue">1.00</output><input id="overlaySpeed" type="range" min="0" max="8" step=".05"></label>
+        <div class="field-rule"><span>YOUR ARTWORK</span></div>
+        <p class="small-note">Choose Image as the source. Upload PNG, JPG or WebP. Horizontal sprite sheets animate by frames and FPS. Files are embedded in exported JSON.</p>
+        <label class="file-button">Import image / sprite sheet <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
+        <div class="field-duo"><label>FRAMES<input id="assetFrames" type="number" min="1" max="64" step="1"></label><label>FPS<input id="assetFps" type="number" min=".1" max="60" step=".1"></label></div>
+        <p id="assetStatus" class="small-note">No image assigned.</p>
+        <button type="button" id="clearImage" class="subtle">Clear image</button>
+      </div>
+    </aside>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+</div>
+<script type="module" src="./studio.js"></script>
+</body>
+</html>
