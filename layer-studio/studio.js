@@ -95,6 +95,11 @@ function syncInspector() {
   $('overlayType').value = l.overlay.type;
   $('overlayIntensity').value = l.overlay.intensity;
   $('overlaySpeed').value = l.overlay.speed;
+  $('overlayFrames').value = l.overlay.asset?.frames || 1;
+  $('overlayFps').value = l.overlay.asset?.fps || 8;
+  $('overlayX').value = l.overlay.x;
+  $('overlayY').value = l.overlay.y;
+  $('overlayAssetStatus').textContent = l.overlay.asset ? 'Independent animated overlay: ' + l.overlay.asset.frames + ' frame(s) at ' + l.overlay.asset.fps + ' FPS.' : 'No animated image overlay assigned.';
   $('assetFrames').value = l.asset?.frames || 1;
   $('assetFps').value = l.asset?.fps || 8;
   $('assetStatus').textContent = l.asset ?
@@ -134,6 +139,10 @@ const bindings = [
   ['overlayType','overlay.type',v=>v],
   ['overlayIntensity','overlay.intensity',v=>Number(v)],
   ['overlaySpeed','overlay.speed',v=>Number(v)],
+  ['overlayX','overlay.x',v=>Number(v)],
+  ['overlayY','overlay.y',v=>Number(v)],
+  ['overlayFrames','overlay.asset.frames',v=>Number(v)],
+  ['overlayFps','overlay.asset.fps',v=>Number(v)],
   ['assetFrames','asset.frames',v=>Number(v)],
   ['assetFps','asset.fps',v=>Number(v)]
 ];
@@ -144,8 +153,10 @@ for (const [id,key,convert] of bindings) {
     const copy = structuredClone(current);
     const path = key.split('.');
     if(path[0]==='asset' && !copy.asset){flash('Upload an image before adjusting its frames.');syncInspector();return;}
+    if(path[1]==='asset' && !copy.overlay.asset){flash('Upload an overlay image before adjusting its frames.');syncInspector();return;}
     if(path.length===1)copy[path[0]]=value;
-    else copy[path[0]][path[1]]=value;
+    else if(path.length===2)copy[path[0]][path[1]]=value;
+    else copy[path[0]][path[1]][path[2]]=value;
     const index = scene.layers.indexOf(current);
     scene.layers[index] = normalizeLayer(copy,index);
     if(id==='layerKind' && value==='image' && !copy.asset) flash('Choose Import image to fill this plane.');
@@ -259,6 +270,26 @@ $('imageFile').onchange=async e=>{
     flash('Image embedded. Set frame count for horizontal sprite sheets.');
   }catch(err){flash(err.message);}
 };
+$('overlayFile').onchange=async e=>{
+  const file=e.target.files?.[0];e.target.value='';
+  if(!file)return;
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>2_000_000){
+    flash('Use PNG, JPG or WebP under 2 MB.');return;
+  }
+  const target=selectedId;
+  try{
+    const dataUrl=await new Promise((resolve,reject)=>{
+      const reader=new FileReader();reader.onload=()=>resolve(reader.result);
+      reader.onerror=()=>reject(new Error('Read failed'));reader.readAsDataURL(file);
+    });
+    if(!isSafeAsset(dataUrl))throw new Error('Unsupported or oversized overlay.');
+    const item=scene.layers.find(l=>l.id===target);
+    if(!item)return;
+    item.overlay.asset={dataUrl,frames:1,fps:12};
+    syncScene();flash('Animated overlay attached independently of the base artwork.');
+  }catch(err){flash(err.message);}
+};
+$('clearOverlay').onclick=()=>{layer().overlay.asset=null;syncInspector();};
 $('clearImage').onclick=()=>{
   layer().asset=null;
   if(layer().kind==='image')layer().kind='ruins';
