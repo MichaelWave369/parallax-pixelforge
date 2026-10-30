@@ -36,7 +36,7 @@ export function makeLayer(index = 0) {
     opacity: 1,
     scale: 1,
     motion: { type: preset[4], amplitude: 9, speed: .38 },
-    overlay: { type: preset[3], intensity: .75, speed: 1 },
+    overlay: { type: preset[3], intensity: .75, speed: 1, asset: null, x: 0, y: 0 },
     asset: null
   };
 }
@@ -50,11 +50,12 @@ export function createScene() {
 export function normalizeLayer(source, index = 0) {
   const s = source && typeof source === 'object' && !Array.isArray(source) ? source : {};
   const basis = makeLayer(index);
-  const asset = s.asset && typeof s.asset === 'object' && isSafeAsset(s.asset.dataUrl) ? {
-    dataUrl: s.asset.dataUrl,
-    frames: Math.round(number(s.asset.frames, 1, 1, 64)),
-    fps: number(s.asset.fps, 8, .1, 60)
+  const safeSheet = item => item && typeof item === 'object' && isSafeAsset(item.dataUrl) ? {
+    dataUrl: item.dataUrl,
+    frames: Math.round(number(item.frames, 1, 1, 64)),
+    fps: number(item.fps, 8, .1, 60)
   } : null;
+  const asset = safeSheet(s.asset);
   return {
     id: textValue(s.id, basis.id, 64) || basis.id,
     name: textValue(s.name, basis.name, 80),
@@ -74,7 +75,10 @@ export function normalizeLayer(source, index = 0) {
     overlay: {
       type: EFFECTS.includes(s.overlay?.type) ? s.overlay.type : basis.overlay.type,
       intensity: number(s.overlay?.intensity, .75, 0, 2),
-      speed: number(s.overlay?.speed, 1, 0, 8)
+      speed: number(s.overlay?.speed, 1, 0, 8),
+      x: number(s.overlay?.x, 0, -2000, 2000),
+      y: number(s.overlay?.y, 0, -2000, 2000),
+      asset: safeSheet(s.overlay?.asset)
     },
     asset
   };
@@ -241,13 +245,13 @@ function imageFor(asset) {
   }
   return entry.ready?entry.image:null;
 }
-function imageLayer(ctx,layer,w,h,time,reducedMotion) {
-  const im=imageFor(layer.asset);
+function imageLayer(ctx,asset,w,h,time,reducedMotion,scale=1) {
+  const im=imageFor(asset);
   if(!im)return;
-  const frames=Math.max(1,Math.min(layer.asset.frames,Math.floor(im.width)));
+  const frames=Math.max(1,Math.min(asset.frames,Math.floor(im.width)));
   const fw=im.width/frames, fh=im.height;
-  const frame=reducedMotion?0:Math.floor(time*layer.asset.fps)%frames;
-  const dw=w*layer.scale,dh=h*layer.scale;
+  const frame=reducedMotion?0:Math.floor(time*asset.fps)%frames;
+  const dw=w*scale,dh=h*scale;
   for(let i=-5;i<6;i++)ctx.drawImage(im,frame*fw,0,fw,fh,i*dw,0,dw,dh);
 }
 export function renderScene(ctx,input,time=0,options={}) {
@@ -263,12 +267,18 @@ export function renderScene(ctx,input,time=0,options={}) {
     ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();
     ctx.globalAlpha=layer.opacity;
     ctx.translate(offset.x,offset.y+spread);
-    if(layer.kind==='image')imageLayer(ctx,layer,w,h,time,options.reducedMotion);
+    if(layer.kind==='image')imageLayer(ctx,layer.asset,w,h,time,options.reducedMotion,layer.scale);
     else {
       const actions={sky,mountains,ruins,arches,stairway,silhouettes,foreground};
       actions[layer.kind]?.(ctx,w,h,time);
     }
     drawEffect(ctx,layer,w,h,options.reducedMotion?0:time);
+    // Every plane may carry a separate, independently timed transparent art strip.
+    if(layer.overlay.asset){
+      ctx.save();ctx.translate(layer.overlay.x,layer.overlay.y);
+      imageLayer(ctx,layer.overlay.asset,w,h,time,options.reducedMotion,layer.scale);
+      ctx.restore();
+    }
     ctx.restore();
   });
 }
