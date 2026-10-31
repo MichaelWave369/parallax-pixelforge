@@ -1,7 +1,7 @@
 // Layer Studio Rung 4 / World Director. Data-only triggers, camera zones and light masks.
 // Deliberately no arbitrary callbacks, script actions, URLs or host capabilities.
 export const DIRECTOR_SCHEMA='pixelforge.layer-director.v1';
-export const TRIGGER_KINDS=['message','checkpoint'];
+export const TRIGGER_KINDS=['message','checkpoint','flag'];
 const limit=(v,def,min,max)=>Number.isFinite(Number(v))?Math.max(min,Math.min(max,Number(v))):def;
 const label=(s,fallback,max=100)=>typeof s==='string'?s.slice(0,max):fallback;
 const color=(c,fallback='#ffcf93')=>typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)?c:fallback;
@@ -42,7 +42,8 @@ export function normalizeDirector(source){
     kind:TRIGGER_KINDS.includes(t?.kind)?t.kind:'message',
     x:limit(t?.x,0,-2048,6000),y:limit(t?.y,400,-1000,1500),
     w:limit(t?.w,90,8,1200),h:limit(t?.h,100,8,1200),
-    message:label(t?.message,'',180),once:t?.once!==false
+    message:label(t?.message,'',180),once:t?.once!==false,
+    flagId:typeof t?.flagId==='string'&&/^[a-z0-9][a-z0-9:_-]{0,63}$/.test(t.flagId)?t.flagId:''
   }));
   const cameras=(Array.isArray(source.cameras)?source.cameras:[]).slice(0,16).map((z,i)=>({
     id:unique(z,'camera',i),
@@ -81,6 +82,9 @@ export function stepDirector(state,dt=1/60){
     state.eventMessage=trigger.message||(trigger.kind==='checkpoint'?'CHECKPOINT ACTIVE':'ZONE ENTERED');
     state.eventMessageRemaining=4;
     state.eventVersion++;
+    // Fixed-tick event receipt, consumed only by the Room Atlas session.
+    // Independent quests never execute imported code.
+    (state.directorEvents??=[]).push({id:trigger.id,kind:trigger.kind,flagId:trigger.flagId});
   }
   state.directorInside=inside;
 }
