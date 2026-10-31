@@ -328,6 +328,38 @@
         <p id="sequenceStatus" class="small-note">Create a Room Atlas to author discoveries.</p>
         <p id="atlasStatus" class="small-note">Single-room mode. Your existing scene remains fully playable.</p>
       </section>
+      <section class="puzzle-builder branch-map-builder" aria-label="World Branch Map">
+        <div class="puzzle-head">
+          <div>
+            <span class="micro">RUNG 14 / WORLD BRANCH MAP</span>
+            <h2>Story Paths &amp; Dependencies</h2>
+            <p>See where discoveries, choices and world flags connect. Find missing prerequisites, circular paths and rooms that may never be reached. Read-only analysis, no new runtime scripts.</p>
+          </div>
+        </div>
+        <div class="branch-map-toolbar">
+          <label for="branchMapScope">SHOW BRANCHES
+            <select id="branchMapScope"><option value="all">All rooms</option></select>
+          </label>
+          <button type="button" id="branchMapRefresh">Reanalyze World</button>
+          <button type="button" id="branchMapEdit" disabled>Edit Selected Discovery</button>
+        </div>
+        <p id="branchMapSummary" class="small-note" role="status">Create a Room Atlas to visualize story branches.</p>
+        <div class="branch-map-legend" aria-label="Connection types">
+          <span class="branch-map-legend-grant">Grants a flag</span>
+          <span class="branch-map-legend-choice">Choice consequence</span>
+          <span class="branch-map-legend-requires">Requires a flag</span>
+          <span class="branch-map-legend-blocks">Blocked by a flag</span>
+        </div>
+        <div class="branch-map-scroll" id="branchMapScroll" tabindex="0" aria-label="Scrollable world branch graph">
+          <svg id="branchMapCanvas" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1150 325" role="group" aria-label="World branch dependency map"></svg>
+        </div>
+        <div class="branch-map-detail" id="branchMapSelection" aria-live="polite">Click a node to inspect its place in the story graph. All branch data remains editable through Room Atlas controls.</div>
+        <div class="branch-map-diagnostics-head">
+          <h3>World Path Diagnostics</h3>
+          <p class="small-note">Advisory analysis of authored dependencies. It cannot verify every physical route or every mutually exclusive decision combination.</p>
+        </div>
+        <ul class="branch-map-diagnostics" id="branchMapDiagnostics" aria-label="Potential story branch problems"></ul>
+      </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
         <div class="puzzle-head">
           <div><span class="micro">RUNG 04 / EVENTS &amp; ATMOSPHERE</span>
