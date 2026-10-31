@@ -409,6 +409,31 @@
           <button type="button" id="storyRouteApply" disabled>Load Verified Route Into Simulator</button>
         </div>
         <p class="story-route-status small-note" id="storyRouteStatus" aria-live="polite" role="status">No route report has been verified. Export works entirely offline.</p>
+        <div class="field-rule"><span>RUNG 17 / PLAYTEST SCENARIO CATALOG</span></div>
+        <div class="story-catalog-head">
+          <h3>Reusable Story Regression Scenarios</h3>
+          <p class="small-note">Save the current hypothetical route as a named scenario. Recheck saved decisions whenever authored story logic changes. This catalog is separate from Adventure Journal game saves and can be exported or shared offline.</p>
+        </div>
+        <div class="story-catalog-fields">
+          <label for="storyCatalogName">SCENARIO NAME
+            <input id="storyCatalogName" type="text" maxlength="80" placeholder="Honor path / first chapter">
+          </label>
+          <label for="storyCatalogNotes">PLAYTEST NOTES
+            <textarea id="storyCatalogNotes" rows="2" maxlength="240" placeholder="What this scenario should verify"></textarea>
+          </label>
+        </div>
+        <div class="story-catalog-toolbar">
+          <button type="button" id="storyCatalogSave">Save Current Simulated Route</button>
+          <button type="button" id="storyCatalogExport">Export Catalog JSON</button>
+        </div>
+        <div class="story-catalog-import">
+          <label for="storyCatalogFile">IMPORT SCENARIO CATALOG
+            <input id="storyCatalogFile" type="file" accept=".json,application/json">
+          </label>
+          <button type="button" id="storyCatalogImport">Merge Selected Catalog</button>
+        </div>
+        <p class="small-note story-catalog-status" id="storyCatalogStatus" role="status" aria-live="polite">No scenarios saved. Each scenario checks against the current authored Room Atlas.</p>
+        <div class="story-catalog-list" id="storyCatalogList" aria-label="Saved hypothetical regression scenarios"></div>
       </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
         <div class="puzzle-head">

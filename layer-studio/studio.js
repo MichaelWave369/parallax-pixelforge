@@ -14,6 +14,7 @@ import {analyzeWorldBranches} from './world-branch-map.js';
 import {renderWorldBranchMap} from './world-branch-view.js';
 import {createStoryPathRun,advanceStoryPath,storyPathOptions,storyPathSummary} from './story-path-simulator.js';
 import {routeWorldSignature,routeWorldFingerprint,createRouteReport,verifyRouteReport,routeReportMarkdown} from './story-path-reports.js';
+import {SCENARIO_CATALOG_KEY,createScenarioCatalog,validateScenarioCatalog,addScenario,removeScenario,mergeScenarioCatalog,reviewScenarioCatalog,loadVerifiedScenario} from './story-scenario-catalog.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -34,6 +35,13 @@ let branchMapSelected='';
 let branchMapReport=null;
 let storySimState=null,storySimFingerprint='';
 let importedRouteReport=null,verifiedRoute=null;
+let storyCatalog=createScenarioCatalog(),storyCatalogMessage='';
+try{
+  const stored=localStorage.getItem(SCENARIO_CATALOG_KEY);
+  if(stored)storyCatalog=validateScenarioCatalog(JSON.parse(stored));
+}catch(error){
+  storyCatalogMessage='Saved scenario catalog is unavailable or invalid: '+error.message;
+}
 let routeStatusMessage='No route report has been verified. Export works entirely offline.';
 let previewStoryFlag='';
 let puzzlePreviewState=null;
@@ -1159,6 +1167,144 @@ $('storyRouteApply').onclick=()=>{
     ' verified hypothetical actions into the preview. Real saves were not touched.';
   syncBranchMap();
 };
+function persistScenarioCatalog(updated){
+  // Only this versioned key is written; game and scene-save keys stay untouched.
+  const clean=validateScenarioCatalog(updated);
+  storyCatalog=clean;
+  try{
+    localStorage.setItem(SCENARIO_CATALOG_KEY,JSON.stringify(clean));
+    return true;
+  }catch(error){
+    storyCatalogMessage='Browser storage unavailable ('+error.message+
+      '). Scenarios are in memory only; use Export Catalog JSON.';
+    return false;
+  }
+}
+function catalogActionMessage(message){
+  storyCatalogMessage=message;
+  renderStoryCatalog(branchMapAtlas());
+}
+$('storyCatalogSave').onclick=()=>{
+  try{
+    const atlas=branchMapAtlas();
+    ensureStorySimulator(atlas);
+    const saved=addScenario(storyCatalog,atlas,storySimState,{
+      name:$('storyCatalogName').value,notes:$('storyCatalogNotes').value
+    });
+    const persisted=persistScenarioCatalog(saved);
+    if(persisted)storyCatalogMessage='Saved '+
+      saved.scenarios.at(-1).name+' to the local scenario catalog.';
+    $('storyCatalogName').value='';
+    $('storyCatalogNotes').value='';
+  }catch(error){storyCatalogMessage='Cannot save scenario: '+error.message}
+  renderStoryCatalog(branchMapAtlas());
+};
+$('storyCatalogExport').onclick=()=>{
+  try{
+    routeFileDownload('pixelforge-playtest-scenarios.json',
+      JSON.stringify(validateScenarioCatalog(storyCatalog),null,2)+'\n',
+      'application/json');
+    catalogActionMessage('Exported the entire hypothetical scenario catalog as JSON.');
+  }catch(error){catalogActionMessage('Catalog export failed: '+error.message)}
+};
+$('storyCatalogFile').onchange=()=>{
+  catalogActionMessage('File selected. Click Merge Selected Catalog to import it.');
+};
+$('storyCatalogImport').onclick=async()=>{
+  const file=$('storyCatalogFile').files?.[0];
+  if(!file)return catalogActionMessage('Choose a catalog JSON file first.');
+  if(file.size>1000000)return catalogActionMessage('Import exceeds 1 MB safety limit.');
+  try{
+    const incoming=validateScenarioCatalog(JSON.parse(await file.text()));
+    const merged=mergeScenarioCatalog(storyCatalog,incoming);
+    const persisted=persistScenarioCatalog(merged.catalog);
+    if(persisted)storyCatalogMessage='Imported '+merged.imported+
+      ' scenarios; skipped '+merged.skipped+' exact duplicates.';
+  }catch(error){storyCatalogMessage='Catalog import rejected: '+error.message}
+  renderStoryCatalog(branchMapAtlas());
+};
+function renderStoryCatalog(atlas){
+  const report=reviewScenarioCatalog(atlas,storyCatalog);
+  const counts=report.counts;
+  const attention=counts['needs-review']+counts['outcome-changed']+
+    counts.blocked+counts.invalid;
+  $('storyCatalogSave').disabled=!atlas||report.total>=16;
+  $('storyCatalogImport').disabled=!atlas;
+  $('storyCatalogExport').disabled=report.total===0;
+  $('storyCatalogStatus').textContent=
+    report.total+' / 16 saved hypothetical scenarios · '+
+    counts.verified+' verified · '+attention+' need attention'+
+    (storyCatalogMessage?' · '+storyCatalogMessage:'');
+  const list=$('storyCatalogList');list.replaceChildren();
+  if(!report.entries.length){
+    const p=document.createElement('p');p.className='small-note';
+    p.textContent='No reusable scenarios yet. Simulate a path, name it, and save it.';
+    list.append(p);return;
+  }
+  const labels={
+    verified:'Verified against current world',
+    'needs-review':'Needs review: authored world changed',
+    'outcome-changed':'Outcome changed',
+    blocked:'Replay blocked',
+    invalid:'Invalid stored receipt',
+    'no-world':'No Room Atlas loaded'
+  };
+  for(const entry of report.entries){
+    const item=document.createElement('article');
+    item.className='story-catalog-entry story-catalog-entry--'+entry.review.status;
+    const heading=document.createElement('div');
+    heading.className='story-catalog-entry-heading';
+    const name=document.createElement('strong');name.textContent=entry.name;
+    const status=document.createElement('span');
+    status.className='story-catalog-entry-status';
+    status.textContent=labels[entry.review.status]||entry.review.status;
+    heading.append(name,status);item.append(heading);
+    if(entry.notes){
+      const notes=document.createElement('p');notes.className='story-catalog-entry-notes';
+      notes.textContent=entry.notes;item.append(notes);
+    }
+    const summary=document.createElement('p');summary.className='small-note';
+    summary.textContent=entry.report.steps.length+' steps · '+
+      entry.report.world.startRoom+' → '+entry.report.final.roomId+
+      ' · expected flags: '+(entry.report.final.flags.join(', ')||'none');
+    item.append(summary);
+    const details=document.createElement('p');
+    details.className='small-note story-catalog-review-detail';
+    details.textContent=entry.review.message+
+      (entry.review.firstBlockedStep?' First blocked step: '+entry.review.firstBlockedStep+'.':'');
+    item.append(details);
+    if(entry.review.status==='outcome-changed'){
+      const comparison=document.createElement('p');comparison.className='small-note';
+      comparison.textContent='Actual replay flags: '+
+        (entry.review.actualFlags.join(', ')||'none');
+      item.append(comparison);
+    }
+    const actions=document.createElement('div');actions.className='story-catalog-entry-actions';
+    const load=document.createElement('button');load.type='button';
+    load.textContent='Load Verified Scenario';
+    load.disabled=entry.review.status!=='verified';
+    load.onclick=()=>{
+      try{
+        const currentAtlas=branchMapAtlas();ensureStorySimulator(currentAtlas);
+        storySimState=loadVerifiedScenario(currentAtlas,entry);
+        storyCatalogMessage='Loaded '+entry.name+
+          ' into the simulator preview. Real game saves remain unchanged.';
+        syncBranchMap();
+      }catch(error){catalogActionMessage('Could not load scenario: '+error.message)}
+    };
+    const remove=document.createElement('button');remove.type='button';
+    remove.textContent='Remove';remove.className='story-catalog-remove';
+    remove.onclick=()=>{
+      if(!window.confirm('Remove saved playtest scenario "'+entry.name+'"?'))return;
+      try{
+        const persisted=persistScenarioCatalog(removeScenario(storyCatalog,entry.id));
+        if(persisted)storyCatalogMessage='Removed '+entry.name+'.';
+      }catch(error){storyCatalogMessage='Could not remove scenario: '+error.message}
+      renderStoryCatalog(branchMapAtlas());
+    };
+    actions.append(load,remove);item.append(actions);list.append(item);
+  }
+}
 function simButton(container,label,action,ready=true,description=''){
   const wrap=document.createElement('div');
   wrap.className='story-sim-option'+(ready?'':' story-sim-option--blocked');
@@ -1183,6 +1329,7 @@ function renderStorySimulator(atlas,options){
   $('storyRouteVerify').disabled=!atlas;
   $('storyRouteApply').disabled=!atlas||!verifiedRoute;
   $('storyRouteStatus').textContent=routeStatusMessage;
+  renderStoryCatalog(atlas);
   $('storySimAssumeGates').disabled=!atlas;
   $('storySimAssumeGates').checked=s.assumeGates;
   $('storySimStatus').textContent=atlas?
