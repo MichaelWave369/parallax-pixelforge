@@ -17,6 +17,7 @@ import {routeWorldSignature,routeWorldFingerprint,createRouteReport,verifyRouteR
 import {SCENARIO_CATALOG_KEY,createScenarioCatalog,validateScenarioCatalog,addScenario,removeScenario,mergeScenarioCatalog,reviewScenarioCatalog,loadVerifiedScenario} from './story-scenario-catalog.js';
 import {analyzeRouteCoverage,filterRouteCoverage,COVERAGE_KINDS} from './story-route-coverage.js';
 import {guidedCoverageTargets,planCoverageRoute,guideStateFingerprint} from './story-coverage-guide.js';
+import {analyzeScenarioRecommendations} from './story-scenario-recommendations.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -39,6 +40,7 @@ let storySimState=null,storySimFingerprint='';
 let importedRouteReport=null,verifiedRoute=null;
 let storyCatalog=createScenarioCatalog(),storyCatalogMessage='';
 let routeCoverageSnapshot=null;
+let scenarioRecommendationsSnapshot=null;
 let storyGuidePlan=null,storyGuideFingerprint='',storyGuideMessage='Select a gap and find a route.';
 try{
   const stored=localStorage.getItem(SCENARIO_CATALOG_KEY);
@@ -1336,6 +1338,101 @@ function renderStoryGuidePanel(atlas,coverage=routeCoverageSnapshot){
     list.append(li);
   }
 }
+$('storyRecoExport').onclick=()=>{
+  try{
+    const report=analyzeRouteCoverage(branchMapAtlas(),storyCatalog);
+    const recommendations=analyzeScenarioRecommendations(report);
+    routeFileDownload('pixelforge-scenario-recommendations.json',
+      JSON.stringify(recommendations,null,2)+'\n','application/json');
+    $('storyRecoNote').textContent=
+      'Exported a read-only hypothetical scenario optimization report. No catalog entries or gameplay saves were modified.';
+  }catch(error){
+    $('storyRecoNote').textContent='Recommendation export failed: '+error.message;
+  }
+};
+function renderScenarioRecommendations(atlas,coverage){
+  const selected=$('storyRecoSelected'),gaps=$('storyRecoGaps');
+  selected.replaceChildren();gaps.replaceChildren();
+  $('storyRecoExport').disabled=!atlas;
+  let recommendations;
+  try{
+    recommendations=analyzeScenarioRecommendations(coverage);
+  }catch(error){
+    $('storyRecoSummary').textContent='Scenario recommendations unavailable: '+error.message;
+    scenarioRecommendationsSnapshot=null;return;
+  }
+  scenarioRecommendationsSnapshot=recommendations;
+  const m=recommendations.minimum;
+  $('storyRecoSummary').textContent=atlas?
+    'EXACT MINIMUM: '+m.selectedCount+' of '+m.eligibleCount+
+    ' verified hypothetical scenarios preserve '+m.verifiedTargetsPreserved+
+    ' verified authored targets · '+m.omittedCount+' overlapping · '+
+    m.excludedCount+' not verified · '+m.remainingUncoveredTargets+
+    ' still uncovered · '+m.remainingReviewTargets+' need review':
+    'Create or load a Room Atlas to compare saved hypothetical scenarios.';
+  if(!m.scenarios.length){
+    const note=document.createElement('p');note.className='small-note';
+    note.textContent='No saved scenarios yet. Save at least one hypothetical route to compare.';
+    selected.append(note);
+  }
+  for(const item of m.scenarios){
+    const entry=document.createElement('article');
+    entry.className='story-reco-entry story-reco-entry--'+item.disposition;
+    const top=document.createElement('div');top.className='story-reco-entry-head';
+    const name=document.createElement('strong');
+    name.textContent=item.name;
+    const decision=document.createElement('span');
+    decision.className='story-reco-entry-state';
+    decision.textContent=item.disposition==='keep'?'KEEP':
+      item.disposition==='overlap'?'OVERLAP':'NOT VERIFIED';
+    top.append(name,decision);entry.append(top);
+    const note=document.createElement('p');note.className='small-note';
+    note.textContent=item.explanation+
+      ' '+item.uniqueTargetCount+' unique authored targets in the full verified catalog · '+
+      item.stepCount+' route steps.';
+    entry.append(note);selected.append(entry);
+  }
+  if(!recommendations.nextTargets.length){
+    const p=document.createElement('p');p.className='small-note';
+    p.textContent=atlas?'No uncovered or review-needed authored story targets remain in the current matrix.':
+      'Load a Room Atlas to find test targets.';
+    gaps.append(p);
+  }
+  for(const [index,target] of recommendations.nextTargets.entries()){
+    const item=document.createElement('article');
+    item.className='story-reco-entry story-reco-gap';
+    const heading=document.createElement('div');heading.className='story-reco-entry-head';
+    const name=document.createElement('strong');
+    name.textContent=(index+1)+'. '+target.label;
+    const kind=document.createElement('span');kind.className='story-reco-entry-state';
+    kind.textContent=(target.status==='needs-review'?'RETEST · ':'UNTESTED · ')+
+      target.kind.toUpperCase();
+    heading.append(name,kind);item.append(heading);
+    const reason=document.createElement('p');reason.className='small-note';
+    reason.textContent=target.reason;item.append(reason);
+    const button=document.createElement('button');
+    button.type='button';button.textContent='Plan This Route';
+    button.onclick=()=>{
+      const atlasNow=branchMapAtlas();
+      const coverageNow=analyzeRouteCoverage(atlasNow,storyCatalog);
+      if(!coverageNow.rows.some(row=>row.id===target.id&&row.status!=='verified')){
+        $('storyRecoNote').textContent='Target changed or is already verified. Refresh the coverage matrix.';
+        renderStoryCatalog(atlasNow);return;
+      }
+      $('storyGuideTarget').value=target.id;
+      clearStoryGuide('Recommended '+target.label+'. Planning from the current simulator preview.');
+      renderStoryGuidePanel(atlasNow,coverageNow);
+      // Run only because the user actively clicked this planning control.
+      $('storyGuideFind').click();
+      $('storyGuideTarget').scrollIntoView({
+        behavior:reducedMotion?'auto':'smooth',block:'center'});
+    };
+    item.append(button);gaps.append(item);
+  }
+  $('storyRecoNote').textContent=
+    'Exact minimum only preserves existing VERIFIED HYPOTHETICAL narrative receipt coverage. '+
+    'Overlapping scenarios are not deleted. Recommendations are heuristics for what to try next, not proof of playability.';
+}
 function renderRouteCoverage(atlas){
   let report;
   try{
@@ -1346,6 +1443,7 @@ function renderRouteCoverage(atlas){
   }
   routeCoverageSnapshot=report;
   renderStoryGuidePanel(atlas,report);
+  renderScenarioRecommendations(atlas,report);
   const summary=report.summary;
   $('storyCoverageExport').disabled=!atlas;
   $('storyCoverageSummary').textContent=atlas?
