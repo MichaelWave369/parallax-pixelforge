@@ -8,7 +8,7 @@ import {normalizeDirector,renderDirectorLighting,renderDirectorGuides} from './w
 import {makeStarterAtlas,stripAtlas,renderPortals,renderRelics} from './room-atlas.js';
 import {knownWorldFlags,normalizeQuestLine} from './quest-world.js';
 import {STORY_SCHEMA,normalizeStory,renderStoryGuides,storyScene} from './living-story.js';
-import {BOSS_SCHEMA,normalizeBoss,renderBossStage} from './boss-stage.js';
+import {BOSS_SCHEMA,normalizeBoss,renderBossStage,bossTimelineBeats} from './boss-stage.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -915,6 +915,17 @@ function syncBossControls(){
     core['bossPhase'+i+'Name']=phase?.name??'';
     core['bossPhase'+i+'Interval']=phase?.interval??2;
     core['bossPhase'+i+'Speed']=phase?.speed??210;
+    core['bossPhase'+i+'Telegraph']=phase?.telegraph??Math.min(.55,(phase?.interval??2)*.5);
+    core['bossPhase'+i+'Cue']=phase?.cue??'INCOMING';
+  }
+  for(const [kind,count] of [['Intro',3],['Victory',2]]){
+    const beats=boss?bossTimelineBeats(boss,kind.toLowerCase()):[];
+    for(let i=1;i<=count;i++){
+      const beat=beats[i-1];
+      core['boss'+kind+'Beat'+i+'Title']=beat?.title??'BEAT '+i;
+      core['boss'+kind+'Beat'+i+'Text']=beat?.text??'A new moment unfolds.';
+      core['boss'+kind+'Beat'+i+'Seconds']=beat?.seconds??2;
+    }
   }
   for(const [id,value] of Object.entries(core)){
     $(id).value=value;$(id).disabled=!boss;
@@ -936,7 +947,21 @@ $('addBossStage').onclick=()=>{
     intro:'The chamber remembers every traveler. Now it tests your courage.',
     x:bossX,y:410,w:80,h:90,
     triggerX:Math.max(0,bossX-155),triggerY:355,triggerW:145,triggerH:145,
-    maxHealth:6,victoryFlag:'boss-'+roomSlug+'-fallen'
+    maxHealth:6,victoryFlag:'boss-'+roomSlug+'-fallen',
+    phases:[
+      {name:'THE FIRST VEIL',interval:2.1,speed:210,telegraph:.8,cue:'ASH ORB INCOMING'},
+      {name:'THE SHADOW STIRS',interval:1.4,speed:275,telegraph:.6,cue:'SHADOW BOLT'},
+      {name:'THE LAST EMBER',interval:.85,speed:345,telegraph:.35,cue:'LAST EMBER'}
+    ],
+    introBeats:[
+      {title:'THE SILENCE',text:'A guardian awakens in the darkness.',seconds:2},
+      {title:'THE GUARDIAN',text:'A challenge echoes through the chamber.',seconds:2.5},
+      {title:'THE TEST',text:'Watch the warning lines and ready your stone ray.',seconds:2}
+    ],
+    victoryBeats:[
+      {title:'THE LAST EMBER',text:'The guardian falls.',seconds:2.2},
+      {title:'A NEW PATH',text:'The world remembers your courage.',seconds:2.5}
+    ]
   });
   syncAtlasControls();
   flash('Boss arena created. Set its position, introduction, and phase timings.');
@@ -965,18 +990,40 @@ for(const [input,key] of Object.entries(bossFieldKeys)){
   };
 }
 for(let i=1;i<=3;i++)for(const [suffix,key] of [
-  ['Name','name'],['Interval','interval'],['Speed','speed']
+  ['Name','name'],['Interval','interval'],['Speed','speed'],
+  ['Telegraph','telegraph'],['Cue','cue']
 ]){
   const input='bossPhase'+i+suffix;
   $(input).onchange=e=>{
     const room=currentRoom();if(!room?.boss)return;
-    const value=key==='name'?e.target.value:Number(e.target.value);
-    if(key!=='name'&&!Number.isFinite(value)){syncBossControls();return;}
+    const textual=key==='name'||key==='cue';
+    const value=textual?e.target.value:Number(e.target.value);
+    if(!textual&&!Number.isFinite(value)){syncBossControls();return;}
     const phases=room.boss.phases.map(p=>({...p}));
     phases[i-1][key]=value;
     room.boss=normalizeBoss({...room.boss,phases});
     syncBossControls();
   };
+}
+for(const [kind,count] of [['Intro',3],['Victory',2]]){
+  for(let i=1;i<=count;i++)for(const [suffix,key] of [
+    ['Title','title'],['Text','text'],['Seconds','seconds']
+  ]){
+    $('boss'+kind+'Beat'+i+suffix).onchange=e=>{
+      const room=currentRoom();if(!room?.boss)return;
+      const value=key==='seconds'?Number(e.target.value):e.target.value;
+      if(key==='seconds'&&!Number.isFinite(value)){syncBossControls();return;}
+      const source=bossTimelineBeats(room.boss,kind.toLowerCase()).map(b=>({...b}));
+      while(source.length<count){
+        source.push({title:'BEAT '+(source.length+1),
+          text:'A new moment unfolds.',seconds:2});
+      }
+      source[i-1][key]=value;
+      const dataKey=kind==='Intro'?'introBeats':'victoryBeats';
+      room.boss=normalizeBoss({...room.boss,[dataKey]:source});
+      syncBossControls();
+    };
+  }
 }
 function directorChoices(){
   const d=scene.playable.director;
