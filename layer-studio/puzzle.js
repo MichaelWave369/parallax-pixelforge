@@ -132,6 +132,19 @@ function respawn(state) {
   p.vx=0;p.vy=0;p.grounded=false;p.invulnerable=1.1;
   state.deaths++;
 }
+// Shared damage path for authored boss projectiles. Existing enemy/hazard rules
+// remain unchanged; this uses their same health, recovery and respawn model.
+export function hurtPlayer(state){
+  if(state.status!=='playing'||state.player.invulnerable>0)return false;
+  const p=state.player;
+  state.health--;
+  if(state.health<=0){state.health=3;respawn(state);}
+  else{
+    p.invulnerable=1.2;p.vy=-250;
+    p.x=Math.max(0,Math.min(state.puzzle.worldWidth-p.w,p.x-(p.facing*32)));
+  }
+  return true;
+}
 // Update in fixed 1/60 s steps for repeatable physics independent of display frame rate.
 // Input is an object with held left/right and one-tick jumpPressed/firePressed.
 export function stepPuzzle(state,input={},dt=1/60) {
