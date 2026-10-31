@@ -134,7 +134,20 @@ export function makeStarterAtlas(scene,normalizeRoom){
         {id:'vault-to-reliquary',x:1515,y:424,w:56,h:76,
           targetRoom:'reliquary',arrivalX:112,arrivalY:458,requiresKey:true,label:'ENTER RELIQUARY'}
       ]},
-      {id:'reliquary',title:second.title,scene:second,story:secondStory,relics:[
+      {id:'reliquary',title:second.title,scene:second,story:secondStory,
+        boss:{
+          schema:BOSS_SCHEMA,id:'ash-warden',name:'THE ASH WARDEN',
+          intro:'You restored a spark to a dying world. But every flame must face its shadow.',
+          x:1380,y:412,w:80,h:88,
+          triggerX:1240,triggerY:360,triggerW:145,triggerH:140,
+          maxHealth:6,victoryFlag:'ash-warden-fallen',
+          phases:[
+            {name:'THE FIRST VEIL',interval:2.1,speed:210},
+            {name:'THE SHADOW STIRS',interval:1.4,speed:275},
+            {name:'THE LAST EMBER',interval:.85,speed:345}
+          ]
+        },
+        relics:[
         {id:'echo-seal',name:'Echo Seal',x:1190,y:440}
       ],portals:[
         {id:'reliquary-to-vault',x:55,y:424,w:56,h:76,
