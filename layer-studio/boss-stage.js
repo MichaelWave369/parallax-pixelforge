@@ -2,6 +2,7 @@
 // Authorable 3-phase boss encounters reuse the existing Stonebridge stone ray and
 // player damage rules. No script execution, remote assets or extra game engine.
 import {hurtPlayer} from './puzzle.js';
+import {normalizeCinematicCue} from './cinematic-director.js';
 
 export const BOSS_SCHEMA='pixelforge.layer-boss.v1';
 const clamp=(v,fallback,lo,hi)=>{
@@ -15,7 +16,8 @@ export function normalizeBossBeats(raw){
   return raw.slice(0,4).map((v,i)=>({
     title:word(v?.title,'BEAT '+(i+1),70),
     text:word(v?.text,'The world holds its breath.',220),
-    seconds:clamp(v?.seconds,2,0.7,7)
+    seconds:clamp(v?.seconds,2,0.7,7),
+    ...normalizeCinematicCue(v)
   }));
 }
 export function bossTimelineBeats(def,kind){
