@@ -112,6 +112,28 @@ test('renderer supports base, gameplay, foreground and HUD as distinct passes',(
   assert.equal(clear,1);
   assert.ok(draw>30);
 });
+test('default puzzle is actually beatable: statue bridge, second ray, key and gate',()=>{
+  const s=startPuzzle(createScene());
+  run(s,99,{right:true}); // approach the gap on the left bank
+  stepPuzzle(s,{firePressed:true},1/60);
+  run(s,26);
+  assert.equal(s.enemies[0].stone,true);
+  stepPuzzle(s,{right:true,jumpPressed:true},1/60);
+  run(s,38,{right:true});
+  assert.equal(s.player.grounded,true);
+  assert.ok(s.player.x>635&&s.player.x<720);
+  run(s,20); // stand on the newly created bridge
+  stepPuzzle(s,{right:true,jumpPressed:true},1/60);
+  run(s,60,{right:true});
+  assert.ok(s.player.x>820&&s.player.grounded);
+  stepPuzzle(s,{firePressed:true},1/60);
+  run(s,20); // petrify the second spirit
+  run(s,170,{right:true});
+  assert.equal(s.status,'won');
+  assert.equal(s.keyCollected,true);
+  assert.equal(s.petrified,2);
+  assert.equal(s.deaths,0);
+});
 test('browser routes expose builder and play controls',()=>{
   const editor=readFileSync(new URL('../layer-studio/index.html',import.meta.url),'utf8');
   const play=readFileSync(new URL('../layer-studio/play.html',import.meta.url),'utf8');
