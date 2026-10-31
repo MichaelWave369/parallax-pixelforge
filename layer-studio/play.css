@@ -68,3 +68,17 @@
 .quest-objective.done{border-color:#a0e7bf;color:#c7f5d9}
 .world-flag{padding:10px 14px;border:1px solid #6a8b84;border-radius:8px;
   margin:8px 0;background:#213e40;color:#b7eddf;font:12px ui-monospace,monospace}
+
+
+/* Rung 08 / Dialogue choices. The existing Journal modal pauses the game. */
+.story-speaker{color:#f4c99b;font:800 12px ui-monospace,monospace;
+  letter-spacing:.13em;margin:18px 0 12px}
+.story-text{font:500 clamp(17px,2vw,23px)/1.6 ui-serif,Georgia,serif;
+  color:#eff3e8;margin:10px 0 24px;max-width:64ch}
+.story-choice{display:block;width:100%;text-align:left;margin:10px 0;
+  background:#223d41;border:1px solid #709b91;color:#f4f2de;
+  padding:16px 20px;border-radius:10px;font:700 14px system-ui;cursor:pointer;
+  transition:background .12s ease,border-color .12s ease}
+.story-choice:hover,.story-choice:focus-visible{background:#30544e;border-color:#d6c48c}
+.story-choice:focus-visible{outline:2px solid #f6d8a5;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.story-choice{transition:none}}
