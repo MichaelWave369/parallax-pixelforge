@@ -19,7 +19,7 @@ test('default atmosphere and old files use bounded, backwards-compatible data pa
   const old=structuredClone(scene);delete old.playable.director;
   assert.deepEqual(normalizeScene(old).playable.director,emptyDirector());
   const legacy=structuredClone(scene);delete legacy.playable;
-  assert.deepEqual(normalizeScene(legacy).playable.director,emptyDirector());
+  assert.deepEqual(normalizeScene(legacy).playable.director,normalizeDirector(demoDirector())); // Pre-Rung-2 scenes receive the built-in playable demo.
 });
 test('untrusted zones and lights are bounded, types whitelisted, no executable actions',()=>{
   assert.throws(()=>normalizeDirector({schema:'evil',triggers:[]}),/Invalid PixelForge/);
