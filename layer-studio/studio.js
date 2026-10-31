@@ -7,6 +7,7 @@ import {importTileStudio,importSpriteStudio,renderTileWorld,tileCellsNear} from 
 import {normalizeDirector,renderDirectorLighting,renderDirectorGuides} from './world-director.js';
 import {makeStarterAtlas,stripAtlas,renderPortals,renderRelics} from './room-atlas.js';
 import {knownWorldFlags,normalizeQuestLine} from './quest-world.js';
+import {STORY_SCHEMA,normalizeStory,renderStoryGuides,storyScene} from './living-story.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -21,6 +22,8 @@ let selectedPortalIndex=0;
 let selectedRelicIndex=0;
 let selectedQuestIndex=0;
 let selectedObjectiveIndex=0;
+let selectedStoryDialogue=0,selectedStoryEncounter=0,selectedStoryVariant=0;
+let previewStoryFlag='';
 let puzzlePreviewState=null;
 let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 let solo = false;
@@ -341,7 +344,9 @@ function loadActiveRoom(){
   adoptActiveRoom();
   selectedId=scene.layers[0].id;
   selectedPuzzle='spawn';selectedDirector='';selectedPortalIndex=0;selectedRelicIndex=0;
-  selectedQuestIndex=0;selectedObjectiveIndex=0;elapsed=0;
+  selectedQuestIndex=0;selectedObjectiveIndex=0;
+  selectedStoryDialogue=0;selectedStoryEncounter=0;selectedStoryVariant=0;
+  previewStoryFlag='';elapsed=0;
   syncScene();
 }
 function currentPortal(){
@@ -440,6 +445,7 @@ function syncAtlasControls(){
     '. Export JSON preserves every room.':
     'Single-room mode. Create a two-room adventure to author doors and connected worlds.';
   syncQuestControls();
+  syncStoryControls();
 }
 $('makeAtlas').onclick=()=>{
   if(scene.atlas)return;
@@ -1000,10 +1006,12 @@ function tick(now) {
   if(now-previousDraw>32){
     previousDraw=now;
     const tileWorld=scene.playable.tileWorld;
+    const visualScene=scene.atlas?storyScene({scene,atlas:scene.atlas,roomId:activeRoomId,
+      worldFlags:new Set(previewStoryFlag?[previewStoryFlag]:[])}):scene;
     const visualOptions={solo:solo?selectedId:null,spread,reducedMotion};
     if(tileWorld){
       const split=scene.layers.length-1;
-      renderScene(ctx,scene,elapsed,{...visualOptions,endLayer:split});
+      renderScene(ctx,visualScene,elapsed,{...visualOptions,endLayer:split});
       renderTileWorld(ctx,tileWorld,scene.camera.x,scene.width,scene.height);
       if($('puzzlePreview').checked&&puzzlePreviewState){
         puzzlePreviewState.time=elapsed;
@@ -1034,6 +1042,8 @@ function tick(now) {
       renderDirectorLighting(ctx,director,scene.camera.x,scene.width,scene.height);
     if($('directorPreview').checked)
       renderDirectorGuides(ctx,director,scene.camera.x,scene.width,scene.height);
+    if($('storyShowGuides').checked&&currentRoom()?.story)
+      renderStoryGuides(ctx,currentRoom().story,scene.camera.x);
     if($('portalPreview').checked&&scene.atlas){
       const previewSession={atlas:scene.atlas,roomId:activeRoomId,game:{keyCollected:true,time:elapsed},
         inventory:new Set(scene.atlas.rooms.flatMap(r=>(r.relics||[]).map(item=>r.id+':'+item.id)))};
