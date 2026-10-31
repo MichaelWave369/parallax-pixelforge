@@ -2,6 +2,7 @@
 // Explicit save/load only. No background persistence, network calls or executable data.
 import {createWorldSession,availableRelicKeys,snapshotRoom,restoreRoom} from './room-atlas.js';
 import {knownWorldFlags,refreshQuestProgress} from './quest-world.js';
+import {initializeStoryRoom} from './living-story.js';
 export const SAVE_SCHEMA='pixelforge.layer-save.v1';
 export const SLOT_COUNT=3;
 const clamp=(value,fallback,min,max)=>{
@@ -43,6 +44,8 @@ function limitProgress(rootScene,id,data){
   const scene=roomScene(rootScene,id);
   if(!scene||!isObject(data))return null;
   const puzzle=scene.playable;
+  const story=rootScene.atlas?.rooms.find(r=>r.id===id)?.story;
+  const authoredStoryIds=new Set([...(story?.dialogues||[]),...(story?.encounters||[])].map(x=>x.id));
   const enemyIds=new Set(puzzle.enemies.map(e=>e.id));
   const triggerIds=new Set(puzzle.director?.triggers.map(t=>t.id)||[]);
   const checkpointIds=new Set((puzzle.director?.triggers||[]).filter(t=>t.kind==='checkpoint').map(t=>t.id));
@@ -51,6 +54,8 @@ function limitProgress(rootScene,id,data){
     keyCollected:data.keyCollected===true,
     stones:(Array.isArray(data.stones)?data.stones:[]).filter(v=>typeof v==='string'&&enemyIds.has(v)).slice(0,32),
     seen:(Array.isArray(data.seen)?data.seen:[]).filter(v=>typeof v==='string'&&triggerIds.has(v)).slice(0,32),
+    ...(story?{storySeen:(Array.isArray(data.storySeen)?data.storySeen:[])
+      .filter(v=>typeof v==='string'&&authoredStoryIds.has(v)).slice(0,24)}:{}),
     checkpoint:point&&typeof point.id==='string'&&checkpointIds.has(point.id)?{
       id:point.id,x:clamp(point.x,puzzle.spawn.x,0,puzzle.worldWidth-28),
       y:clamp(point.y,puzzle.spawn.y,-200,750)
@@ -112,6 +117,7 @@ export function restoreSave(rootScene,data){
   session.game=createWorldSession(session.scene).game;
   session.game.worldTravel=Boolean(session.atlas);
   restoreRoom(session.game,safe[data.roomId]);
+  initializeStoryRoom(session); // Reactivate only encounters earned in this room.
   session.game.health=clamp(data.health,3,1,3);
   session.game.deaths=clamp(data.deaths,0,0,100000);
   session.game.status=!session.atlas&&data.status==='won'?'won':'playing';

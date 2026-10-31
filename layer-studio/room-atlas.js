@@ -2,6 +2,7 @@
 // Rooms reuse Layer Scene v1; links are declarative, never scriptable.
 import {startPuzzle,stepPuzzle} from './puzzle.js';
 import {normalizeQuestLine,consumeWorldEvents,refreshQuestProgress} from './quest-world.js';
+import {normalizeStory,initializeStoryRoom,stepStoryEvents,storyFor,nearbyDialogue} from './living-story.js';
 
 export const ATLAS_SCHEMA='pixelforge.layer-atlas.v1';
 const bounded=(v,fallback,low,high)=>Number.isFinite(Number(v))?Math.max(low,Math.min(high,Number(v))):fallback;
@@ -64,7 +65,8 @@ export function normalizeAtlas(source,normalizeRoom){
       title:text(r.title,cleaned.title,80),
       scene:stripAtlas(cleaned),
       portals:distinctIds((Array.isArray(r.portals)?r.portals:[]).slice(0,8).map(sanitizePortal),'portal'),
-      relics:distinctIds((Array.isArray(r.relics)?r.relics:[]).slice(0,8).map(sanitizeRelic),'relic')
+      relics:distinctIds((Array.isArray(r.relics)?r.relics:[]).slice(0,8).map(sanitizeRelic),'relic'),
+      ...(r.story!=null?{story:normalizeStory(r.story)}:{})
     };
   }),'room');
   const ids=new Set(rooms.map(r=>r.id));
@@ -99,6 +101,21 @@ export function makeStarterAtlas(scene,normalizeRoom){
     {id:'reliquary-whisper',kind:'flag',flagId:'reliquary-awakened',x:230,y:355,w:125,h:145,
       message:'THE RELIQUARY AWAKENS. A NEW PATH MAY BE OPEN.',once:true}
   ],cameras:[],lights:[{id:'relic-lamp',x:315,y:320,radius:350,intensity:1,color:'#a3d9e9'}]};
+  const secondStory=normalizeStory({
+    schema:'pixelforge.layer-story.v1',
+    dialogues:[{id:'keeper-choice',x:472,y:388,w:145,h:112,
+      speaker:'ECHO KEEPER',
+      text:'The old lanterns still have a spark. Shall we rekindle their light, or honor the silence?',
+      once:true,choices:[
+        {id:'restore',label:'Rekindle the lanterns',setFlag:'reliquary-lit'},
+        {id:'quiet',label:'Leave the chamber silent',setFlag:'reliquary-silent'}
+      ]}],
+    variants:[{id:'lit-arches',layerId:second.layers.find(l=>l.kind==='arches')?.id||'',
+      whenFlag:'reliquary-lit',mode:'reveal'}],
+    encounters:[{id:'hall-guardian',x:920,y:392,w:120,h:108,
+      enemyId:'hall-wraith',requiresFlag:'reliquary-lit',
+      message:'THE REKINDLED LIGHT HAS AWAKENED THE HALL GUARDIAN.'}]
+  });
   return normalizeAtlas({
     schema:ATLAS_SCHEMA,startRoom:'lantern-vault',
     quests:[{id:'oath-of-the-reliquary',title:'The Reliquary Oath',
@@ -115,7 +132,7 @@ export function makeStarterAtlas(scene,normalizeRoom){
         {id:'vault-to-reliquary',x:1515,y:424,w:56,h:76,
           targetRoom:'reliquary',arrivalX:112,arrivalY:458,requiresKey:true,label:'ENTER RELIQUARY'}
       ]},
-      {id:'reliquary',title:second.title,scene:second,relics:[
+      {id:'reliquary',title:second.title,scene:second,story:secondStory,relics:[
         {id:'echo-seal',name:'Echo Seal',x:1190,y:440}
       ],portals:[
         {id:'reliquary-to-vault',x:55,y:424,w:56,h:76,
@@ -135,6 +152,7 @@ export function createWorldSession(rootScene){
   const session={atlas,roomId,scene,game,snapshots:{},inventory:new Set(),
     visitedRooms:new Set(atlas?[roomId]:[]),worldFlags:new Set(),completedQuests:new Set(),
     flagVersion:0,questVersion:0,transitions:0,notice:'',noticeLeft:0};
+  initializeStoryRoom(session);
   refreshQuestProgress(session,{silent:true});
   return session;
 }
@@ -148,7 +166,8 @@ export function snapshotRoom(game){
     keyCollected:game.keyCollected,
     stones:game.enemies.filter(e=>e.stone).map(e=>e.id),
     seen:[...(game.directorSeen||[])],
-    checkpoint:game.checkpoint?{...game.checkpoint}:null
+    checkpoint:game.checkpoint?{...game.checkpoint}:null,
+    ...(game.storySeen?{storySeen:[...game.storySeen]}:{})
   };
 }
 export function restoreRoom(game,progress){
@@ -159,6 +178,7 @@ export function restoreRoom(game,progress){
   game.petrified=game.enemies.filter(e=>e.stone).length;
   game.directorSeen=new Set(progress.seen||[]);
   game.checkpoint=progress.checkpoint?{...progress.checkpoint}:null;
+  if(Array.isArray(progress.storySeen))game.storySeen=new Set(progress.storySeen);
 }
 export function stepWorldSession(session,input={},dt=1/60){
   const game=session.game;
@@ -178,8 +198,10 @@ export function stepWorldSession(session,input={},dt=1/60){
     }
   }
   refreshQuestProgress(session);
+  const storyResult=stepStoryEvents(session,input);
   session.noticeLeft=Math.max(0,session.noticeLeft-dt);
   if(!session.noticeLeft)session.notice='';
+  if(storyResult.storyOpen)return {travelled:false,storyOpen:true};
   if(!session.atlas||!input.interactPressed||game.status!=='playing')return {travelled:false};
   const door=nearbyPortal(session);
   if(!door)return {travelled:false};
@@ -225,6 +247,7 @@ export function stepWorldSession(session,input={},dt=1/60){
   session.roomId=target.id;
   session.game=next;
   session.visitedRooms.add(target.id);
+  initializeStoryRoom(session);
   refreshQuestProgress(session);
   session.transitions++;
   session.notice='ENTERED '+target.title.toUpperCase();
@@ -259,8 +282,9 @@ export function renderPortals(ctx,session,cameraX=0,{guides=false}={}){
 }
 export function renderPortalPrompt(ctx,session,viewWidth=960,viewHeight=540){
   if(!session.atlas)return;
-  const door=nearbyPortal(session);
-  const message=session.noticeLeft>0?session.notice:door?
+  const door=nearbyPortal(session),dialogue=nearbyDialogue(session);
+  const message=session.noticeLeft>0?session.notice:dialogue?
+    'PRESS E / X TO SPEAK WITH '+dialogue.speaker.toUpperCase():door?
     !door.targetRoom?'UNLINKED PASSAGE':door.requiresKey&&!session.game.keyCollected?
     'FIND THE KEY TO OPEN THIS DOOR':door.requiresRelic&&!session.inventory.has(door.requiresRelic)?
     'FIND THE REQUIRED RELIC':door.requiresFlag&&!session.worldFlags?.has(door.requiresFlag)?
