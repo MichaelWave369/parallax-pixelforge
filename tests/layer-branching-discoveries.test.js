@@ -23,8 +23,8 @@ function travel(session){
   session.game.player.grounded=true;
   return stepWorldSession(session,{interactPressed:true});
 }
-function atFork(){
-  const session=createWorldSession(world());
+function atFork(root=world()){
+  const session=createWorldSession(root);
   // Earn the actual upstream archive discovery instead of inventing its flag.
   session.game.player.x=740;session.game.player.y=458;
   session.game.player.grounded=true;
@@ -123,8 +123,8 @@ test('each branch unlocks a different follow-up; the unchosen path fails closed'
     const earned=completeWorldSequence(session);
     assert.equal(earned.flag,expectedFlag);
     assert.equal(session.worldFlags.has(expectedFlag),true);
-    assert.equal(session.atlas.rooms[1].sequences.tracks.find(t=>t.id===blockedId)
-      .requiresFlag!==session.worldFlags.has(chosen==='honor'?'echo-honored':'echo-silenced'),true);
+    const blocked=session.atlas.rooms[1].sequences.tracks.find(t=>t.id===blockedId);
+    assert.equal(session.worldFlags.has(blocked.requiresFlag),false);
     assert.equal(nearbyWorldSequence(session),null);
   }
 });
@@ -207,7 +207,7 @@ test('unknown but syntactically valid prerequisites never silently unlock branch
   const root=world(),r=root.atlas.rooms[1];
   const t=r.sequences.tracks.find(x=>x.id==='promise-path');
   t.requiresFlag='future-unknown-flag';
-  const session=atFork();
+  const session=atFork(root);
   decision(session,'honor');
   session.game.player.x=1060;session.game.player.y=458;
   assert.equal(nearbyWorldSequence(session),null);
