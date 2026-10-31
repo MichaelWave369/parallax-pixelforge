@@ -4,6 +4,7 @@ import {startPuzzle,stepPuzzle} from './puzzle.js';
 import {normalizeQuestLine,consumeWorldEvents,refreshQuestProgress} from './quest-world.js';
 import {normalizeStory,initializeStoryRoom,stepStoryEvents,storyFor,nearbyDialogue} from './living-story.js';
 import {BOSS_SCHEMA,normalizeBoss,initializeBossRoom,stepBossStage,snapshotBoss,restoreBossProgress} from './boss-stage.js';
+import {WORLD_SEQUENCE_SCHEMA,normalizeWorldSequences,initializeSequenceRoom,tryOpenWorldSequence,nearbyWorldSequence} from './world-sequences.js';
 
 export const ATLAS_SCHEMA='pixelforge.layer-atlas.v1';
 const bounded=(v,fallback,low,high)=>Number.isFinite(Number(v))?Math.max(low,Math.min(high,Number(v))):fallback;
@@ -68,7 +69,8 @@ export function normalizeAtlas(source,normalizeRoom){
       portals:distinctIds((Array.isArray(r.portals)?r.portals:[]).slice(0,8).map(sanitizePortal),'portal'),
       relics:distinctIds((Array.isArray(r.relics)?r.relics:[]).slice(0,8).map(sanitizeRelic),'relic'),
       ...(r.story!=null?{story:normalizeStory(r.story)}:{}),
-      ...(r.boss!=null?{boss:normalizeBoss(r.boss)}:{})
+      ...(r.boss!=null?{boss:normalizeBoss(r.boss)}:{}),
+      ...(r.sequences!=null?{sequences:normalizeWorldSequences(r.sequences)}:{})
     };
   }),'room');
   const ids=new Set(rooms.map(r=>r.id));
@@ -128,7 +130,21 @@ export function makeStarterAtlas(scene,normalizeRoom){
         {id:'wake-relic',kind:'flag',target:'reliquary-awakened',label:'Awaken the ancient chamber'}
       ]}],
     rooms:[
-      {id:'lantern-vault',title:first.title,scene:first,relics:[
+      {id:'lantern-vault',title:first.title,scene:first,
+        sequences:{schema:WORLD_SEQUENCE_SCHEMA,tracks:[{
+          id:'the-stone-archive',title:'The Stone Archive',
+          x:710,y:373,w:150,h:126,requiresFlag:'',
+          completionFlag:'archive-revealed',once:true,
+          beats:[
+            {title:'A HIDDEN INSCRIPTION',text:'The old stone hums beneath the vault. A forgotten message emerges.',seconds:2.2,
+              camera:'player',ambient:.44,cue:'STONE RESONANCE'},
+            {title:'A DISTANT GATE',text:'Beyond the lanterns, another passage waits in the dark.',seconds:2.7,
+              focusX:1320,ambient:.63,cue:'THE FAR CHAMBER STIRS'},
+            {title:'THE ARCHIVE AWAKENS',text:'The secret is yours to remember. A new mark shines in the world.',seconds:2.3,
+              camera:'room',ambient:.27,cue:'THE INSCRIPTION GLOWS'}
+          ]
+        }]},
+        relics:[
         {id:'lantern-shard',name:'Lantern Shard',x:320,y:360}
       ],portals:[
         {id:'vault-to-reliquary',x:1515,y:424,w:56,h:76,
@@ -183,6 +199,7 @@ export function createWorldSession(rootScene){
     flagVersion:0,questVersion:0,transitions:0,notice:'',noticeLeft:0};
   initializeStoryRoom(session);
   initializeBossRoom(session);
+  initializeSequenceRoom(session);
   refreshQuestProgress(session,{silent:true});
   return session;
 }
@@ -198,7 +215,8 @@ export function snapshotRoom(game){
     seen:[...(game.directorSeen||[])],
     checkpoint:game.checkpoint?{...game.checkpoint}:null,
     ...(game.storySeen?{storySeen:[...game.storySeen]}:{}),
-    ...(game.boss?{boss:snapshotBoss(game.boss)}:{})
+    ...(game.boss?{boss:snapshotBoss(game.boss)}:{}),
+    ...(game.sequenceSeen?{sequenceSeen:[...game.sequenceSeen]}:{})
   };
 }
 export function restoreRoom(game,progress){
@@ -210,6 +228,7 @@ export function restoreRoom(game,progress){
   game.directorSeen=new Set(progress.seen||[]);
   game.checkpoint=progress.checkpoint?{...progress.checkpoint}:null;
   if(Array.isArray(progress.storySeen))game.storySeen=new Set(progress.storySeen);
+  if(Array.isArray(progress.sequenceSeen))game.sequenceSeen=new Set(progress.sequenceSeen);
 }
 export function stepWorldSession(session,input={},dt=1/60){
   const game=session.game;
@@ -237,6 +256,7 @@ export function stepWorldSession(session,input={},dt=1/60){
   if(bossResult.introStarted)return {travelled:false,bossIntro:true};
   if(bossResult.defeated)return {travelled:false,bossVictory:true};
   if(storyResult.storyOpen)return {travelled:false,storyOpen:true};
+  if(tryOpenWorldSequence(session,input))return {travelled:false,worldSequence:true};
   if(!session.atlas||!input.interactPressed||game.status!=='playing')return {travelled:false};
   const door=nearbyPortal(session);
   if(!door)return {travelled:false};
@@ -285,6 +305,7 @@ export function stepWorldSession(session,input={},dt=1/60){
   initializeStoryRoom(session);
   initializeBossRoom(session);
   restoreBossProgress(session,session.snapshots[target.id]?.boss);
+  initializeSequenceRoom(session);
   refreshQuestProgress(session);
   session.transitions++;
   session.notice='ENTERED '+target.title.toUpperCase();
@@ -319,9 +340,11 @@ export function renderPortals(ctx,session,cameraX=0,{guides=false}={}){
 }
 export function renderPortalPrompt(ctx,session,viewWidth=960,viewHeight=540){
   if(!session.atlas)return;
-  const door=nearbyPortal(session),dialogue=nearbyDialogue(session);
+  const door=nearbyPortal(session),dialogue=nearbyDialogue(session),
+    sequence=nearbyWorldSequence(session);
   const message=session.noticeLeft>0?session.notice:dialogue?
-    'PRESS E / X TO SPEAK WITH '+dialogue.speaker.toUpperCase():door?
+    'PRESS E / X TO SPEAK WITH '+dialogue.speaker.toUpperCase():sequence?
+    'PRESS E / X TO DISCOVER '+sequence.title.toUpperCase():door?
     !door.targetRoom?'UNLINKED PASSAGE':door.requiresKey&&!session.game.keyCollected?
     'FIND THE KEY TO OPEN THIS DOOR':door.requiresRelic&&!session.inventory.has(door.requiresRelic)?
     'FIND THE REQUIRED RELIC':door.requiresFlag&&!session.worldFlags?.has(door.requiresFlag)?
