@@ -925,6 +925,9 @@ function syncBossControls(){
       core['boss'+kind+'Beat'+i+'Title']=beat?.title??'BEAT '+i;
       core['boss'+kind+'Beat'+i+'Text']=beat?.text??'A new moment unfolds.';
       core['boss'+kind+'Beat'+i+'Seconds']=beat?.seconds??2;
+      core['boss'+kind+'Beat'+i+'Camera']=beat?.camera??'';
+      core['boss'+kind+'Beat'+i+'Ambient']=beat?.ambient??'';
+      core['boss'+kind+'Beat'+i+'Cue']=beat?.cue??'';
     }
   }
   for(const [id,value] of Object.entries(core)){
@@ -1007,18 +1010,24 @@ for(let i=1;i<=3;i++)for(const [suffix,key] of [
 }
 for(const [kind,count] of [['Intro',3],['Victory',2]]){
   for(let i=1;i<=count;i++)for(const [suffix,key] of [
-    ['Title','title'],['Text','text'],['Seconds','seconds']
+    ['Title','title'],['Text','text'],['Seconds','seconds'],
+    ['Camera','camera'],['Ambient','ambient'],['Cue','cue']
   ]){
     $('boss'+kind+'Beat'+i+suffix).onchange=e=>{
       const room=currentRoom();if(!room?.boss)return;
-      const value=key==='seconds'?Number(e.target.value):e.target.value;
-      if(key==='seconds'&&!Number.isFinite(value)){syncBossControls();return;}
+      const raw=e.target.value;
+      const numeric=key==='seconds'||key==='ambient';
+      if(numeric&&raw!==''&&!Number.isFinite(Number(raw))){
+        syncBossControls();return;
+      }
       const source=bossTimelineBeats(room.boss,kind.toLowerCase()).map(b=>({...b}));
       while(source.length<count){
         source.push({title:'BEAT '+(source.length+1),
           text:'A new moment unfolds.',seconds:2});
       }
-      source[i-1][key]=value;
+      if((key==='camera'||key==='ambient'||key==='cue')&&raw===''){
+        delete source[i-1][key];
+      }else source[i-1][key]=numeric?Number(raw):raw;
       const dataKey=kind==='Intro'?'introBeats':'victoryBeats';
       room.boss=normalizeBoss({...room.boss,[dataKey]:source});
       syncBossControls();

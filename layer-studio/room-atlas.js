@@ -142,13 +142,18 @@ export function makeStarterAtlas(scene,normalizeRoom){
           triggerX:1240,triggerY:360,triggerW:145,triggerH:140,
           maxHealth:6,victoryFlag:'ash-warden-fallen',
           introBeats:[
-            {title:'THE SILENCE',text:'A shape stirs beyond the last lantern.',seconds:2.1},
-            {title:'THE ASH WARDEN',text:'You restored a spark to a dying world. But every flame must face its shadow.',seconds:3},
-            {title:'THE CHALLENGE',text:'Read the warning lines. Dodge the orb. Answer with stone.',seconds:2.3}
+            {title:'THE SILENCE',text:'A shape stirs beyond the last lantern.',seconds:2.1,
+              camera:'player',ambient:.42,cue:'DISTANT STONE GRINDING'},
+            {title:'THE ASH WARDEN',text:'You restored a spark to a dying world. But every flame must face its shadow.',seconds:3,
+              camera:'boss',ambient:.66,cue:'THE ASH WARDEN EMERGES'},
+            {title:'THE CHALLENGE',text:'Read the warning lines. Dodge the orb. Answer with stone.',seconds:2.3,
+              camera:'room',ambient:.34,cue:'THE ARENA OPENS'}
           ],
           victoryBeats:[
-            {title:'THE LAST EMBER',text:'The guardian falls. The smoke parts.',seconds:2.3},
-            {title:'A PATH OPENS',text:'Ash settles upon the reliquary floor. The world remembers your victory.',seconds:3}
+            {title:'THE LAST EMBER',text:'The guardian falls. The smoke parts.',seconds:2.3,
+              camera:'boss',ambient:.68,cue:'THE SCYTHE STRIKES STONE'},
+            {title:'A PATH OPENS',text:'Ash settles upon the reliquary floor. The world remembers your victory.',seconds:3,
+              camera:'room',ambient:.22,cue:'LIGHT RETURNS TO THE RELIQUARY'}
           ],
           phases:[
             {name:'THE FIRST VEIL',interval:2.1,speed:210,telegraph:.85,cue:'ASH ORB INCOMING'},
