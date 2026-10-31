@@ -19,7 +19,7 @@ import {analyzeRouteCoverage,filterRouteCoverage,COVERAGE_KINDS} from './story-r
 import {guidedCoverageTargets,planCoverageRoute,guideStateFingerprint} from './story-coverage-guide.js';
 import {analyzeScenarioRecommendations} from './story-scenario-recommendations.js';
 import {TEST_MISSIONS_KEY,createTestMissionBook,validateTestMissionBook,addTestMission,removeTestMission,addMissionGoal,removeMissionGoal,markMissionPhysicalTest,reviewTestMissionBook} from './story-test-missions.js';
-import {DEVICE_MATRIX_KEY,DEVICE_PROFILES,createDeviceMatrix,validateDeviceMatrix,recordDeviceTest,mergeDeviceMatrix,reviewDeviceMatrix} from './story-device-matrix.js';
+import {DEVICE_MATRIX_KEY,DEVICE_PROFILES,createDeviceMatrix,validateDeviceMatrix,recordDeviceTest,mergeDeviceMatrix,pruneDeviceMatrixForBook,reviewDeviceMatrix} from './story-device-matrix.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -1579,6 +1579,7 @@ $('testMissionRemove').onclick=()=>{
   try{
     const next=removeTestMission(testMissionBook,m.id);
     const stored=persistTestMissionBook(next);
+    persistDeviceMatrix(pruneDeviceMatrixForBook(deviceMatrix,next));
     activeTestMissionId=next.missions[0]?.id||'';
     if(stored)testMissionMessage='Removed '+m.name+'.';
   }catch(error){testMissionMessage='Could not remove mission: '+error.message}
@@ -1744,6 +1745,7 @@ function renderTestMissionPanel(atlas,coverage){
       try{
         const changed=removeMissionGoal(testMissionBook,active.id,goal.id);
         const stored=persistTestMissionBook(changed);
+        persistDeviceMatrix(pruneDeviceMatrixForBook(deviceMatrix,changed));
         if(stored)testMissionMessage='Removed goal '+goal.targetLabel+'.';
       }catch(error){testMissionMessage='Could not remove goal: '+error.message}
       renderTestMissionPanel(branchMapAtlas(),routeCoverageSnapshot);
