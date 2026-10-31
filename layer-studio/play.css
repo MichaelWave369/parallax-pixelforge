@@ -93,3 +93,16 @@
   color:#d9c5be;font:700 12px ui-monospace,monospace;margin:7px 0;background:#261f2b}
 .story-choice.boss-start{text-align:center;margin-top:24px;border-color:#e3b7a1;
   background:#513443;font-weight:900;letter-spacing:.04em}
+
+
+/* Rung 10 / Directed cinematic beats. Passive transitions are readable,
+   while Next and Skip always remain available. */
+.boss-timeline-counter{margin:8px 0 12px;text-align:center;
+  color:#b4cdd0;font:800 11px ui-monospace,monospace;letter-spacing:.1em}
+.boss-timeline-title{text-align:center;color:#f8d6b3;
+  font:800 15px ui-monospace,monospace;letter-spacing:.06em;margin:12px 0}
+.boss-timeline-next{display:block;margin:20px auto 6px;padding:12px 20px;
+  border:1px solid #88adab;background:#173c43;color:#dcf0e8;
+  border-radius:8px;font:700 12px ui-monospace,monospace;cursor:pointer}
+.boss-timeline-next:hover,.boss-timeline-next:focus-visible{border-color:#e8c6a6;background:#315455}
+.boss-timeline-next:focus-visible{outline:2px solid #e8c6a6;outline-offset:2px}
