@@ -238,3 +238,50 @@
   .story-route-toolbar,.story-route-import{align-items:stretch}
   .story-route-toolbar button,.story-route-import button,.story-route-import label{width:100%}
 }
+
+
+/* Rung 17 / Local playtest scenario catalog, not Adventure Journal saves. */
+.story-catalog-head h3{margin:20px 0 6px;color:#efdfbb;
+  font:800 16px ui-monospace,monospace}
+.story-catalog-head p{max-width:77ch;line-height:1.6}
+.story-catalog-fields{display:grid;grid-template-columns:minmax(220px,1fr) minmax(240px,2fr);
+  gap:12px;margin:14px 0 9px}
+.story-catalog-fields label,.story-catalog-import label{display:flex;flex-direction:column;
+  gap:7px;font:750 11px ui-monospace,monospace;letter-spacing:.06em;color:#d4cee4}
+.story-catalog-fields input,.story-catalog-fields textarea,
+.story-catalog-import input{width:100%;min-width:0;padding:10px 12px;
+  color:#f3efeb;background:#18293a;border:1px solid #6b7894;border-radius:6px}
+.story-catalog-fields textarea{resize:vertical;min-height:66px}
+.story-catalog-toolbar,.story-catalog-import{display:flex;flex-wrap:wrap;
+  align-items:end;gap:10px 14px;margin:12px 0}
+.story-catalog-toolbar button,.story-catalog-import button{min-height:38px}
+.story-catalog-import label{flex:1 1 260px}
+.story-catalog-status{padding:12px;border-left:3px solid #8ec6b8;
+  background:#172d37;border-radius:5px;color:#d7e9e5;line-height:1.6}
+.story-catalog-list{display:grid;gap:11px;margin:12px 0}
+.story-catalog-entry{min-width:0;border:1px solid #4b627e;
+  border-left:4px solid #7d9db1;border-radius:8px;background:#192a3b;padding:14px}
+.story-catalog-entry--verified{border-left-color:#7dc5a0}
+.story-catalog-entry--needs-review{border-left-color:#dfc48a}
+.story-catalog-entry--outcome-changed,.story-catalog-entry--blocked,
+.story-catalog-entry--invalid{border-left-color:#e6a294}
+.story-catalog-entry-heading{display:flex;flex-wrap:wrap;gap:9px 14px;
+  align-items:center;justify-content:space-between}
+.story-catalog-entry-heading strong{font:800 14px ui-monospace,monospace;
+  color:#f7eddb;overflow-wrap:anywhere}
+.story-catalog-entry-status{color:#d8d6e4;
+  font:700 11px ui-monospace,monospace}
+.story-catalog-entry-notes{margin:6px 0;color:#c5dce3;font:12px/1.6 ui-sans-serif,system-ui,sans-serif}
+.story-catalog-entry .small-note{margin:8px 0;overflow-wrap:anywhere}
+.story-catalog-entry-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:11px}
+.story-catalog-entry-actions button{min-height:37px;padding:9px 12px;
+  border:1px solid #789b99;border-radius:5px;color:#eef8ec;
+  background:#294b4a;cursor:pointer}
+.story-catalog-entry-actions button:disabled{opacity:.45;cursor:not-allowed}
+.story-catalog-entry-actions .story-catalog-remove{border-color:#9b7175;background:#46323e}
+.story-catalog-entry-actions button:focus-visible{outline:2px solid #f7dfaa;outline-offset:2px}
+@media(max-width:760px){
+  .story-catalog-fields{grid-template-columns:1fr}
+  .story-catalog-toolbar,.story-catalog-import{align-items:stretch}
+  .story-catalog-toolbar button,.story-catalog-import button{width:100%}
+}
