@@ -60,9 +60,10 @@ export function nearbyDialogue(session){
 }
 export function initializeStoryRoom(session){
   const story=storyFor(session);
+  session.dialogue=null;
+  if(!story)return; // No new state or save shape for legacy rooms.
   const seen=session.game.storySeen??new Set();
   session.game.storySeen=seen;
-  session.dialogue=null;
   for(const e of session.game.enemies){
     e.dormant=Boolean(story?.encounters?.some(enc=>enc.enemyId===e.id&&!seen.has(enc.id)));
   }
