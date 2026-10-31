@@ -79,3 +79,9 @@
 .atlas-builder input[id^="bossIntroBeat"],.atlas-builder input[id^="bossVictoryBeat"],
 .atlas-builder input[id$="Telegraph"],.atlas-builder input[id$="Cue"]{min-width:0}
 .atlas-builder input[id$="Cue"]{font-family:ui-monospace,monospace;font-size:11px}
+
+
+/* Rung 11: compact camera, lighting and subtitle cue fields in Boss Stage. */
+.atlas-builder select[id$="Camera"]{min-width:0}
+.atlas-builder input[id$="Ambient"],.atlas-builder input[id$="Cue"]{min-width:0}
+.atlas-builder input[id$="Cue"]{font-family:ui-monospace,monospace;font-size:11px}
