@@ -1,6 +1,7 @@
 // PixelForge Layer Studio / standalone browser canvas renderer, no runtime privileges.
 // Scene format: pixelforge.layer-scene.v1. No remote assets, scripts or HTML are loaded.
 import {createPuzzle,normalizePuzzle} from './puzzle.js';
+import {normalizeAtlas} from './room-atlas.js';
 export const SCHEMA = 'pixelforge.layer-scene.v1';
 export const KINDS = ['sky', 'mountains', 'ruins', 'arches', 'stairway', 'silhouettes', 'foreground', 'image'];
 export const EFFECTS = ['none', 'stars', 'mist', 'dust', 'runes', 'rain', 'embers', 'fireflies'];
@@ -46,7 +47,8 @@ export function createScene() {
     schema: SCHEMA, title: 'The Lantern Vault', width: 960, height: 540,
     camera: { x: 0 },
     layers: seedLayers.map((_, i) => makeLayer(i)),
-    playable: createPuzzle()
+    playable: createPuzzle(),
+    atlas: null
   };
 }
 export function normalizeLayer(source, index = 0) {
@@ -103,7 +105,8 @@ export function normalizeScene(input) {
     height: Math.round(number(input.height, 540, 180, 1152)),
     camera: { x: number(input.camera?.x, 0, -10000, 10000) },
     layers,
-    playable: normalizePuzzle(input.playable)
+    playable: normalizePuzzle(input.playable),
+    atlas: normalizeAtlas(input.atlas, room => normalizeScene({...room,atlas:null}))
   };
 }
 export function layerOffset(layer, time, cameraX, reducedMotion = false) {

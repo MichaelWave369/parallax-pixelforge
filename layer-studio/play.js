@@ -1,6 +1,7 @@
 import {createScene, normalizeScene, renderScene} from './engine.js';
 import {startPuzzle,stepPuzzle,renderPuzzle,renderPuzzleHud,cameraFor} from './puzzle.js';
 import {renderDirectorLighting} from './world-director.js';
+import {createWorldSession,stepWorldSession,renderPortals,renderPortalPrompt} from './room-atlas.js';
 
 const $=id=>document.getElementById(id);
 const SCENE_KEY='pixelforge.layer-studio.play-scene.v1';
@@ -16,16 +17,23 @@ function loadScene(){
   }
   return createScene();
 }
-const scene=loadScene();
-canvas.width=scene.width;canvas.height=scene.height;
-canvas.style.aspectRatio=scene.width+' / '+scene.height;
-let game=startPuzzle(scene),paused=false;
-const keys=new Set(),touch=new Set(),edge={jump:false,fire:false};
-let lastJumpPad=false,lastFirePad=false;
-const controlKeys=new Set(['ArrowLeft','ArrowRight','ArrowUp','KeyA','KeyD','KeyW','Space','Enter','KeyF','KeyK','KeyR','KeyP']);
+const rootScene=loadScene();
+let session=createWorldSession(rootScene);
+let scene=session.scene,game=session.game,paused=false;
+function fitCanvas(){
+  canvas.width=scene.width;canvas.height=scene.height;
+  canvas.style.aspectRatio=scene.width+' / '+scene.height;
+  $('touchInteract').hidden=!session.atlas;
+}
+fitCanvas();
+const keys=new Set(),touch=new Set(),edge={jump:false,fire:false,interact:false};
+let lastJumpPad=false,lastFirePad=false,lastInteractPad=false;
+const controlKeys=new Set(['ArrowLeft','ArrowRight','ArrowUp','KeyA','KeyD','KeyW','Space','Enter','KeyF','KeyK','KeyR','KeyP','KeyE']);
 function setMessage(s){if($('message').textContent!==s)$('message').textContent=s;}
 function reset(){
-  game=startPuzzle(scene);paused=false;edge.jump=false;edge.fire=false;
+  session=createWorldSession(rootScene);
+  game=session.game;scene=session.scene;fitCanvas();
+  paused=false;edge.jump=false;edge.fire=false;edge.interact=false;
   $('pause').textContent='Pause';
   setMessage('Aim across the chasm. A stone spirit can carry your weight.');
 }
@@ -43,17 +51,18 @@ window.addEventListener('keydown',e=>{
   keys.add(e.code);
   if(['ArrowUp','KeyW','Space'].includes(e.code))edge.jump=true;
   if(['KeyF','KeyK','Enter'].includes(e.code))edge.fire=true;
+  if(e.code==='KeyE')edge.interact=true;
   if(e.code==='KeyR')reset();
   if(e.code==='KeyP')togglePause();
 });
 window.addEventListener('keyup',e=>keys.delete(e.code));
-window.addEventListener('blur',()=>{keys.clear();touch.clear();edge.jump=false;edge.fire=false;});
+window.addEventListener('blur',()=>{keys.clear();touch.clear();edge.jump=false;edge.fire=false;edge.interact=false;});
 function bindHold(id,action) {
   const el=$(id);
   el.addEventListener('pointerdown',e=>{
     e.preventDefault();el.setPointerCapture(e.pointerId);
     touch.add(action);el.classList.add('active');
-    if(action==='jump'||action==='fire')edge[action]=true;
+    if(action==='jump'||action==='fire'||action==='interact')edge[action]=true;
   });
   function release(){
     touch.delete(action);el.classList.remove('active');
@@ -64,19 +73,21 @@ function bindHold(id,action) {
 }
 for(const [id,action] of [
   ['touchLeft','left'],['touchRight','right'],
-  ['touchJump','jump'],['touchFire','fire']
+  ['touchJump','jump'],['touchFire','fire'],['touchInteract','interact']
 ])bindHold(id,action);
 function pollPad(){
   let pads=[];
   try{pads=navigator.getGamepads?.()||[];}catch{pads=[];}
   const pad=Array.from(pads).find(Boolean);
-  if(!pad){lastJumpPad=false;lastFirePad=false;return {left:false,right:false};}
+  if(!pad){lastJumpPad=false;lastFirePad=false;lastInteractPad=false;return {left:false,right:false};}
   const ax=pad.axes?.[0]??0;
   const jump=Boolean(pad.buttons?.[0]?.pressed);
   const fire=Boolean(pad.buttons?.[1]?.pressed || pad.buttons?.[5]?.pressed || pad.buttons?.[7]?.pressed);
+  const interact=Boolean(pad.buttons?.[2]?.pressed);
   if(jump&&!lastJumpPad)edge.jump=true;
   if(fire&&!lastFirePad)edge.fire=true;
-  lastJumpPad=jump;lastFirePad=fire;
+  if(interact&&!lastInteractPad)edge.interact=true;
+  lastJumpPad=jump;lastFirePad=fire;lastInteractPad=interact;
   return {left:ax<-.28||Boolean(pad.buttons?.[14]?.pressed),right:ax>.28||Boolean(pad.buttons?.[15]?.pressed)};
 }
 function controls(pad){
@@ -84,7 +95,8 @@ function controls(pad){
     left:keys.has('ArrowLeft')||keys.has('KeyA')||touch.has('left')||pad.left,
     right:keys.has('ArrowRight')||keys.has('KeyD')||touch.has('right')||pad.right,
     jumpPressed:edge.jump,
-    firePressed:edge.fire
+    firePressed:edge.fire,
+    interactPressed:edge.interact
   };
 }
 function updateMessage(old){
@@ -106,25 +118,30 @@ function frame(now) {
     let runs=0;
     while(accumulator>=STEP && runs<6){
       const before={health:game.health,deaths:game.deaths,petrified:game.petrified,keyCollected:game.keyCollected,eventVersion:game.eventVersion};
-      stepPuzzle(game,controls(pad),STEP);
-      edge.jump=false;edge.fire=false;
-      updateMessage(before);
+      const outcome=stepWorldSession(session,controls(pad),STEP);
+      game=session.game;
+      if(outcome.travelled){scene=session.scene;fitCanvas();setMessage('ENTERED '+scene.title.toUpperCase()+'. EXPLORE THE NEW ROOM.');}
+      else if(outcome.denied)setMessage(session.notice);
+      edge.jump=false;edge.fire=false;edge.interact=false;
+      if(!outcome.travelled&&!outcome.denied)updateMessage(before);
       accumulator-=STEP;runs++;
     }
     if(runs>=6)accumulator=0;
   }else{
     accumulator=0;
     // Ignore queued actions while paused or after victory, so resuming cannot fire unexpectedly.
-    edge.jump=false;edge.fire=false;
+    edge.jump=false;edge.fire=false;edge.interact=false;
   }
   if(ctx){
     const cam=cameraFor(game,scene.width);
     const split=scene.layers.length-1;
     renderScene(ctx,scene,game.time,{cameraX:cam,endLayer:split,reducedMotion});
     renderPuzzle(ctx,game,{cameraX:cam,width:scene.width,height:scene.height,reducedMotion,hud:false});
+    renderPortals(ctx,session,cam);
     renderScene(ctx,scene,game.time,{cameraX:cam,startLayer:split,clear:false,reducedMotion});
     renderDirectorLighting(ctx,game.puzzle.director,cam,scene.width,scene.height);
     renderPuzzleHud(ctx,game,{width:scene.width,height:scene.height});
+    renderPortalPrompt(ctx,session,scene.width,scene.height);
     if(paused){
       ctx.save();ctx.fillStyle='#061522bb';ctx.fillRect(0,0,scene.width,scene.height);
       ctx.fillStyle='#fff0cd';ctx.font='bold 35px ui-monospace,monospace';
