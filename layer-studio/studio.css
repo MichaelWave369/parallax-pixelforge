@@ -216,3 +216,25 @@
 @media(prefers-reduced-motion:reduce){
   .story-sim-option button{transition:none}
 }
+
+
+/* Rung 16 / reproducible route report export and local-only verification. */
+.story-route-head h3{font:800 16px ui-monospace,monospace;color:#f1d9b7;margin:20px 0 6px}
+.story-route-head p{max-width:75ch;line-height:1.6}
+.story-route-toolbar,.story-route-import{display:flex;gap:10px 14px;align-items:end;
+  flex-wrap:wrap;margin:12px 0}
+.story-route-toolbar button,.story-route-import button{min-height:38px}
+.story-route-import label{display:flex;flex:1 1 230px;flex-direction:column;gap:7px;
+  color:#d7c3df;font:700 11px/1.5 ui-monospace,monospace;letter-spacing:.06em}
+.story-route-import input{max-width:100%;min-height:38px;padding:8px 10px;
+  border:1px solid #667b96;border-radius:6px;color:#f2f0eb;background:#192a3c}
+.story-route-import button:disabled,.story-route-toolbar button:disabled{
+  opacity:.58;cursor:not-allowed
+}
+.story-route-status{padding:12px 14px;border-left:3px solid #9e9cd0;
+  background:#1b273d;border-radius:5px;color:#e2deea;
+  overflow-wrap:anywhere;line-height:1.55}
+@media(max-width:720px){
+  .story-route-toolbar,.story-route-import{align-items:stretch}
+  .story-route-toolbar button,.story-route-import button,.story-route-import label{width:100%}
+}
