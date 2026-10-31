@@ -505,6 +505,36 @@
           </section>
         </div>
         <p id="storyRecoNote" class="small-note story-reco-note">Minimal means the fewest saved scenarios preserving current verified HYPOTHETICAL narrative coverage. It does not mean full authored coverage, real gameplay testing, or that omitted scenarios should be deleted.</p>
+        <div class="field-rule"><span>RUNG 21 / AUTHORING TEST MISSIONS</span></div>
+        <div class="story-mission-head">
+          <h3>Release Test Missions</h3>
+          <p class="small-note">Group authored story targets into a reusable test checklist. Narrative coverage comes from verified HYPOTHETICAL route receipts. Hands-on playtest results must be entered separately, with explicit confirmation and notes. A checklist is not release certification.</p>
+        </div>
+        <div class="story-mission-create">
+          <label for="testMissionName">NEW MISSION NAME
+            <input type="text" id="testMissionName" maxlength="80" placeholder="Chapter 1 / branching release QA">
+          </label>
+          <label for="testMissionNotes">MISSION NOTES
+            <textarea id="testMissionNotes" rows="2" maxlength="240" placeholder="Which game behavior needs real playtesting?"></textarea>
+          </label>
+          <button type="button" id="testMissionCreate">Create Test Mission</button>
+        </div>
+        <div class="story-mission-controls">
+          <label for="testMissionSelect">ACTIVE MISSION
+            <select id="testMissionSelect"></select>
+          </label>
+          <button type="button" id="testMissionRemove">Remove Selected Mission</button>
+          <button type="button" id="testMissionExport">Export Mission Report JSON</button>
+        </div>
+        <div class="story-mission-goal-tools">
+          <label for="testMissionTarget">ADD AUTHORED STORY GOAL
+            <select id="testMissionTarget"></select>
+          </label>
+          <button type="button" id="testMissionAddGoal">Add Goal To Mission</button>
+        </div>
+        <p id="testMissionSummary" class="small-note story-mission-summary" role="status" aria-live="polite">No release test missions saved.</p>
+        <div id="testMissionGoals" class="story-mission-goals" aria-label="Release-test mission goals and manual playtest evidence"></div>
+        <p class="small-note story-mission-caveat">A green route receipt does NOT mean hands-on testing passed. Physical outcomes are author-reported, not independently verified. Even a completed checklist cannot guarantee game quality or release readiness.</p>
       </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
         <div class="puzzle-head">
