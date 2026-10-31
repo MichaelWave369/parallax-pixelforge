@@ -18,6 +18,7 @@ import {SCENARIO_CATALOG_KEY,createScenarioCatalog,validateScenarioCatalog,addSc
 import {analyzeRouteCoverage,filterRouteCoverage,COVERAGE_KINDS} from './story-route-coverage.js';
 import {guidedCoverageTargets,planCoverageRoute,guideStateFingerprint} from './story-coverage-guide.js';
 import {analyzeScenarioRecommendations} from './story-scenario-recommendations.js';
+import {TEST_MISSIONS_KEY,createTestMissionBook,validateTestMissionBook,addTestMission,removeTestMission,addMissionGoal,removeMissionGoal,markMissionPhysicalTest,reviewTestMissionBook} from './story-test-missions.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -41,6 +42,13 @@ let importedRouteReport=null,verifiedRoute=null;
 let storyCatalog=createScenarioCatalog(),storyCatalogMessage='';
 let routeCoverageSnapshot=null;
 let scenarioRecommendationsSnapshot=null;
+let testMissionBook=createTestMissionBook(),activeTestMissionId='',testMissionMessage='';
+try{
+  const savedMissions=localStorage.getItem(TEST_MISSIONS_KEY);
+  if(savedMissions)testMissionBook=validateTestMissionBook(JSON.parse(savedMissions));
+}catch(error){
+  testMissionMessage='Saved mission book is unavailable or invalid: '+error.message;
+}
 let storyGuidePlan=null,storyGuideFingerprint='',storyGuideMessage='Select a gap and find a route.';
 try{
   const stored=localStorage.getItem(SCENARIO_CATALOG_KEY);
@@ -1350,6 +1358,219 @@ $('storyRecoExport').onclick=()=>{
     $('storyRecoNote').textContent='Recommendation export failed: '+error.message;
   }
 };
+function persistTestMissionBook(updated){
+  const clean=validateTestMissionBook(updated);
+  testMissionBook=clean;
+  try{
+    // Strictly separate from scene editing, actual game saves and scenario receipts.
+    localStorage.setItem(TEST_MISSIONS_KEY,JSON.stringify(clean));
+    return true;
+  }catch(error){
+    testMissionMessage='Browser storage unavailable ('+error.message+
+      '). Export Mission Report JSON to preserve these in-memory checklists.';
+    return false;
+  }
+}
+function missionMessage(message){
+  testMissionMessage=message;
+  renderTestMissionPanel(branchMapAtlas(),routeCoverageSnapshot);
+}
+$('testMissionCreate').onclick=()=>{
+  try{
+    const next=addTestMission(testMissionBook,{
+      name:$('testMissionName').value,notes:$('testMissionNotes').value
+    });
+    const stored=persistTestMissionBook(next);
+    activeTestMissionId=next.missions.at(-1).id;
+    if(stored)testMissionMessage='Created '+next.missions.at(-1).name+'.';
+    $('testMissionName').value='';$('testMissionNotes').value='';
+  }catch(error){testMissionMessage='Could not create mission: '+error.message}
+  renderTestMissionPanel(branchMapAtlas(),routeCoverageSnapshot);
+};
+$('testMissionSelect').onchange=()=>{
+  activeTestMissionId=$('testMissionSelect').value;
+  renderTestMissionPanel(branchMapAtlas(),routeCoverageSnapshot);
+};
+$('testMissionRemove').onclick=()=>{
+  const m=testMissionBook.missions.find(m=>m.id===activeTestMissionId);
+  if(!m)return;
+  if(!window.confirm('Delete test mission "'+m.name+'" and its manual notes?'))return;
+  try{
+    const next=removeTestMission(testMissionBook,m.id);
+    const stored=persistTestMissionBook(next);
+    activeTestMissionId=next.missions[0]?.id||'';
+    if(stored)testMissionMessage='Removed '+m.name+'.';
+  }catch(error){testMissionMessage='Could not remove mission: '+error.message}
+  renderTestMissionPanel(branchMapAtlas(),routeCoverageSnapshot);
+};
+$('testMissionAddGoal').onclick=()=>{
+  try{
+    const next=addMissionGoal(testMissionBook,activeTestMissionId,
+      routeCoverageSnapshot,$('testMissionTarget').value);
+    const stored=persistTestMissionBook(next);
+    if(stored)testMissionMessage='Added a release-test goal; physical testing remains not run.';
+  }catch(error){testMissionMessage='Could not add goal: '+error.message}
+  renderTestMissionPanel(branchMapAtlas(),routeCoverageSnapshot);
+};
+$('testMissionExport').onclick=()=>{
+  try{
+    const atlas=branchMapAtlas();
+    const latest=analyzeRouteCoverage(atlas,storyCatalog);
+    const reviewed=reviewTestMissionBook(atlas,testMissionBook,latest);
+    // Human-readable snapshots of *self-reported* results, never claims of
+    // automated real gameplay or a signed release-readiness certificate.
+    routeFileDownload('pixelforge-authoring-test-missions.json',
+      JSON.stringify(reviewed,null,2)+'\n','application/json');
+    missionMessage('Exported the current author-reported mission review as local JSON.');
+  }catch(error){missionMessage('Mission export failed: '+error.message)}
+};
+function renderTestMissionPanel(atlas,coverage){
+  let report;
+  try{
+    report=reviewTestMissionBook(atlas,testMissionBook,coverage);
+  }catch(error){
+    $('testMissionSummary').textContent='Mission book invalid: '+error.message;
+    return;
+  }
+  const picker=$('testMissionSelect');
+  const old=activeTestMissionId||picker.value;
+  picker.replaceChildren();
+  for(const mission of report.missions){
+    const option=document.createElement('option');
+    option.value=mission.id;option.textContent=mission.name;picker.append(option);
+  }
+  activeTestMissionId=report.missions.some(m=>m.id===old)?
+    old:report.missions[0]?.id||'';
+  picker.value=activeTestMissionId;
+  picker.disabled=!report.missions.length;
+  $('testMissionCreate').disabled=report.missions.length>=8;
+  $('testMissionRemove').disabled=!activeTestMissionId;
+  $('testMissionExport').disabled=!report.missions.length;
+  const goalPicker=$('testMissionTarget'),oldTarget=goalPicker.value;
+  goalPicker.replaceChildren();
+  const rows=[...(coverage?.rows||[])].sort((a,b)=>{
+    const rank={uncovered:0,'needs-review':1,verified:2};
+    return (rank[a.status]??3)-(rank[b.status]??3)||
+      a.kind.localeCompare(b.kind)||a.label.localeCompare(b.label);
+  });
+  for(const row of rows){
+    const option=document.createElement('option');
+    option.value=row.id;
+    option.textContent=(row.status==='verified'?'SIM VERIFIED':row.status==='needs-review'?
+      'REVIEW':'UNTESTED')+' / '+row.kind.toUpperCase()+' / '+row.label;
+    goalPicker.append(option);
+  }
+  if(rows.some(r=>r.id===oldTarget))goalPicker.value=oldTarget;
+  const active=report.missions.find(m=>m.id===activeTestMissionId);
+  goalPicker.disabled=!active||!atlas||!rows.length||active.goals.length>=16;
+  $('testMissionAddGoal').disabled=goalPicker.disabled;
+  $('testMissionSummary').textContent=
+    report.summary.missions+' / 8 authoring missions · '+
+    report.summary.checked+'/'+report.summary.goals+
+    ' goals with BOTH verified hypothetical coverage and current author-reported manual passes · '+
+    report.summary.completeMissions+' author checklists complete'+
+    (testMissionMessage?' · '+testMissionMessage:'');
+  const list=$('testMissionGoals');list.replaceChildren();
+  if(!active){
+    const empty=document.createElement('p');empty.className='small-note';
+    empty.textContent='Create a named release-test mission, then add specific authored coverage goals.';
+    list.append(empty);return;
+  }
+  const intro=document.createElement('p');
+  intro.className='small-note story-mission-intro';
+  intro.textContent=active.name+' · '+active.goals.length+
+    '/16 goals · '+active.counts.checked+' checklist goals complete · '+
+    (active.notes||'No mission notes');
+  list.append(intro);
+  if(!active.goals.length){
+    const empty=document.createElement('p');empty.className='small-note';
+    empty.textContent='No goals yet. Add exact authored choices, doors or other story targets above.';
+    list.append(empty);
+  }
+  for(const goal of active.goals){
+    const card=document.createElement('article');
+    card.className='story-mission-goal story-mission-goal--'+
+      (goal.checked?'checked':goal.playtestStatus==='stale'?'stale':'pending');
+    const heading=document.createElement('div');
+    heading.className='story-mission-goal-header';
+    const title=document.createElement('strong');title.textContent=goal.targetLabel;
+    const tags=document.createElement('span');tags.className='story-mission-goal-tags';
+    tags.textContent=goal.targetKind.toUpperCase()+
+      ' · SIM: '+goal.narrativeStatus.toUpperCase()+
+      ' · GAME: '+(goal.playtestStatus==='passed'?'AUTHOR-REPORTED PASS':
+        goal.playtestStatus.toUpperCase());
+    heading.append(title,tags);card.append(heading);
+    const message=document.createElement('p');message.className='small-note';
+    message.textContent=goal.message;card.append(message);
+    if(goal.narrativeScenarioIds.length){
+      const covered=document.createElement('p');covered.className='small-note';
+      covered.textContent='Hypothetical scenario receipts: '+
+        goal.narrativeScenarioIds.join(', ');card.append(covered);
+    }
+    const inputs=document.createElement('div');inputs.className='story-mission-physical';
+    const statusLabel=document.createElement('label');
+    statusLabel.textContent='HANDS-ON GAMEPLAY RESULT';
+    const status=document.createElement('select');
+    status.setAttribute('aria-label','Hands-on gameplay result for '+goal.targetLabel);
+    for(const [value,label] of [
+      ['not-run','Not run / clear result'],
+      ['passed','I played it: pass'],
+      ['failed','I played it: fail'],
+      ['blocked','I played it: blocked']
+    ]){
+      const option=document.createElement('option');
+      option.value=value;option.textContent=label;status.append(option);
+    }
+    status.value=goal.physical.status;
+    statusLabel.append(status);
+    const noteLabel=document.createElement('label');
+    noteLabel.textContent='WHAT HAPPENED IN THE REAL GAME?';
+    const notes=document.createElement('textarea');
+    notes.rows=2;notes.maxLength=500;
+    notes.placeholder='Describe your actual playtest (at least 8 characters).';
+    notes.value=goal.physical.notes;
+    notes.setAttribute('aria-label','Actual gameplay notes for '+goal.targetLabel);
+    noteLabel.append(notes);
+    const confirmLabel=document.createElement('label');
+    confirmLabel.className='story-mission-confirm';
+    const ack=document.createElement('input');
+    ack.type='checkbox';ack.checked=false;
+    const text=document.createElement('span');
+    text.textContent='I personally tested this result in the actual game, not just the story simulator.';
+    confirmLabel.append(ack,text);
+    const buttons=document.createElement('div');
+    buttons.className='story-mission-goal-actions';
+    const record=document.createElement('button');
+    record.type='button';record.textContent='Record Author-Reported Result';
+    record.onclick=()=>{
+      try{
+        const updated=markMissionPhysicalTest(testMissionBook,branchMapAtlas(),
+          active.id,goal.id,{status:status.value,notes:notes.value,confirmed:ack.checked});
+        const stored=persistTestMissionBook(updated);
+        if(stored)testMissionMessage=status.value==='not-run'?
+          'Cleared manual test record for '+goal.targetLabel+'.':
+          'Recorded an author-reported '+status.value+
+            ' on the current world. No objective gameplay verification occurred.';
+      }catch(error){testMissionMessage='Could not record manual result: '+error.message}
+      renderTestMissionPanel(branchMapAtlas(),routeCoverageSnapshot);
+    };
+    const remove=document.createElement('button');
+    remove.type='button';remove.textContent='Remove Goal';
+    remove.className='story-mission-remove-goal';
+    remove.onclick=()=>{
+      if(!window.confirm('Remove "'+goal.targetLabel+'" from this test mission?'))return;
+      try{
+        const changed=removeMissionGoal(testMissionBook,active.id,goal.id);
+        const stored=persistTestMissionBook(changed);
+        if(stored)testMissionMessage='Removed goal '+goal.targetLabel+'.';
+      }catch(error){testMissionMessage='Could not remove goal: '+error.message}
+      renderTestMissionPanel(branchMapAtlas(),routeCoverageSnapshot);
+    };
+    buttons.append(record,remove);
+    inputs.append(statusLabel,noteLabel,confirmLabel,buttons);
+    card.append(inputs);list.append(card);
+  }
+}
 function renderScenarioRecommendations(atlas,coverage){
   const selected=$('storyRecoSelected'),gaps=$('storyRecoGaps');
   selected.replaceChildren();gaps.replaceChildren();
@@ -1442,6 +1663,7 @@ function renderRouteCoverage(atlas){
     return;
   }
   routeCoverageSnapshot=report;
+  renderTestMissionPanel(atlas,report);
   renderStoryGuidePanel(atlas,report);
   renderScenarioRecommendations(atlas,report);
   const summary=report.summary;
