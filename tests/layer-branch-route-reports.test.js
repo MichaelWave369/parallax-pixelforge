@@ -198,7 +198,7 @@ test('reports work for empty routes and old atlases without authored discoveries
 test('tampering with local history or simulated state cannot produce a valid report',()=>{
   const a=atlas(),valid=fork(a,'honor');
   const modified={...valid,flags:[...valid.flags,'echo-silenced']};
-  assert.throws(()=>createRouteReport(a,modified),/does not match authored actions/);
+  assert.throws(()=>createRouteReport(a,modified),/no longer matches authored actions/);
   const history={...valid,history:[...valid.history]};
   history.history[2]={...history.history[2],
     action:{type:'travel',portalId:'wrong-door'}};
