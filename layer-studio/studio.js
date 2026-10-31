@@ -16,6 +16,7 @@ import {createStoryPathRun,advanceStoryPath,storyPathOptions,storyPathSummary} f
 import {routeWorldSignature,routeWorldFingerprint,createRouteReport,verifyRouteReport,routeReportMarkdown} from './story-path-reports.js';
 import {SCENARIO_CATALOG_KEY,createScenarioCatalog,validateScenarioCatalog,addScenario,removeScenario,mergeScenarioCatalog,reviewScenarioCatalog,loadVerifiedScenario} from './story-scenario-catalog.js';
 import {analyzeRouteCoverage,filterRouteCoverage,COVERAGE_KINDS} from './story-route-coverage.js';
+import {guidedCoverageTargets,planCoverageRoute,guideStateFingerprint} from './story-coverage-guide.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -38,6 +39,7 @@ let storySimState=null,storySimFingerprint='';
 let importedRouteReport=null,verifiedRoute=null;
 let storyCatalog=createScenarioCatalog(),storyCatalogMessage='';
 let routeCoverageSnapshot=null;
+let storyGuidePlan=null,storyGuideFingerprint='',storyGuideMessage='Select a gap and find a route.';
 try{
   const stored=localStorage.getItem(SCENARIO_CATALOG_KEY);
   if(stored)storyCatalog=validateScenarioCatalog(JSON.parse(stored));
@@ -1074,6 +1076,8 @@ function ensureStorySimulator(atlas){
   if(storySimState&&signature===storySimFingerprint)return;
   storySimState=createStoryPathRun(atlas);
   storySimFingerprint=signature;
+  storyGuidePlan=null;
+  storyGuideMessage='The authored story changed. Plan another hypothetical route.';
   verifiedRoute=null;
   if(importedRouteReport)
     routeStatusMessage='World authoring changed. Reverify the imported report before loading it.';
@@ -1238,6 +1242,100 @@ $('storyCoverageExport').onclick=()=>{
     $('storyCoverageNote').textContent='Coverage export failed: '+error.message;
   }
 };
+function clearStoryGuide(message){
+  storyGuidePlan=null;storyGuideFingerprint='';
+  storyGuideMessage=message;
+}
+$('storyGuideTarget').onchange=()=>{
+  clearStoryGuide('Target changed. Find a new valid route from the current preview.');
+  renderStoryGuidePanel(branchMapAtlas());
+};
+$('storyGuideFind').onclick=()=>{
+  const atlas=branchMapAtlas();
+  ensureStorySimulator(atlas);
+  const target=$('storyGuideTarget').value;
+  if(!target)return;
+  const plan=planCoverageRoute(atlas,storySimState,target,{
+    coverage:routeCoverageSnapshot
+  });
+  storyGuidePlan=plan.status==='found'?plan:null;
+  storyGuideFingerprint=guideStateFingerprint(storySimState);
+  storyGuideMessage=plan.message+
+    (plan.status==='found'?' '+plan.explored+' states explored; '+
+      plan.assumptions+' steps require explicit assumptions.':'');
+  renderStoryGuidePanel(atlas);
+};
+$('storyGuideNext').onclick=()=>{
+  const atlas=branchMapAtlas();
+  ensureStorySimulator(atlas);
+  if(!storyGuidePlan?.steps?.length||
+     storyGuideFingerprint!==guideStateFingerprint(storySimState)){
+    clearStoryGuide('Simulator state changed. Find a fresh route before continuing.');
+    renderStoryGuidePanel(atlas);return;
+  }
+  const next=storyGuidePlan.steps[0];
+  // This action is always validated by Rung 15 again at the moment of click.
+  const result=advanceStoryPath(atlas,storySimState,next.action);
+  if(!result.ok){
+    clearStoryGuide('Suggested step is no longer permitted: '+result.reason);
+    renderStoryGuidePanel(atlas);return;
+  }
+  storySimState=result.state;
+  storyGuidePlan={...storyGuidePlan,steps:storyGuidePlan.steps.slice(1)};
+  storyGuideFingerprint=guideStateFingerprint(storySimState);
+  storyGuideMessage=storyGuidePlan.steps.length?
+    'Applied: '+result.label+'. '+storyGuidePlan.steps.length+
+      ' suggested steps remain.':'Target reached in this hypothetical preview. Save the route as a named scenario to add verified coverage.';
+  syncBranchMap();
+};
+function renderStoryGuidePanel(atlas,coverage=routeCoverageSnapshot){
+  const report=coverage;
+  const pick=$('storyGuideTarget'),selected=pick.value;
+  const targets=guidedCoverageTargets(report);
+  pick.replaceChildren();
+  for(const row of targets){
+    const option=document.createElement('option');
+    option.value=row.id;
+    const room=atlas?.rooms?.find(r=>r.id===row.roomId)?.title;
+    option.textContent=(row.status==='needs-review'?'RETEST / ':'UNTESTED / ')+
+      row.kind.toUpperCase()+' / '+row.label+(room?' / '+room:'');
+    pick.append(option);
+  }
+  if(targets.some(r=>r.id===selected))pick.value=selected;
+  const chosen=pick.value;
+  if(storyGuidePlan&&storyGuidePlan.targetId!==chosen)
+    clearStoryGuide('Selected target changed. Find another route.');
+  if(storyGuidePlan&&storyGuideFingerprint!==guideStateFingerprint(storySimState))
+    clearStoryGuide('Simulator decisions changed. Find a new route from the current preview.');
+  pick.disabled=!atlas||!targets.length;
+  $('storyGuideFind').disabled=!atlas||!chosen;
+  $('storyGuideNext').disabled=!storyGuidePlan?.steps.length;
+  $('storyGuideStatus').textContent=atlas?
+    targets.length+' uncovered or review-needed targets · '+
+      storyGuideMessage:
+    'Create or load a Room Atlas to find a hypothetical route.';
+  const list=$('storyGuideSteps');list.replaceChildren();
+  const steps=storyGuidePlan?.steps||[];
+  if(!steps.length){
+    const note=document.createElement('li');
+    note.className='small-note';
+    note.textContent=storyGuidePlan?'Suggested route complete.':'No steps planned. Choose an uncovered outcome and select Find Valid Route.';
+    list.append(note);return;
+  }
+  for(const [i,step] of steps.entries()){
+    const li=document.createElement('li');
+    li.className='story-guide-step'+(i===0?' story-guide-step--next':'');
+    const title=document.createElement('strong');
+    title.textContent=step.label;
+    li.append(title);
+    const info=document.createElement('span');
+    info.textContent=(step.fromRoom===step.toRoom?step.fromRoom:
+      step.fromRoom+' → '+step.toRoom)+
+      (step.assumed?' · ASSUMPTION, NOT GAMEPLAY EVIDENCE':' · authored simulator action');
+    li.append(info);
+    list.append(li);
+  }
+}
 function renderRouteCoverage(atlas){
   let report;
   try{
@@ -1247,6 +1345,7 @@ function renderRouteCoverage(atlas){
     return;
   }
   routeCoverageSnapshot=report;
+  renderStoryGuidePanel(atlas,report);
   const summary=report.summary;
   $('storyCoverageExport').disabled=!atlas;
   $('storyCoverageSummary').textContent=atlas?
@@ -1329,6 +1428,19 @@ function renderRouteCoverage(atlas){
           behavior:reducedMotion?'auto':'smooth',block:'center'});
       };
       status.append(locate);
+    }
+    if(row.status!=='verified'){
+      const planButton=document.createElement('button');
+      planButton.type='button';planButton.textContent='Plan Route';
+      planButton.title='Find a valid hypothetical route to this uncovered target';
+      planButton.onclick=()=>{
+        $('storyGuideTarget').value=row.id;
+        clearStoryGuide('Selected '+row.label+'. Find a valid route from this simulator state.');
+        renderStoryGuidePanel(branchMapAtlas());
+        $('storyGuideTarget').scrollIntoView({
+          behavior:reducedMotion?'auto':'smooth',block:'center'});
+      };
+      status.append(planButton);
     }
     tr.append(status);
     body.append(tr);
