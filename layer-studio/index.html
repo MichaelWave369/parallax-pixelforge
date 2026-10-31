@@ -250,19 +250,35 @@
           <label>INTRO BEAT 1 TITLE<input id="bossIntroBeat1Title" type="text" maxlength="70"></label>
           <label>INTRO BEAT 1 WORDS<input id="bossIntroBeat1Text" type="text" maxlength="220"></label>
           <label>INTRO BEAT 1 SECONDS<input id="bossIntroBeat1Seconds" type="number" min=".7" max="7" step=".1"></label>
+          <label>INTRO BEAT 1 CAMERA<select id="bossIntroBeat1Camera"><option value="">Default camera</option><option value="player">Player</option><option value="boss">Boss</option><option value="room">Room-wide</option></select></label>
+          <label>INTRO BEAT 1 AMBIENT LIGHT<input id="bossIntroBeat1Ambient" type="number" min="0" max=".8" step=".05" placeholder="Default"></label>
+          <label>INTRO BEAT 1 CAPTION<input id="bossIntroBeat1Cue" type="text" maxlength="80" placeholder="Readable cue, no audio"></label>
           <label>INTRO BEAT 2 TITLE<input id="bossIntroBeat2Title" type="text" maxlength="70"></label>
           <label>INTRO BEAT 2 WORDS<input id="bossIntroBeat2Text" type="text" maxlength="220"></label>
           <label>INTRO BEAT 2 SECONDS<input id="bossIntroBeat2Seconds" type="number" min=".7" max="7" step=".1"></label>
+          <label>INTRO BEAT 2 CAMERA<select id="bossIntroBeat2Camera"><option value="">Default camera</option><option value="player">Player</option><option value="boss">Boss</option><option value="room">Room-wide</option></select></label>
+          <label>INTRO BEAT 2 AMBIENT LIGHT<input id="bossIntroBeat2Ambient" type="number" min="0" max=".8" step=".05" placeholder="Default"></label>
+          <label>INTRO BEAT 2 CAPTION<input id="bossIntroBeat2Cue" type="text" maxlength="80" placeholder="Readable cue, no audio"></label>
           <label>INTRO BEAT 3 TITLE<input id="bossIntroBeat3Title" type="text" maxlength="70"></label>
           <label>INTRO BEAT 3 WORDS<input id="bossIntroBeat3Text" type="text" maxlength="220"></label>
           <label>INTRO BEAT 3 SECONDS<input id="bossIntroBeat3Seconds" type="number" min=".7" max="7" step=".1"></label>
+          <label>INTRO BEAT 3 CAMERA<select id="bossIntroBeat3Camera"><option value="">Default camera</option><option value="player">Player</option><option value="boss">Boss</option><option value="room">Room-wide</option></select></label>
+          <label>INTRO BEAT 3 AMBIENT LIGHT<input id="bossIntroBeat3Ambient" type="number" min="0" max=".8" step=".05" placeholder="Default"></label>
+          <label>INTRO BEAT 3 CAPTION<input id="bossIntroBeat3Cue" type="text" maxlength="80" placeholder="Readable cue, no audio"></label>
           <label>VICTORY BEAT 1 TITLE<input id="bossVictoryBeat1Title" type="text" maxlength="70"></label>
           <label>VICTORY BEAT 1 WORDS<input id="bossVictoryBeat1Text" type="text" maxlength="220"></label>
           <label>VICTORY BEAT 1 SECONDS<input id="bossVictoryBeat1Seconds" type="number" min=".7" max="7" step=".1"></label>
+          <label>VICTORY BEAT 1 CAMERA<select id="bossVictoryBeat1Camera"><option value="">Default camera</option><option value="player">Player</option><option value="boss">Boss</option><option value="room">Room-wide</option></select></label>
+          <label>VICTORY BEAT 1 AMBIENT LIGHT<input id="bossVictoryBeat1Ambient" type="number" min="0" max=".8" step=".05" placeholder="Default"></label>
+          <label>VICTORY BEAT 1 CAPTION<input id="bossVictoryBeat1Cue" type="text" maxlength="80" placeholder="Readable cue, no audio"></label>
           <label>VICTORY BEAT 2 TITLE<input id="bossVictoryBeat2Title" type="text" maxlength="70"></label>
           <label>VICTORY BEAT 2 WORDS<input id="bossVictoryBeat2Text" type="text" maxlength="220"></label>
           <label>VICTORY BEAT 2 SECONDS<input id="bossVictoryBeat2Seconds" type="number" min=".7" max="7" step=".1"></label>
+          <label>VICTORY BEAT 2 CAMERA<select id="bossVictoryBeat2Camera"><option value="">Default camera</option><option value="player">Player</option><option value="boss">Boss</option><option value="room">Room-wide</option></select></label>
+          <label>VICTORY BEAT 2 AMBIENT LIGHT<input id="bossVictoryBeat2Ambient" type="number" min="0" max=".8" step=".05" placeholder="Default"></label>
+          <label>VICTORY BEAT 2 CAPTION<input id="bossVictoryBeat2Cue" type="text" maxlength="80" placeholder="Readable cue, no audio"></label>
         </div>
+        <p class="small-note">RUNG 11 / CINEMATIC DIRECTOR: Camera framing, ambient light and caption cues are optional per beat. The game remains frozen during cinematic playback.</p>
         <p id="bossStatus" class="small-note">Boss stages are optional and never alter older single-room scenes.</p>
         <p id="atlasStatus" class="small-note">Single-room mode. Your existing scene remains fully playable.</p>
       </section>
