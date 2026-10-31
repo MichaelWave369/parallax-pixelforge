@@ -392,6 +392,23 @@
           <h4>Decision History</h4>
           <ol id="storySimHistory" class="story-sim-history"></ol>
         </div>
+        <div class="field-rule"><span>RUNG 16 / BRANCH ROUTE REPORTS</span></div>
+        <div class="story-route-head">
+          <h3>Export &amp; Verify Hypothetical Routes</h3>
+          <p class="small-note">Share an exact, reproducible chain of simulated choices and earned flags. Reports describe assumptions and remaining blockers. They are NOT real game saves or proof of completed gameplay.</p>
+        </div>
+        <div class="story-route-toolbar">
+          <button type="button" id="storyRouteJson">Export JSON Receipt</button>
+          <button type="button" id="storyRouteMarkdown">Export Readable Markdown</button>
+        </div>
+        <div class="story-route-import">
+          <label for="storyRouteFile">VERIFY AN EXPORTED ROUTE
+            <input type="file" id="storyRouteFile" accept=".json,application/json">
+          </label>
+          <button type="button" id="storyRouteVerify">Verify Selected JSON</button>
+          <button type="button" id="storyRouteApply" disabled>Load Verified Route Into Simulator</button>
+        </div>
+        <p class="story-route-status small-note" id="storyRouteStatus" aria-live="polite" role="status">No route report has been verified. Export works entirely offline.</p>
       </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
         <div class="puzzle-head">

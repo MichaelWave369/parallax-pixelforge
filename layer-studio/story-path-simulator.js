@@ -137,7 +137,16 @@ export function advanceStoryPath(atlas,state,action){
     if(!includes(next.sources,event.token))next.sources.push(event.token);
     label=event.label;
   }else return {ok:false,reason:'Unknown simulator action.',state};
-  next.history.push({before,label});
+  // Keep a minimal replayable action receipt. Undo discards the action as well as
+  // its state; these receipts exist only in memory until explicitly exported.
+  const record=action.type==='assumeGates'?
+    {type:'assumeGates',value:action.value}:action.type==='travel'?
+    {type:'travel',portalId:action.portalId}:action.type==='source'?
+    {type:'source',sourceId:action.sourceId}:{
+      type:'discover',trackId:action.trackId,
+      ...(action.choiceId!=null?{choiceId:action.choiceId}:{})
+    };
+  next.history.push({before,label,action:record});
   return {ok:true,state:next,label};
 }
 export function storyPathSummary(atlas,state){
