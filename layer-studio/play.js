@@ -23,6 +23,7 @@ let scene=session.scene,game=session.game,paused=false;
 function fitCanvas(){
   canvas.width=scene.width;canvas.height=scene.height;
   canvas.style.aspectRatio=scene.width+' / '+scene.height;
+  $('touchInteract').hidden=!session.atlas;
 }
 fitCanvas();
 const keys=new Set(),touch=new Set(),edge={jump:false,fire:false,interact:false};
