@@ -10,6 +10,41 @@ const clamp=(v,fallback,lo,hi)=>{
 const word=(v,fallback,max=100)=>typeof v==='string'?v.slice(0,max):fallback;
 const flag=(v)=>typeof v==='string'&&/^[a-z0-9][a-z0-9:_-]{0,63}$/.test(v)?v:'';
 const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+export function normalizeBossBeats(raw){
+  if(!Array.isArray(raw))return [];
+  return raw.slice(0,4).map((v,i)=>({
+    title:word(v?.title,'BEAT '+(i+1),70),
+    text:word(v?.text,'The world holds its breath.',220),
+    seconds:clamp(v?.seconds,2,0.7,7)
+  }));
+}
+export function bossTimelineBeats(def,kind){
+  if(!def)return [];
+  const authored=kind==='victory'?def.victoryBeats:def.introBeats;
+  if(Array.isArray(authored)&&authored.length)return authored;
+  return kind==='victory'?
+    [{title:'VICTORY',text:def.name+' has fallen. The way forward opens.',seconds:2.2}]:
+    [{title:def.name,text:def.intro,seconds:2.2}];
+}
+export function createBossTimeline(def,kind){
+  if(!['intro','victory'].includes(kind))throw Error('Unknown boss timeline.');
+  return {kind,beats:bossTimelineBeats(def,kind),index:0,elapsed:0,finished:false};
+}
+export function stepBossTimeline(timeline,dt=1/60){
+  if(!timeline||timeline.finished)return false;
+  const seconds=clamp(dt,0,0,.2);
+  timeline.elapsed+=seconds;
+  let changed=false;
+  while(!timeline.finished && timeline.elapsed>=timeline.beats[timeline.index].seconds){
+    timeline.elapsed-=timeline.beats[timeline.index].seconds;
+    if(timeline.index>=timeline.beats.length-1){
+      timeline.finished=true;
+      timeline.elapsed=timeline.beats[timeline.index].seconds;
+    }else timeline.index++;
+    changed=true;
+  }
+  return changed;
+}
 const phaseDefaults=[
   {name:'THE AWAKENING',interval:2.0,speed:210},
   {name:'THE UNRAVELING',interval:1.35,speed:265},
@@ -19,11 +54,17 @@ export function normalizeBoss(src){
   if(src==null)return null;
   if(!src||typeof src!=='object'||Array.isArray(src)||src.schema!==BOSS_SCHEMA)
     throw new Error('Invalid PixelForge Boss Stage v1 payload.');
-  const phases=phaseDefaults.map((d,i)=>({
-    name:word(src.phases?.[i]?.name,d.name,72),
-    interval:clamp(src.phases?.[i]?.interval,d.interval,.45,6),
-    speed:clamp(src.phases?.[i]?.speed,d.speed,70,550)
-  }));
+  const phases=phaseDefaults.map((d,i)=>{
+    const p=src.phases?.[i]||{};
+    const interval=clamp(p.interval,d.interval,.45,6);
+    return {
+      name:word(p.name,d.name,72),
+      interval,
+      speed:clamp(p.speed,d.speed,70,550),
+      ...(p.telegraph!=null?{telegraph:clamp(p.telegraph,.5,.15,Math.max(.16,interval-.1))}:{}),
+      ...(p.cue!=null?{cue:word(p.cue,'INCOMING',70)}:{})
+    };
+  });
   return {
     schema:BOSS_SCHEMA,
     id:flag(src.id)||'boss-warden',
@@ -37,7 +78,9 @@ export function normalizeBoss(src){
     triggerH:clamp(src.triggerH,150,24,600),
     maxHealth:Math.round(clamp(src.maxHealth,6,3,12)),
     victoryFlag:flag(src.victoryFlag),
-    phases
+    phases,
+    ...(src.introBeats!=null?{introBeats:normalizeBossBeats(src.introBeats)}:{}),
+    ...(src.victoryBeats!=null?{victoryBeats:normalizeBossBeats(src.victoryBeats)}:{})
   };
 }
 export function bossFlags(atlas){
@@ -45,7 +88,7 @@ export function bossFlags(atlas){
 }
 function initialState(def){
   return {id:def.id,status:'dormant',hp:def.maxHealth,phase:0,
-    invulnerable:0,attackTimer:def.phases[0].interval,orbs:[],time:0,version:0};
+    invulnerable:0,attackTimer:def.phases[0].interval,aim:null,orbs:[],time:0,version:0};
 }
 export function currentBoss(session){
   return session.atlas?.rooms.find(r=>r.id===session.roomId)?.boss||null;
@@ -78,6 +121,7 @@ export function restoreBossProgress(session,progress){
   stage.phase=stage.status==='defeated'?2:phaseFor(def,stage.hp);
   stage.invulnerable=1.0;
   stage.orbs=[];
+  stage.aim=null;
   stage.attackTimer=def.phases[stage.phase].interval;
 }
 function phaseFor(def,hp){
@@ -89,6 +133,7 @@ export function beginBossBattle(session){
   if(!stage||!def||stage.status!=='intro')return false;
   stage.status='battle';
   stage.attackTimer=def.phases[0].interval;
+  stage.aim=null;
   stage.version++;
   session.bossVersion=(session.bossVersion||0)+1;
   session.notice='BOSS ENCOUNTER: '+def.name.toUpperCase();
@@ -120,6 +165,7 @@ export function stepBossStage(session,dt=1/60){
     if(stage.hp===0){
       stage.status='defeated';
       stage.orbs=[];
+      stage.aim=null;
       if(def.victoryFlag)session.worldFlags.add(def.victoryFlag);
       session.notice=def.name.toUpperCase()+' HAS FALLEN.';
       session.noticeLeft=5;
@@ -127,7 +173,7 @@ export function stepBossStage(session,dt=1/60){
       const next=phaseFor(def,stage.hp);
       if(next!==stage.phase){
         stage.phase=next;stage.attackTimer=def.phases[next].interval;
-        stage.orbs=[];
+        stage.aim=null;stage.orbs=[];
         session.notice='PHASE '+(next+1)+': '+def.phases[next].name;
         session.noticeLeft=4;
       }
@@ -137,13 +183,21 @@ export function stepBossStage(session,dt=1/60){
   }
   game.shots=game.shots.filter(shot=>shot.ttl>0);
   stage.attackTimer-=delta;
-  if(stage.attackTimer<=0){
-    const phase=def.phases[stage.phase];
+  const phase=def.phases[stage.phase];
+  // Aim locks at telegraph start, so the visible warning and real orb use the
+  // exact same lane and direction. Dodging after the cue actually matters.
+  const telegraph=Math.min(phase.telegraph??Math.min(.55,phase.interval*.5),phase.interval-.08);
+  if(stage.attackTimer<=telegraph&&!stage.aim){
     const toward=p.x+p.w/2<def.x+def.w/2?-1:1;
+    stage.aim={toward,y:clamp(p.y+p.h/2,350,280,500)};
+  }
+  if(stage.attackTimer<=0){
+    const aim=stage.aim;
     stage.orbs.push({
-      x:def.x+def.w/2+32*toward,y:clamp(p.y+p.h/2,350,280,500),
-      vx:toward*phase.speed,ttl:4.5
+      x:def.x+def.w/2+32*aim.toward,y:aim.y,
+      vx:aim.toward*phase.speed,ttl:4.5
     });
+    stage.aim=null;
     stage.attackTimer=phase.interval;
   }
   stage.orbs=stage.orbs.filter(orb=>{
@@ -178,6 +232,18 @@ export function renderBossStage(ctx,session,cameraX=0,{guides=false}={}){
     ctx.strokeStyle='#f1c39c';ctx.lineWidth=6;
     ctx.beginPath();ctx.arc(def.w+15,-13,26,3.2,5.95);ctx.stroke();
     ctx.restore();
+  }
+  // Fixed, readable attack telegraph: translucent lane + high-contrast markers.
+  // No flashing screen overlays or randomized unannounced projectiles.
+  if(stage?.status==='battle'&&stage.aim){
+    const y=stage.aim.y,left=stage.aim.toward<0?0:def.x+def.w/2;
+    const right=stage.aim.toward<0?def.x+def.w/2:session.game.puzzle.worldWidth;
+    const width=Math.max(0,right-left);
+    ctx.fillStyle='#e2a3a336';ctx.fillRect(left,y-13,width,26);
+    ctx.fillStyle='#ffdfb0';ctx.fillRect(left,y-2,width,4);
+    ctx.fillStyle='#f5d5aa';ctx.font='bold 12px ui-monospace,monospace';
+    const label=def.phases[stage.phase].cue||'INCOMING';
+    ctx.fillText(label.slice(0,70),def.x-30,y-24);
   }
   for(const orb of stage?.orbs||[]){
     ctx.fillStyle='#d6bad455';ctx.beginPath();ctx.arc(orb.x,orb.y,17,0,Math.PI*2);ctx.fill();
