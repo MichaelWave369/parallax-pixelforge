@@ -15,6 +15,7 @@ import {renderWorldBranchMap} from './world-branch-view.js';
 import {createStoryPathRun,advanceStoryPath,storyPathOptions,storyPathSummary} from './story-path-simulator.js';
 import {routeWorldSignature,routeWorldFingerprint,createRouteReport,verifyRouteReport,routeReportMarkdown} from './story-path-reports.js';
 import {SCENARIO_CATALOG_KEY,createScenarioCatalog,validateScenarioCatalog,addScenario,removeScenario,mergeScenarioCatalog,reviewScenarioCatalog,loadVerifiedScenario} from './story-scenario-catalog.js';
+import {analyzeRouteCoverage,filterRouteCoverage,COVERAGE_KINDS} from './story-route-coverage.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -36,6 +37,7 @@ let branchMapReport=null;
 let storySimState=null,storySimFingerprint='';
 let importedRouteReport=null,verifiedRoute=null;
 let storyCatalog=createScenarioCatalog(),storyCatalogMessage='';
+let routeCoverageSnapshot=null;
 try{
   const stored=localStorage.getItem(SCENARIO_CATALOG_KEY);
   if(stored)storyCatalog=validateScenarioCatalog(JSON.parse(stored));
@@ -1223,7 +1225,129 @@ $('storyCatalogImport').onclick=async()=>{
   }catch(error){storyCatalogMessage='Catalog import rejected: '+error.message}
   renderStoryCatalog(branchMapAtlas());
 };
+$('storyCoverageKind').onchange=()=>renderRouteCoverage(branchMapAtlas());
+$('storyCoverageStatus').onchange=()=>renderRouteCoverage(branchMapAtlas());
+$('storyCoverageExport').onclick=()=>{
+  try{
+    const result=analyzeRouteCoverage(branchMapAtlas(),storyCatalog);
+    routeFileDownload('pixelforge-route-coverage.json',
+      JSON.stringify(result,null,2)+'\n','application/json');
+    $('storyCoverageNote').textContent=
+      'Exported a read-only hypothetical coverage report. This is not a gameplay certificate.';
+  }catch(error){
+    $('storyCoverageNote').textContent='Coverage export failed: '+error.message;
+  }
+};
+function renderRouteCoverage(atlas){
+  let report;
+  try{
+    report=analyzeRouteCoverage(atlas,storyCatalog);
+  }catch(error){
+    $('storyCoverageSummary').textContent='Coverage analysis unavailable: '+error.message;
+    return;
+  }
+  routeCoverageSnapshot=report;
+  const summary=report.summary;
+  $('storyCoverageExport').disabled=!atlas;
+  $('storyCoverageSummary').textContent=atlas?
+    summary.verified+' / '+summary.targets+' targets covered by verified hypothetical routes ('+
+    summary.coveragePercent+'%) · '+summary.needsReview+
+    ' need review · '+summary.uncovered+' uncovered · '+
+    summary.verifiedScenarios+' verified scenarios / '+
+    summary.nonverifiedScenarios+' nonverified':
+    'Create or load a Room Atlas to inspect route coverage.';
+  const breakdown=$('storyCoverageBreakdown');breakdown.replaceChildren();
+  for(const dimension of report.dimensions){
+    const item=document.createElement('div');
+    item.className='story-coverage-dimension';
+    const title=document.createElement('strong');title.textContent=dimension.label;
+    const detail=document.createElement('span');
+    detail.textContent=dimension.verified+'/'+dimension.total+' verified · '+
+      dimension.needsReview+' review · '+dimension.uncovered+' uncovered';
+    item.append(title,detail);breakdown.append(item);
+  }
+  const head=$('storyCoverageHead'),body=$('storyCoverageBody');
+  head.replaceChildren();body.replaceChildren();
+  const header=document.createElement('tr');
+  const th=(label)=>{
+    const cell=document.createElement('th');cell.scope='col';cell.textContent=label;
+    header.append(cell);return cell;
+  };
+  th('Authored Target / Room');
+  for(const scenario of report.scenarios){
+    const cell=th(scenario.name);
+    cell.title=scenario.name+' · '+scenario.status;
+    cell.className='story-coverage-scenario-heading';
+  }
+  th('Coverage');
+  head.append(header);
+  const rows=filterRouteCoverage(report,{
+    kind:$('storyCoverageKind').value,status:$('storyCoverageStatus').value
+  });
+  const displayed=rows.slice(0,180);
+  for(const row of displayed){
+    const tr=document.createElement('tr');
+    tr.className='story-coverage-row story-coverage-row--'+row.status;
+    const label=document.createElement('th');label.scope='row';
+    const title=document.createElement('strong');title.textContent=row.label;
+    const detail=document.createElement('small');
+    const roomName=atlas?.rooms?.find(r=>r.id===row.roomId)?.title;
+    detail.textContent=COVERAGE_KINDS.find(k=>k.id===row.kind)?.label+
+      (roomName?' · '+roomName:'')+
+      (row.detail?' · '+row.detail:'');
+    label.append(title,detail);tr.append(label);
+    for(const cell of row.cells){
+      const td=document.createElement('td');
+      td.className='story-coverage-cell story-coverage-cell--'+cell.status;
+      const code=cell.status==='verified'?'✓ Hyp.':
+        cell.status==='needs-review'?'Review':'·';
+      td.textContent=code+(cell.assumed?' *':'');
+      td.title=cell.status==='verified'?
+        'Verified hypothetical narrative receipt'+
+          (cell.assumed?'; contains an explicit unverified event/gate assumption':''):
+        cell.status==='needs-review'?
+          'Historical route reference; requires regression review':
+          'No scenario evidence for this target';
+      tr.append(td);
+    }
+    const status=document.createElement('td');
+    status.className='story-coverage-result story-coverage-result--'+row.status;
+    const text=document.createElement('span');
+    text.textContent=row.status==='verified'?'Hypothetical verified':
+      row.status==='needs-review'?'Retest required':'No route case';
+    status.append(text);
+    if(row.mapNodeId&&branchMapReport?.nodes.some(n=>n.id===row.mapNodeId)){
+      const locate=document.createElement('button');
+      locate.type='button';locate.textContent='Locate';
+      locate.title='Inspect related node on the World Branch Map';
+      locate.onclick=()=>{
+        branchMapSelected=row.mapNodeId;
+        const scope=$('branchMapScope');
+        scope.value=row.roomId||'all';
+        syncBranchMap();
+        $('branchMapScroll').scrollIntoView({
+          behavior:reducedMotion?'auto':'smooth',block:'center'});
+      };
+      status.append(locate);
+    }
+    tr.append(status);
+    body.append(tr);
+  }
+  if(!displayed.length){
+    const tr=document.createElement('tr'),td=document.createElement('td');
+    td.colSpan=report.scenarios.length+2;
+    td.textContent=atlas?'No targets match this filter.':
+      'Create a Room Atlas to list coverage targets.';
+    tr.append(td);body.append(tr);
+  }
+  $('storyCoverageNote').textContent=
+    'Showing '+displayed.length+' of '+rows.length+' matching targets ('+
+    report.rows.length+' total). '+(rows.length>180?
+      'Display capped at 180 rows; filter by type or state to see more. ':'')+
+    '✓ Hyp. = verified narrative replay, Review = stale route, * = explicitly assumed event or non-flag gate. No physical gameplay tested.';
+}
 function renderStoryCatalog(atlas){
+  renderRouteCoverage(atlas);
   const report=reviewScenarioCatalog(atlas,storyCatalog);
   const counts=report.counts;
   const attention=counts['needs-review']+counts['outcome-changed']+
