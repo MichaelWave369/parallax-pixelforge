@@ -13,6 +13,7 @@ import {WORLD_SEQUENCE_SCHEMA,normalizeWorldSequences,renderSequenceGuides} from
 import {analyzeWorldBranches} from './world-branch-map.js';
 import {renderWorldBranchMap} from './world-branch-view.js';
 import {createStoryPathRun,advanceStoryPath,storyPathOptions,storyPathSummary} from './story-path-simulator.js';
+import {routeWorldSignature,routeWorldFingerprint,createRouteReport,verifyRouteReport,routeReportMarkdown} from './story-path-reports.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -32,6 +33,8 @@ let selectedSequenceIndex=0,selectedSequenceBeatIndex=0,selectedSequenceChoiceIn
 let branchMapSelected='';
 let branchMapReport=null;
 let storySimState=null,storySimFingerprint='';
+let importedRouteReport=null,verifiedRoute=null;
+let routeStatusMessage='No route report has been verified. Export works entirely offline.';
 let previewStoryFlag='';
 let puzzlePreviewState=null;
 let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1052,23 +1055,18 @@ function branchMapAtlas(){
     r.id===activeRoomId?{...r,scene:stripAtlas(scene)}:r)};
 }
 function storySimSignature(atlas){
-  if(!atlas)return '';
-  // Fingerprint only what the simulator actually reads. Unrelated artwork
-  // editing must not wipe a writer's in-progress hypothetical path.
-  return JSON.stringify({startRoom:atlas.startRoom,rooms:atlas.rooms.map(r=>({
-    id:r.id,title:r.title,portals:r.portals,
-    tracks:r.sequences?.tracks,
-    sources:r.scene?.playable?.director?.triggers
-      ?.filter(t=>t.kind==='flag').map(t=>[t.id,t.kind,t.flagId,t.once]),
-    dialogues:r.story?.dialogues?.map(d=>[d.id,d.once,d.requiresFlag,d.speaker,d.choices]),
-    boss:r.boss?[r.boss.id,r.boss.name,r.boss.victoryFlag]:null
-  }))});
+  // One canonical authored topology projection for both preview resets and
+  // shareable route verification. Visual-only art edits do not invalidate it.
+  return routeWorldSignature(atlas);
 }
 function ensureStorySimulator(atlas){
   const signature=storySimSignature(atlas);
   if(storySimState&&signature===storySimFingerprint)return;
   storySimState=createStoryPathRun(atlas);
   storySimFingerprint=signature;
+  verifiedRoute=null;
+  if(importedRouteReport)
+    routeStatusMessage='World authoring changed. Reverify the imported report before loading it.';
 }
 function stepStorySimulator(action){
   const atlas=branchMapAtlas();
@@ -1081,6 +1079,86 @@ function stepStorySimulator(action){
   storySimState=out.state;
   syncBranchMap();
 }
+function routeFileDownload(filename,content,mime){
+  const blob=new Blob([content],{type:mime+';charset=utf-8'});
+  const uri=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=uri;a.download=filename;
+  document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(uri),0);
+}
+function localRouteReport(){
+  const atlas=branchMapAtlas();
+  ensureStorySimulator(atlas);
+  return createRouteReport(atlas,storySimState);
+}
+function exportStoryRoute(kind){
+  try{
+    const report=localRouteReport();
+    const base='pixelforge-route-'+String(routeWorldFingerprint(branchMapAtlas())||'unknown')
+      .replace(/[^a-zA-Z0-9-]/g,'-')+'-'+report.steps.length+'-steps';
+    if(kind==='json')routeFileDownload(base+'.json',JSON.stringify(report,null,2)+'\n',
+      'application/json');
+    else routeFileDownload(base+'.md',routeReportMarkdown(report),'text/markdown');
+    routeStatusMessage='Exported a '+kind.toUpperCase()+
+      ' hypothetical report with '+report.steps.length+' actions. No saves changed.';
+    $('storyRouteStatus').textContent=routeStatusMessage;
+  }catch(error){
+    routeStatusMessage='Export not available: '+error.message;
+    $('storyRouteStatus').textContent=routeStatusMessage;
+  }
+}
+$('storyRouteJson').onclick=()=>exportStoryRoute('json');
+$('storyRouteMarkdown').onclick=()=>exportStoryRoute('markdown');
+$('storyRouteFile').onchange=()=>{
+  importedRouteReport=null;verifiedRoute=null;
+  routeStatusMessage='Selected a file. Choose Verify Selected JSON to replay the actions.';
+  $('storyRouteApply').disabled=true;
+  $('storyRouteStatus').textContent=routeStatusMessage;
+};
+$('storyRouteVerify').onclick=async()=>{
+  const file=$('storyRouteFile').files?.[0];
+  importedRouteReport=null;verifiedRoute=null;
+  $('storyRouteApply').disabled=true;
+  if(!file){
+    routeStatusMessage='Select an exported JSON report before verification.';
+    $('storyRouteStatus').textContent=routeStatusMessage;return;
+  }
+  if(file.size>256000){
+    routeStatusMessage='Report exceeds 256 KB safety limit.';
+    $('storyRouteStatus').textContent=routeStatusMessage;return;
+  }
+  try{
+    const parsed=JSON.parse(await file.text());
+    importedRouteReport=parsed;
+    const result=verifyRouteReport(branchMapAtlas(),parsed);
+    routeStatusMessage=(result.ok?'VERIFIED: ':'NOT VERIFIED: ')+result.message;
+    if(result.ok)verifiedRoute=result;
+  }catch(error){
+    routeStatusMessage='Invalid JSON route report: '+error.message;
+  }
+  $('storyRouteStatus').textContent=routeStatusMessage;
+  $('storyRouteApply').disabled=!verifiedRoute;
+};
+$('storyRouteApply').onclick=()=>{
+  if(!importedRouteReport)return;
+  const atlas=branchMapAtlas();
+  ensureStorySimulator(atlas);
+  // Always recheck at apply time; editing a choice or portal after verification
+  // invalidates the receipt even when this button was previously enabled.
+  const result=verifyRouteReport(atlas,importedRouteReport);
+  if(!result.ok){
+    verifiedRoute=null;
+    routeStatusMessage='Cannot load: '+result.message;
+    $('storyRouteApply').disabled=true;
+    $('storyRouteStatus').textContent=routeStatusMessage;return;
+  }
+  storySimState=result.state;
+  verifiedRoute=result;
+  routeStatusMessage='Loaded '+result.report.steps.length+
+    ' verified hypothetical actions into the preview. Real saves were not touched.';
+  syncBranchMap();
+};
 function simButton(container,label,action,ready=true,description=''){
   const wrap=document.createElement('div');
   wrap.className='story-sim-option'+(ready?'':' story-sim-option--blocked');
@@ -1100,6 +1178,11 @@ function renderStorySimulator(atlas,options){
   const s=storySimState,summary=storyPathSummary(atlas,s);
   $('storySimReset').disabled=!atlas;
   $('storySimUndo').disabled=!atlas||!s.history.length;
+  $('storyRouteJson').disabled=!atlas;
+  $('storyRouteMarkdown').disabled=!atlas;
+  $('storyRouteVerify').disabled=!atlas;
+  $('storyRouteApply').disabled=!atlas||!verifiedRoute;
+  $('storyRouteStatus').textContent=routeStatusMessage;
   $('storySimAssumeGates').disabled=!atlas;
   $('storySimAssumeGates').checked=s.assumeGates;
   $('storySimStatus').textContent=atlas?
