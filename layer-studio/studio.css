@@ -385,3 +385,46 @@
 @media(prefers-reduced-motion:reduce){
   .story-guide-step,.story-guide-toolbar button{transition:none}
 }
+
+
+/* Rung 20 / Exact minimum verified scenario suite and next test recommendations. */
+.story-reco-head h3{margin:22px 0 6px;color:#f1dfbf;
+  font:800 16px ui-monospace,monospace}
+.story-reco-head p{max-width:79ch;line-height:1.65}
+.story-reco-summary{margin:12px 0;padding:13px 14px;
+  border-left:3px solid #aacdb2;border-radius:6px;background:#1c3036;
+  font:700 12px/1.7 ui-monospace,monospace;color:#e1eee6}
+.story-reco-toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.story-reco-toolbar button{min-height:40px}
+.story-reco-toolbar button:disabled{opacity:.5;cursor:not-allowed}
+.story-reco-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;margin:13px 0}
+.story-reco-pane{min-width:0;border:1px solid #465e78;border-radius:9px;
+  background:#122335;padding:13px}
+.story-reco-pane h4{font:800 12px ui-monospace,monospace;
+  color:#f0d6b4;letter-spacing:.06em;margin:5px 0 12px}
+.story-reco-list{display:grid;gap:9px;align-content:start}
+.story-reco-entry{min-width:0;padding:11px 12px;border-radius:7px;
+  border:1px solid #4d6676;border-left:4px solid #9aabb9;background:#1b2b3c}
+.story-reco-entry--keep{border-left-color:#8bcfa7}
+.story-reco-entry--overlap{border-left-color:#c0b2dc}
+.story-reco-entry--not-verified{border-left-color:#d7a98e}
+.story-reco-entry-head{display:flex;flex-wrap:wrap;gap:7px 13px;
+  align-items:center;justify-content:space-between}
+.story-reco-entry-head strong{font:750 12px/1.5 ui-monospace,monospace;
+  color:#f7ecdc;overflow-wrap:anywhere}
+.story-reco-entry-state{font:700 10px/1.5 ui-monospace,monospace;
+  letter-spacing:.05em;color:#bdcdda}
+.story-reco-entry .small-note{margin:7px 0 0;color:#b9cbd9;
+  line-height:1.65;overflow-wrap:anywhere}
+.story-reco-gap button{min-height:35px;margin-top:10px;
+  padding:8px 12px;background:#2b4b50;border:1px solid #88b5b1;
+  border-radius:6px;color:#eef4e7;font:750 11px ui-monospace,monospace;
+  cursor:pointer}
+.story-reco-gap button:focus-visible{outline:2px solid #f3ddb3;outline-offset:2px}
+.story-reco-note{padding:10px 12px;border-left:3px solid #d0b485;
+  background:#2a2a3a;border-radius:5px;color:#dbd4c8;line-height:1.65}
+@media(max-width:850px){
+  .story-reco-columns{grid-template-columns:1fr}
+  .story-reco-toolbar button{width:100%}
+}

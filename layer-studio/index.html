@@ -485,6 +485,26 @@
         <p id="storyGuideStatus" class="small-note story-guide-status" role="status" aria-live="polite">Choose an untested branch to plan the next hypothetical scenario.</p>
         <ol id="storyGuideSteps" class="story-guide-steps" aria-label="Suggested simulation steps"></ol>
         <p class="small-note story-guide-caveat">Planning is limited to 16 proposed steps and 1,400 explored states. No route found does not mean a route is impossible. NPC, boss and non-flag door actions remain explicitly labeled assumptions, and require your click before applying.</p>
+        <div class="field-rule"><span>RUNG 20 / SCENARIO RECOMMENDATIONS</span></div>
+        <div class="story-reco-head">
+          <h3>Smallest Useful Scenario Suite</h3>
+          <p class="small-note">Find the exact smallest subset of your verified hypothetical scenarios preserving every currently verified narrative target. See overlapping tests, plus the highest-priority untested story choices. Nothing is deleted, played, or saved automatically.</p>
+        </div>
+        <p id="storyRecoSummary" class="small-note story-reco-summary" role="status" aria-live="polite">Create a playtest catalog to compare scenarios.</p>
+        <div class="story-reco-toolbar">
+          <button type="button" id="storyRecoExport">Export Recommendation JSON</button>
+        </div>
+        <div class="story-reco-columns">
+          <section class="story-reco-pane" aria-label="Minimum verified hypothetical scenario selection">
+            <h4>Keep These for Equivalent Coverage</h4>
+            <div id="storyRecoSelected" class="story-reco-list"></div>
+          </section>
+          <section class="story-reco-pane" aria-label="Recommended next scenario gaps">
+            <h4>Recommended Next Branches</h4>
+            <div id="storyRecoGaps" class="story-reco-list"></div>
+          </section>
+        </div>
+        <p id="storyRecoNote" class="small-note story-reco-note">Minimal means the fewest saved scenarios preserving current verified HYPOTHETICAL narrative coverage. It does not mean full authored coverage, real gameplay testing, or that omitted scenarios should be deleted.</p>
       </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
         <div class="puzzle-head">
