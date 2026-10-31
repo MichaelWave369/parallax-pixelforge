@@ -11,7 +11,7 @@
 <header class="top">
   <a href="./" class="back">← Layer Studio</a>
   <div class="heading"><small>PIXELFORGE / 2.5D PLAY LAB</small><strong>STONEBRIDGE CHALLENGE</strong></div>
-  <div class="actions"><button type="button" id="pause">Pause</button><button type="button" id="restart">Restart ↻</button></div>
+  <div class="actions"><button type="button" id="mapButton">Map M</button><button type="button" id="inventoryButton">Inventory I</button><button type="button" id="journalButton">Saves J</button><button type="button" id="pause">Pause</button><button type="button" id="restart">Restart ↻</button></div>
 </header>
 <main>
   <div class="intro">
@@ -26,12 +26,18 @@
   </div>
   <div class="bottom">
     <div id="message" class="message" role="status" aria-live="polite">Aim across the chasm. A stone spirit can carry your weight.</div>
-    <div class="keys"><span>A / D or ← / → MOVE</span><span>W / SPACE JUMP</span><span>F / ENTER STONE RAY</span><span>E OPEN DOOR</span><span>R RESTART</span></div>
+    <div class="keys"><span>A / D or ← / → MOVE</span><span>W / SPACE JUMP</span><span>F / ENTER STONE RAY</span><span>E OPEN DOOR</span><span>M MAP / I INVENTORY / J SAVES</span><span>R RESTART</span></div>
   </div>
   <div class="touch-controls" aria-label="Touch game controls">
     <div class="group"><button id="touchLeft" aria-label="Move left">◀</button><button id="touchRight" aria-label="Move right">▶</button></div>
     <div class="group"><button id="touchJump" class="jump">JUMP</button><button id="touchFire" class="fire">STONE RAY</button><button id="touchInteract" class="interact">ENTER</button></div>
   </div>
+  <section class="journal-panel" id="journalPanel" aria-label="Adventure journal" hidden>
+    <div class="journal-heading"><div><span class="eyebrow">RUNG 06 / ADVENTURE JOURNAL</span><h2 id="journalTitle">Adventure Journal</h2></div>
+      <button id="closeJournal" type="button" aria-label="Close journal">Close ✕</button>
+    </div>
+    <div id="journalContent" class="journal-content"></div>
+  </section>
   <p class="scope">Local-only browser prototype. Your composed planes are loaded from the editor when possible; this challenge has simple one-way platforms and a deterministic game loop. No network services or copyrighted game assets.</p>
 </main>
 <script type="module" src="./play.js"></script>
