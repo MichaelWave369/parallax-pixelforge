@@ -25,19 +25,33 @@ export function normalizeWorldSequences(value){
       seconds:finite(b?.seconds,2,.7,7),
       ...normalizeCinematicCue(b)
     }));
+    const choices=[];
+    const choiceIds=new Set();
+    for(const [j,raw] of (Array.isArray(t?.choices)?t.choices:[]).slice(0,3).entries()){
+      let choiceId=id(raw?.id,'choice-'+j);
+      if(choiceIds.has(choiceId))choiceId='choice-'+j;
+      let n=1;while(choiceIds.has(choiceId))choiceId='choice-'+j+'-'+n++;
+      choiceIds.add(choiceId);
+      choices.push({id:choiceId,label:text(raw?.label,'Continue',90),
+        setFlag:id(raw?.setFlag,'')});
+    }
     return {
       id:trackId,title:text(t?.title,'Unknown discovery',80),
       x:finite(t?.x,500,0,6000),y:finite(t?.y,360,-200,900),
       w:finite(t?.w,130,16,800),h:finite(t?.h,130,16,800),
       requiresFlag:id(t?.requiresFlag,''),completionFlag:id(t?.completionFlag,''),
-      once:t?.once!==false,beats
+      once:t?.once!==false,beats,
+      ...(t?.unlessFlag!=null?{unlessFlag:id(t.unlessFlag,'')}:{}),
+      ...(t?.choices!=null?{choices}: {})
     };
   });
   return {schema:WORLD_SEQUENCE_SCHEMA,tracks};
 }
 export function worldSequenceFlags(atlas){
   return [...new Set((atlas?.rooms||[]).flatMap(room=>
-    (room.sequences?.tracks||[]).map(t=>t.completionFlag).filter(Boolean)))];
+    (room.sequences?.tracks||[]).flatMap(t=>[
+      t.completionFlag,...(t.choices||[]).map(choice=>choice.setFlag)
+    ].filter(Boolean))))];
 }
 export function tracksFor(session){
   return session.atlas?.rooms.find(r=>r.id===session.roomId)?.sequences?.tracks||[];
@@ -51,6 +65,7 @@ export function nearbyWorldSequence(session){
   if(!session.atlas||session.game.status!=='playing')return null;
   return tracksFor(session).find(t=>t.beats.length&&
     (!t.requiresFlag||session.worldFlags.has(t.requiresFlag))&&
+    (!t.unlessFlag||!session.worldFlags.has(t.unlessFlag))&&
     (!t.once||!session.game.sequenceSeen?.has(t.id))&&
     overlap(session.game.player,t))||null;
 }
@@ -69,17 +84,32 @@ export function createWorldTimeline(session){
   if(!track||!track.beats.length)throw Error('No active world sequence.');
   return {kind:'world',beats:track.beats,index:0,elapsed:0,finished:false};
 }
-export function completeWorldSequence(session){
+export function worldSequenceChoices(session){
   const track=activeWorldTrack(session);
-  if(!track)return null;
+  return track?.choices||[];
+}
+export function completeWorldSequence(session,choiceId=null){
+  const track=activeWorldTrack(session);
+  if(!track||!track.beats.length)return null;
+  if(track.requiresFlag&&!session.worldFlags.has(track.requiresFlag))return null;
+  if(track.unlessFlag&&session.worldFlags.has(track.unlessFlag))return null;
+  if(track.once&&session.game.sequenceSeen?.has(track.id))return null;
+  const choices=track.choices||[];
+  // A branching discovery must have an explicitly selected authored answer.
+  // Neither a missing answer nor an invented one can grant progress.
+  const selected=choices.length?choices.find(c=>c.id===choiceId):null;
+  if(choices.length&&!selected)return null;
+  if(!choices.length&&choiceId!=null)return null;
   session.game.sequenceSeen??=new Set();
   if(track.once)session.game.sequenceSeen.add(track.id);
   if(track.completionFlag)session.worldFlags.add(track.completionFlag);
+  if(selected?.setFlag)session.worldFlags.add(selected.setFlag);
   session.activeWorldSequence=null;
   session.sequenceVersion=(session.sequenceVersion||0)+1;
   session.notice='DISCOVERED: '+track.title.toUpperCase();
   session.noticeLeft=4;
-  return {id:track.id,flag:track.completionFlag||null};
+  return {id:track.id,flag:track.completionFlag||null,
+    ...(selected?{choiceId:selected.id,choiceFlag:selected.setFlag||null}:{})};
 }
 export function cancelWorldSequence(session){
   session.activeWorldSequence=null; // No completion flag or seen receipt.
