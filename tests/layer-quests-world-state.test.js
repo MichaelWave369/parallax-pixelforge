@@ -37,7 +37,7 @@ function awaken(session){
 }
 test('starter quest requires a relic, visiting Reliquary and a real World Director flag',()=>{
   const root=world(),session=createWorldSession(root);
-  assert.deepEqual(knownWorldFlags(root.atlas),['reliquary-awakened','reliquary-lit','reliquary-silent']);
+  assert.deepEqual(knownWorldFlags(root.atlas),['reliquary-awakened','reliquary-lit','reliquary-silent','ash-warden-fallen']);
   assert.equal(root.atlas.quests.length,1);
   assert.equal(root.atlas.quests[0].objectives.length,3);
   assert.deepEqual(root.atlas.quests[0].objectives.map(o=>o.kind),['relic','visit','flag']);
@@ -161,6 +161,7 @@ test('legacy worlds retain their original Rung 6 save fingerprint when new defau
   // Strip Rung 7 and Rung 8 additions to model a real unchanged historical save.
   for(const room of old.atlas.rooms){
     delete room.story;
+    delete room.boss;
     for(const portal of room.portals){delete portal.requiresFlag;delete portal.requiresQuest;}
     for(const trigger of room.scene.playable.director.triggers){
       delete trigger.flagId;

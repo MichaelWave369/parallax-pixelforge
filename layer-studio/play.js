@@ -5,6 +5,7 @@ import {createWorldSession,stepWorldSession,renderPortals,renderPortalPrompt,ren
 import {writeSaveSlot,readSaveSlot,inspectSaveSlot,deleteSaveSlot,SLOT_COUNT} from './adventure-journal.js';
 import {evaluateQuestLine,refreshQuestProgress} from './quest-world.js';
 import {storyScene,chooseDialogue} from './living-story.js';
+import {currentBoss,beginBossBattle,renderBossStage,renderBossHud} from './boss-stage.js';
 
 const $=id=>document.getElementById(id);
 const SCENE_KEY='pixelforge.layer-studio.play-scene.v1';
@@ -54,6 +55,9 @@ window.addEventListener('keydown',e=>{
   if(controlKeys.has(e.code))e.preventDefault();
   if(e.repeat)return;
   if(e.code==='Escape'&&activePanel){closePanel();return;}
+  if(activePanel==='boss-intro'&&['KeyE','Enter','Space'].includes(e.code)){
+    beginBossBattle(session);closePanel();setMessage(session.notice);return;
+  }
   if(e.code==='KeyM'){togglePanel('map');return;}
   if(e.code==='KeyI'){togglePanel('inventory');return;}
   if(e.code==='KeyJ'){togglePanel('saves');return;}
@@ -114,6 +118,7 @@ function updateMessage(old){
   if(game.status==='won')setMessage('VAULT CLEARED! The stone bridge led you to the key and the exit.');
   else if(!old.keyCollected&&game.keyCollected)setMessage('KEY ACQUIRED. The cathedral gate is unlocked. Head right!');
   else if(old.petrified!==game.petrified)setMessage('PETRIFIED! The spirit is now a solid stone platform. Jump onto it.');
+  else if(old.bossVersion!==session.bossVersion)setMessage(session.notice);
   else if(old.storyVersion!==session.storyVersion)setMessage(session.notice);
   else if(old.questVersion!==session.questVersion)setMessage(session.notice);
   else if(old.flagVersion!==session.flagVersion)setMessage(session.notice);
@@ -129,6 +134,7 @@ function clearMovement(){
 }
 function closePanel(){
   if(activePanel==='story')session.dialogue=null;
+  if(activePanel==='boss-intro')beginBossBattle(session);
   activePanel='';
   $('journalPanel').hidden=true;
   clearMovement();
@@ -137,6 +143,7 @@ function closePanel(){
 function togglePanel(name){
   if(activePanel===name){closePanel();return;}
   if(activePanel==='story')session.dialogue=null;
+  if(activePanel==='boss-intro')beginBossBattle(session);
   activePanel=name;
   clearMovement();
   last=0;accumulator=0;
@@ -151,7 +158,19 @@ function element(tag,klass,label){
 function renderPanel(){
   const panel=$('journalPanel'),content=$('journalContent');
   panel.hidden=false;content.replaceChildren();
-  if(activePanel==='story'){
+  if(activePanel==='boss-intro'){
+    const boss=currentBoss(session);
+    $('journalTitle').textContent=boss?.name||'Boss Encounter';
+    content.append(element('p','boss-cinematic-label','THE ARENA AWAKENS'));
+    content.append(element('p','boss-cinematic-intro',boss?.intro||'A formidable guardian awaits.'));
+    content.append(element('p','journal-note','Three phases. Use the stone ray, avoid incoming energy orbs and watch the guardian adapt as its health falls.'));
+    for(const [index,phase] of (boss?.phases||[]).entries()){
+      content.append(element('div','boss-phase-preview','PHASE '+(index+1)+' · '+phase.name));
+    }
+    const fight=element('button','story-choice boss-start','FACE THE GUARDIAN');
+    fight.onclick=()=>{beginBossBattle(session);closePanel();setMessage(session.notice);};
+    content.append(fight);
+  }else if(activePanel==='story'){
     $('journalTitle').textContent='Living Story';
     const room=session.atlas?.rooms.find(r=>r.id===session.roomId);
     const dialogue=room?.story?.dialogues.find(d=>d.id===session.dialogue?.id);
@@ -307,15 +326,23 @@ function frame(now) {
   const dt=last?Math.min((now-last)/1000,.08):0;
   last=now;
   const pad=pollPad();
+  if(activePanel==='boss-intro'&&edge.interact){
+    beginBossBattle(session);closePanel();setMessage(session.notice);
+  }
   if(!paused&&!activePanel&&game.status==='playing'){
     accumulator+=dt;
     let runs=0;
     while(accumulator>=STEP && runs<6){
       const before={health:game.health,deaths:game.deaths,petrified:game.petrified,keyCollected:game.keyCollected,eventVersion:game.eventVersion,inventoryCount:session.inventory.size,
         questVersion:session.questVersion,flagVersion:session.flagVersion,
-        storyVersion:session.storyVersion};
+        storyVersion:session.storyVersion,bossVersion:session.bossVersion};
       const outcome=stepWorldSession(session,controls(pad),STEP);
       game=session.game;
+      if(outcome.bossIntro){
+        togglePanel('boss-intro');
+        edge.jump=false;edge.fire=false;edge.interact=false;accumulator=0;
+        break;
+      }
       if(outcome.storyOpen){
         togglePanel('story');
         edge.jump=false;edge.fire=false;edge.interact=false;accumulator=0;
@@ -339,11 +366,13 @@ function frame(now) {
     const visibleScene=storyScene(session);
     renderScene(ctx,visibleScene,game.time,{cameraX:cam,endLayer:split,reducedMotion});
     renderPuzzle(ctx,game,{cameraX:cam,width:scene.width,height:scene.height,reducedMotion,hud:false});
+    renderBossStage(ctx,session,cam);
     renderRelics(ctx,session,cam);
     renderPortals(ctx,session,cam);
     renderScene(ctx,visibleScene,game.time,{cameraX:cam,startLayer:split,clear:false,reducedMotion});
     renderDirectorLighting(ctx,game.puzzle.director,cam,scene.width,scene.height);
     renderPuzzleHud(ctx,game,{width:scene.width,height:scene.height});
+    renderBossHud(ctx,session,scene.width);
     renderPortalPrompt(ctx,session,scene.width,scene.height);
     if(paused){
       ctx.save();ctx.fillStyle='#061522bb';ctx.fillRect(0,0,scene.width,scene.height);

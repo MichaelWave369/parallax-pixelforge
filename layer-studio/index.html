@@ -208,6 +208,37 @@
           <button id="removeStoryVariant" type="button">Remove scenery rule</button>
         </div>
         <p id="storyStatus" class="small-note">Story events are optional. Older rooms stay unchanged until you add one.</p>
+        <div class="field-rule"><span>RUNG 09 / BOSS STAGE</span></div>
+        <p class="small-note">Create a three-phase arena guardian with an introduction, stone-ray health, moving energy orbs, and a world flag that unlocks story gates after victory.</p>
+        <div class="puzzle-buttons">
+          <button id="addBossStage" type="button">+ Boss arena</button>
+          <button id="removeBossStage" type="button">Remove boss</button>
+          <label class="toggle"><input id="bossShowGuides" type="checkbox" checked> Arena guides</label>
+        </div>
+        <div class="puzzle-fields">
+          <label>BOSS NAME<input id="bossName" type="text" maxlength="70"></label>
+          <label>DEFEAT FLAG<input id="bossVictoryFlag" type="text" maxlength="64" placeholder="guardian-vanquished"></label>
+          <label>MAX HEALTH<input id="bossMaxHealth" type="number" min="3" max="12" step="1"></label>
+          <label>INTRO MONOLOGUE<input id="bossIntro" type="text" maxlength="350"></label>
+          <label>BOSS X<input id="bossX" type="number" min="0" max="5940" step="1"></label>
+          <label>BOSS Y<input id="bossY" type="number" min="-200" max="750" step="1"></label>
+          <label>BOSS WIDTH<input id="bossW" type="number" min="40" max="150" step="1"></label>
+          <label>BOSS HEIGHT<input id="bossH" type="number" min="45" max="170" step="1"></label>
+          <label>INTRO ZONE X<input id="bossTriggerX" type="number" min="0" max="5940" step="1"></label>
+          <label>INTRO ZONE Y<input id="bossTriggerY" type="number" min="-200" max="750" step="1"></label>
+          <label>INTRO ZONE WIDTH<input id="bossTriggerW" type="number" min="24" max="700" step="1"></label>
+          <label>INTRO ZONE HEIGHT<input id="bossTriggerH" type="number" min="24" max="600" step="1"></label>
+          <label>PHASE 1 NAME<input id="bossPhase1Name" type="text" maxlength="72"></label>
+          <label>PHASE 1 ATTACK SECONDS<input id="bossPhase1Interval" type="number" min=".45" max="6" step=".05"></label>
+          <label>PHASE 1 ORB SPEED<input id="bossPhase1Speed" type="number" min="70" max="550" step="5"></label>
+          <label>PHASE 2 NAME<input id="bossPhase2Name" type="text" maxlength="72"></label>
+          <label>PHASE 2 ATTACK SECONDS<input id="bossPhase2Interval" type="number" min=".45" max="6" step=".05"></label>
+          <label>PHASE 2 ORB SPEED<input id="bossPhase2Speed" type="number" min="70" max="550" step="5"></label>
+          <label>PHASE 3 NAME<input id="bossPhase3Name" type="text" maxlength="72"></label>
+          <label>PHASE 3 ATTACK SECONDS<input id="bossPhase3Interval" type="number" min=".45" max="6" step=".05"></label>
+          <label>PHASE 3 ORB SPEED<input id="bossPhase3Speed" type="number" min="70" max="550" step="5"></label>
+        </div>
+        <p id="bossStatus" class="small-note">Boss stages are optional and never alter older single-room scenes.</p>
         <p id="atlasStatus" class="small-note">Single-room mode. Your existing scene remains fully playable.</p>
       </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">

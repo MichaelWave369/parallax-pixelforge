@@ -82,3 +82,14 @@
 .story-choice:hover,.story-choice:focus-visible{background:#30544e;border-color:#d6c48c}
 .story-choice:focus-visible{outline:2px solid #f6d8a5;outline-offset:2px}
 @media(prefers-reduced-motion:reduce){.story-choice{transition:none}}
+
+
+/* Rung 09 / Cinematic boss introductions use the existing paused journal overlay. */
+.boss-cinematic-label{font:800 11px ui-monospace,monospace;letter-spacing:.15em;
+  color:#f6c0a8;text-align:center;margin:8px 0 16px}
+.boss-cinematic-intro{font:500 clamp(18px,2.5vw,26px)/1.6 ui-serif,Georgia,serif;
+  color:#fff0df;text-align:center;margin:16px auto 26px;max-width:38ch}
+.boss-phase-preview{border-left:2px solid #bc897f;padding:8px 12px;
+  color:#d9c5be;font:700 12px ui-monospace,monospace;margin:7px 0;background:#261f2b}
+.story-choice.boss-start{text-align:center;margin-top:24px;border-color:#e3b7a1;
+  background:#513443;font-weight:900;letter-spacing:.04em}

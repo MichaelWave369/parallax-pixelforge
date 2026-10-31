@@ -8,6 +8,7 @@ import {normalizeDirector,renderDirectorLighting,renderDirectorGuides} from './w
 import {makeStarterAtlas,stripAtlas,renderPortals,renderRelics} from './room-atlas.js';
 import {knownWorldFlags,normalizeQuestLine} from './quest-world.js';
 import {STORY_SCHEMA,normalizeStory,renderStoryGuides,storyScene} from './living-story.js';
+import {BOSS_SCHEMA,normalizeBoss,renderBossStage} from './boss-stage.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -446,6 +447,7 @@ function syncAtlasControls(){
     'Single-room mode. Create a two-room adventure to author doors and connected worlds.';
   syncQuestControls();
   syncStoryControls();
+  syncBossControls();
 }
 $('makeAtlas').onclick=()=>{
   if(scene.atlas)return;
@@ -899,6 +901,83 @@ $('removeStoryVariant').onclick=()=>{
   s.variants.splice(selectedStoryVariant,1);selectedStoryVariant=0;
   syncAtlasControls();flash('Scenery rule removed.');
 };
+function syncBossControls(){
+  const room=currentRoom(),boss=room?.boss||null;
+  const core={
+    bossName:boss?.name??'',bossIntro:boss?.intro??'',
+    bossVictoryFlag:boss?.victoryFlag??'',bossMaxHealth:boss?.maxHealth??6,
+    bossX:boss?.x??0,bossY:boss?.y??0,bossW:boss?.w??80,bossH:boss?.h??90,
+    bossTriggerX:boss?.triggerX??0,bossTriggerY:boss?.triggerY??0,
+    bossTriggerW:boss?.triggerW??150,bossTriggerH:boss?.triggerH??140
+  };
+  for(let i=1;i<=3;i++){
+    const phase=boss?.phases?.[i-1];
+    core['bossPhase'+i+'Name']=phase?.name??'';
+    core['bossPhase'+i+'Interval']=phase?.interval??2;
+    core['bossPhase'+i+'Speed']=phase?.speed??210;
+  }
+  for(const [id,value] of Object.entries(core)){
+    $(id).value=value;$(id).disabled=!boss;
+  }
+  $('addBossStage').disabled=!room||Boolean(boss);
+  $('removeBossStage').disabled=!boss;
+  $('bossStatus').textContent=boss?
+    boss.name+' · '+boss.maxHealth+' HP · three authored phases · '+
+      (boss.victoryFlag?'Defeat sets '+boss.victoryFlag:'No defeat flag')+'.':
+    room?'No boss authored here. Add one to build a three-phase encounter.':
+      'Create a Room Atlas to author boss encounters.';
+}
+$('addBossStage').onclick=()=>{
+  const room=currentRoom();if(!room||room.boss)return;
+  const bossX=Math.min(scene.playable.worldWidth-100,Math.max(200,scene.camera.x+380));
+  const roomSlug=room.id.toLowerCase().replace(/[^a-z0-9_-]/g,'-').slice(0,40);
+  room.boss=normalizeBoss({
+    schema:BOSS_SCHEMA,id:'boss-'+roomSlug,name:'THE ASH WARDEN',
+    intro:'The chamber remembers every traveler. Now it tests your courage.',
+    x:bossX,y:410,w:80,h:90,
+    triggerX:Math.max(0,bossX-155),triggerY:355,triggerW:145,triggerH:145,
+    maxHealth:6,victoryFlag:'boss-'+roomSlug+'-fallen'
+  });
+  syncAtlasControls();
+  flash('Boss arena created. Set its position, introduction, and phase timings.');
+};
+$('removeBossStage').onclick=()=>{
+  const room=currentRoom();if(!room?.boss)return;
+  if(!confirm('Remove this room boss and its defeat condition?'))return;
+  delete room.boss;
+  syncAtlasControls();flash('Boss removed. Doors requiring its old flag stay locked until updated.');
+};
+const bossFieldKeys={
+  bossName:'name',bossIntro:'intro',bossVictoryFlag:'victoryFlag',
+  bossMaxHealth:'maxHealth',bossX:'x',bossY:'y',bossW:'w',bossH:'h',
+  bossTriggerX:'triggerX',bossTriggerY:'triggerY',
+  bossTriggerW:'triggerW',bossTriggerH:'triggerH'
+};
+for(const [input,key] of Object.entries(bossFieldKeys)){
+  $(input).onchange=e=>{
+    const room=currentRoom();if(!room?.boss)return;
+    const textual=['name','intro','victoryFlag'].includes(key);
+    const value=textual?e.target.value:Number(e.target.value);
+    if(!textual&&!Number.isFinite(value)){syncBossControls();return;}
+    room.boss=normalizeBoss({...room.boss,[key]:value});
+    if(key==='victoryFlag')syncAtlasControls();
+    else syncBossControls();
+  };
+}
+for(let i=1;i<=3;i++)for(const [suffix,key] of [
+  ['Name','name'],['Interval','interval'],['Speed','speed']
+]){
+  const input='bossPhase'+i+suffix;
+  $(input).onchange=e=>{
+    const room=currentRoom();if(!room?.boss)return;
+    const value=key==='name'?e.target.value:Number(e.target.value);
+    if(key!=='name'&&!Number.isFinite(value)){syncBossControls();return;}
+    const phases=room.boss.phases.map(p=>({...p}));
+    phases[i-1][key]=value;
+    room.boss=normalizeBoss({...room.boss,phases});
+    syncBossControls();
+  };
+}
 function directorChoices(){
   const d=scene.playable.director;
   return [
@@ -1234,6 +1313,9 @@ function tick(now) {
       renderDirectorLighting(ctx,director,scene.camera.x,scene.width,scene.height);
     if($('directorPreview').checked)
       renderDirectorGuides(ctx,director,scene.camera.x,scene.width,scene.height);
+    if(currentRoom()?.boss)
+      renderBossStage(ctx,{atlas:scene.atlas,roomId:activeRoomId,game:{}},scene.camera.x,
+        {guides:$('bossShowGuides').checked});
     if($('storyShowGuides').checked&&currentRoom()?.story)
       renderStoryGuides(ctx,currentRoom().story,scene.camera.x);
     if($('portalPreview').checked&&scene.atlas){
