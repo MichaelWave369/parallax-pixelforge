@@ -38,12 +38,13 @@ function limitProgress(rootScene,id,data){
   const puzzle=scene.playable;
   const enemyIds=new Set(puzzle.enemies.map(e=>e.id));
   const triggerIds=new Set(puzzle.director?.triggers.map(t=>t.id)||[]);
+  const checkpointIds=new Set((puzzle.director?.triggers||[]).filter(t=>t.kind==='checkpoint').map(t=>t.id));
   const point=isObject(data.checkpoint)?data.checkpoint:null;
   return {
     keyCollected:data.keyCollected===true,
     stones:(Array.isArray(data.stones)?data.stones:[]).filter(v=>typeof v==='string'&&enemyIds.has(v)).slice(0,32),
     seen:(Array.isArray(data.seen)?data.seen:[]).filter(v=>typeof v==='string'&&triggerIds.has(v)).slice(0,32),
-    checkpoint:point&&typeof point.id==='string'&&triggerIds.has(point.id)?{
+    checkpoint:point&&typeof point.id==='string'&&checkpointIds.has(point.id)?{
       id:point.id,x:clamp(point.x,puzzle.spawn.x,0,puzzle.worldWidth-28),
       y:clamp(point.y,puzzle.spawn.y,-200,750)
     }:null
