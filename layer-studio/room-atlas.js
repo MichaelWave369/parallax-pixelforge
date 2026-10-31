@@ -2,6 +2,7 @@
 // Rooms reuse Layer Scene v1; links are declarative, never scriptable.
 import {startPuzzle,stepPuzzle} from './puzzle.js';
 import {normalizeQuestLine,consumeWorldEvents,refreshQuestProgress} from './quest-world.js';
+import {normalizeStory,initializeStoryRoom,stepStoryEvents,storyFor,nearbyDialogue} from './living-story.js';
 
 export const ATLAS_SCHEMA='pixelforge.layer-atlas.v1';
 const bounded=(v,fallback,low,high)=>Number.isFinite(Number(v))?Math.max(low,Math.min(high,Number(v))):fallback;
@@ -64,7 +65,8 @@ export function normalizeAtlas(source,normalizeRoom){
       title:text(r.title,cleaned.title,80),
       scene:stripAtlas(cleaned),
       portals:distinctIds((Array.isArray(r.portals)?r.portals:[]).slice(0,8).map(sanitizePortal),'portal'),
-      relics:distinctIds((Array.isArray(r.relics)?r.relics:[]).slice(0,8).map(sanitizeRelic),'relic')
+      relics:distinctIds((Array.isArray(r.relics)?r.relics:[]).slice(0,8).map(sanitizeRelic),'relic'),
+      ...(r.story!=null?{story:normalizeStory(r.story)}:{})
     };
   }),'room');
   const ids=new Set(rooms.map(r=>r.id));
@@ -135,6 +137,7 @@ export function createWorldSession(rootScene){
   const session={atlas,roomId,scene,game,snapshots:{},inventory:new Set(),
     visitedRooms:new Set(atlas?[roomId]:[]),worldFlags:new Set(),completedQuests:new Set(),
     flagVersion:0,questVersion:0,transitions:0,notice:'',noticeLeft:0};
+  initializeStoryRoom(session);
   refreshQuestProgress(session,{silent:true});
   return session;
 }
@@ -148,7 +151,8 @@ export function snapshotRoom(game){
     keyCollected:game.keyCollected,
     stones:game.enemies.filter(e=>e.stone).map(e=>e.id),
     seen:[...(game.directorSeen||[])],
-    checkpoint:game.checkpoint?{...game.checkpoint}:null
+    checkpoint:game.checkpoint?{...game.checkpoint}:null,
+    ...(game.storySeen?{storySeen:[...game.storySeen]}:{})
   };
 }
 export function restoreRoom(game,progress){
@@ -159,6 +163,7 @@ export function restoreRoom(game,progress){
   game.petrified=game.enemies.filter(e=>e.stone).length;
   game.directorSeen=new Set(progress.seen||[]);
   game.checkpoint=progress.checkpoint?{...progress.checkpoint}:null;
+  if(Array.isArray(progress.storySeen))game.storySeen=new Set(progress.storySeen);
 }
 export function stepWorldSession(session,input={},dt=1/60){
   const game=session.game;
@@ -178,8 +183,10 @@ export function stepWorldSession(session,input={},dt=1/60){
     }
   }
   refreshQuestProgress(session);
+  const storyResult=stepStoryEvents(session,input);
   session.noticeLeft=Math.max(0,session.noticeLeft-dt);
   if(!session.noticeLeft)session.notice='';
+  if(storyResult.storyOpen)return {travelled:false,storyOpen:true};
   if(!session.atlas||!input.interactPressed||game.status!=='playing')return {travelled:false};
   const door=nearbyPortal(session);
   if(!door)return {travelled:false};
@@ -225,6 +232,7 @@ export function stepWorldSession(session,input={},dt=1/60){
   session.roomId=target.id;
   session.game=next;
   session.visitedRooms.add(target.id);
+  initializeStoryRoom(session);
   refreshQuestProgress(session);
   session.transitions++;
   session.notice='ENTERED '+target.title.toUpperCase();
@@ -259,8 +267,9 @@ export function renderPortals(ctx,session,cameraX=0,{guides=false}={}){
 }
 export function renderPortalPrompt(ctx,session,viewWidth=960,viewHeight=540){
   if(!session.atlas)return;
-  const door=nearbyPortal(session);
-  const message=session.noticeLeft>0?session.notice:door?
+  const door=nearbyPortal(session),dialogue=nearbyDialogue(session);
+  const message=session.noticeLeft>0?session.notice:dialogue?
+    'PRESS E / X TO SPEAK WITH '+dialogue.speaker.toUpperCase():door?
     !door.targetRoom?'UNLINKED PASSAGE':door.requiresKey&&!session.game.keyCollected?
     'FIND THE KEY TO OPEN THIS DOOR':door.requiresRelic&&!session.inventory.has(door.requiresRelic)?
     'FIND THE REQUIRED RELIC':door.requiresFlag&&!session.worldFlags?.has(door.requiresFlag)?
