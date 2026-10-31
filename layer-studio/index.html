@@ -54,6 +54,44 @@
         <label class="toggle"><input type="checkbox" id="solo"> Solo plane</label>
       </div>
       <div class="help-strip"><span>01 / CAMERA PARALLAX</span><span>02 / INDEPENDENT MOTION</span><span>03 / ANIMATED EFFECTS</span><span>04 / IMAGE OR SPRITESHEET</span><span>05 / PLAYABLE PUZZLE</span></div>
+      <section class="puzzle-builder" aria-label="Sprite Studio and Tile Studio handoff">
+        <div class="puzzle-head">
+          <div>
+            <span class="micro">RUNG 03 / LIVING WORLD PIPELINE</span>
+            <h2>Bring your PixelForge artwork to life</h2>
+            <p>Import an existing Tile Studio v5.10 map or a Sprite Studio v5.9 project. Painted art, labeled animation frames and authored collision stay together in the Layer Scene JSON.</p>
+          </div>
+          <a class="source-link" href="../studio/" title="Open classic PixelForge Creator Studio">Open Sprite &amp; Tile Studio ↗</a>
+        </div>
+        <div class="puzzle-fields">
+          <label>TILE STUDIO FILE
+            <button id="importTileWorld" type="button">Import tile map JSON</button>
+            <input id="tileWorldFile" type="file" accept=".json,application/json" hidden>
+          </label>
+          <label>TILE SCALE
+            <input id="tileScale" type="number" min="1" max="4" step="1" value="2">
+          </label>
+          <label>MAP ORIGIN X
+            <input id="tileOriginX" type="number" min="-2048" max="2048" step="1" value="0">
+          </label>
+          <label>MAP ORIGIN Y
+            <input id="tileOriginY" type="number" min="-2048" max="2048" step="1" value="0">
+          </label>
+          <label>SPRITE STUDIO FILE
+            <button id="importActor" type="button">Import actor JSON</button>
+            <input id="actorFile" type="file" accept=".json,application/json" hidden>
+          </label>
+          <label>ACTOR PREVIEW
+            <button id="removeActor" type="button">Use built-in hero</button>
+          </label>
+        </div>
+        <div class="puzzle-buttons">
+          <button id="removeTileWorld" type="button">Remove imported tile map</button>
+          <label class="toggle"><input type="checkbox" id="showTileCollision"> Show solid tiles</label>
+        </div>
+        <p id="tileWorldStatus" class="small-note">No Tile Studio map. Stonebridge platforms are still playable.</p>
+        <p id="actorStatus" class="small-note">No Sprite Studio character. Built-in hero is active.</p>
+      </section>
       <section class="puzzle-builder" aria-label="Stonebridge puzzle editor">
         <div class="puzzle-head">
           <div><span class="micro">RUNG 02 / GAMEPLAY PLANE</span><h2>Stonebridge Puzzle Builder</h2><p>Place platforms, stone-ray targets, the golden key, and the exit in world coordinates. Play the puzzle with your current animated scenery.</p></div>
