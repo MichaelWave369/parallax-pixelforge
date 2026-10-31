@@ -160,6 +160,54 @@
           <button id="removeObjective" type="button">Remove objective</button>
         </div>
         <p id="questStatus" class="small-note">Create an adventure to author multi-room quests.</p>
+        <div class="field-rule"><span>RUNG 08 / LIVING STORY EVENTS</span></div>
+        <p class="small-note">Author conversations with two choices, guarded encounter activations, and scenery that reacts to global flags. All logic stays data-only.</p>
+        <div class="puzzle-fields">
+          <label>DIALOGUE<select id="storyDialogue"></select></label>
+          <label>SPEAKER<input id="storySpeaker" type="text" maxlength="60"></label>
+          <label>WORDS<input id="storyText" type="text" maxlength="300"></label>
+          <label>X<input id="storyX" type="number" step="1"></label>
+          <label>Y<input id="storyY" type="number" step="1"></label>
+          <label>WIDTH<input id="storyW" type="number" min="12" max="900"></label>
+          <label>HEIGHT<input id="storyH" type="number" min="12" max="900"></label>
+          <label>NEEDS FLAG<select id="storyRequiresFlag"></select></label>
+          <label class="atlas-checkbox">ONCE ONLY <input id="storyOnce" type="checkbox"></label>
+          <label>FIRST CHOICE<input id="storyChoiceA" type="text" maxlength="90"></label>
+          <label>FIRST CHOICE SETS FLAG<input id="storyChoiceAFlag" type="text" maxlength="64" placeholder="lanterns-lit"></label>
+          <label>SECOND CHOICE<input id="storyChoiceB" type="text" maxlength="90"></label>
+          <label>SECOND CHOICE SETS FLAG<input id="storyChoiceBFlag" type="text" maxlength="64" placeholder="keep-silent"></label>
+        </div>
+        <div class="puzzle-buttons">
+          <button id="addStoryDialogue" type="button">+ Dialogue</button>
+          <button id="removeStoryDialogue" type="button">Remove dialogue</button>
+        </div>
+        <div class="puzzle-fields">
+          <label>ENCOUNTER<select id="storyEncounter"></select></label>
+          <label>ENEMY TO WAKE<select id="storyEncounterEnemy"></select></label>
+          <label>REQUIRED FLAG<select id="storyEncounterFlag"></select></label>
+          <label>MESSAGE<input id="storyEncounterMessage" type="text" maxlength="160"></label>
+          <label>X<input id="storyEncounterX" type="number" step="1"></label>
+          <label>Y<input id="storyEncounterY" type="number" step="1"></label>
+          <label>WIDTH<input id="storyEncounterW" type="number" min="12" max="900"></label>
+          <label>HEIGHT<input id="storyEncounterH" type="number" min="12" max="900"></label>
+        </div>
+        <div class="puzzle-buttons">
+          <button id="addStoryEncounter" type="button">+ Encounter</button>
+          <button id="removeStoryEncounter" type="button">Remove encounter</button>
+        </div>
+        <div class="puzzle-fields">
+          <label>SCENERY RULE<select id="storyVariant"></select></label>
+          <label>LAYER<select id="storyVariantLayer"></select></label>
+          <label>WHEN FLAG<select id="storyVariantFlag"></select></label>
+          <label>ACTION<select id="storyVariantMode"><option value="reveal">Reveal after flag</option><option value="conceal">Hide after flag</option></select></label>
+          <label>PREVIEW FLAG<select id="storyPreviewFlag"></select></label>
+          <label class="atlas-checkbox">SHOW ZONES<input id="storyShowGuides" type="checkbox" checked></label>
+        </div>
+        <div class="puzzle-buttons">
+          <button id="addStoryVariant" type="button">+ Scenery rule</button>
+          <button id="removeStoryVariant" type="button">Remove scenery rule</button>
+        </div>
+        <p id="storyStatus" class="small-note">Story events are optional. Older rooms stay unchanged until you add one.</p>
         <p id="atlasStatus" class="small-note">Single-room mode. Your existing scene remains fully playable.</p>
       </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
