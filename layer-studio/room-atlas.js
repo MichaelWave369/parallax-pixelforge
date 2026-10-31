@@ -101,6 +101,20 @@ export function makeStarterAtlas(scene,normalizeRoom){
     {id:'reliquary-whisper',kind:'flag',flagId:'reliquary-awakened',x:230,y:355,w:125,h:145,
       message:'THE RELIQUARY AWAKENS. A NEW PATH MAY BE OPEN.',once:true}
   ],cameras:[],lights:[{id:'relic-lamp',x:315,y:320,radius:350,intensity:1,color:'#a3d9e9'}]};
+  const secondStory=normalizeStory({
+    schema:'pixelforge.layer-story.v1',
+    dialogues:[{id:'keeper-choice',x:472,y:388,w:145,h:112,
+      speaker:'ECHO KEEPER',
+      text:'The old lanterns still have a spark. Shall we rekindle their light, or honor the silence?',
+      once:true,choices:[
+        {id:'restore',label:'Rekindle the lanterns',setFlag:'reliquary-lit'},
+        {id:'quiet',label:'Leave the chamber silent',setFlag:'reliquary-silent'}
+      ]}],
+    variants:[{id:'lit-arches',layerId:second.layers.find(l=>l.kind==='arches')?.id||'',
+      whenFlag:'reliquary-lit',mode:'reveal'}],
+    encounters:[{id:'hall-guardian',x:920,y:392,w:120,h:108,
+      enemyId:'hall-wraith',message:'THE HALL GUARDIAN STIRS.'}]
+  });
   return normalizeAtlas({
     schema:ATLAS_SCHEMA,startRoom:'lantern-vault',
     quests:[{id:'oath-of-the-reliquary',title:'The Reliquary Oath',
@@ -117,7 +131,7 @@ export function makeStarterAtlas(scene,normalizeRoom){
         {id:'vault-to-reliquary',x:1515,y:424,w:56,h:76,
           targetRoom:'reliquary',arrivalX:112,arrivalY:458,requiresKey:true,label:'ENTER RELIQUARY'}
       ]},
-      {id:'reliquary',title:second.title,scene:second,relics:[
+      {id:'reliquary',title:second.title,scene:second,story:secondStory,relics:[
         {id:'echo-seal',name:'Echo Seal',x:1190,y:440}
       ],portals:[
         {id:'reliquary-to-vault',x:55,y:424,w:56,h:76,
