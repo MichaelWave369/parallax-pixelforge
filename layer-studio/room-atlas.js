@@ -20,8 +20,20 @@ function sanitizePortal(p,i){
     arrivalX:bounded(p?.arrivalX,80,0,6000),
     arrivalY:bounded(p?.arrivalY,458,-200,750),
     requiresKey:p?.requiresKey===true,
+    requiresRelic:text(p?.requiresRelic,'',130),
     label:text(p?.label,'PASSAGE',60)
   };
+}
+function sanitizeRelic(r,i){
+  return {id:text(r?.id,'relic-'+i,64),
+    name:text(r?.name,'Ancient Relic',70),
+    x:bounded(r?.x,350,0,6000),y:bounded(r?.y,440,-200,800)};
+}
+function collectibleKey(roomId,relicId){return roomId+':'+relicId;}
+export function availableRelicKeys(atlas){
+  if(!atlas)return [];
+  return atlas.rooms.flatMap(room=>
+    (room.relics||[]).map(relic=>collectibleKey(room.id,relic.id)));
 }
 function distinctIds(items,prefix){
   const ids=new Set();
@@ -48,7 +60,8 @@ export function normalizeAtlas(source,normalizeRoom){
       id:text(r.id,'room-'+i,64),
       title:text(r.title,cleaned.title,80),
       scene:stripAtlas(cleaned),
-      portals:distinctIds((Array.isArray(r.portals)?r.portals:[]).slice(0,8).map(sanitizePortal),'portal')
+      portals:distinctIds((Array.isArray(r.portals)?r.portals:[]).slice(0,8).map(sanitizePortal),'portal'),
+      relics:distinctIds((Array.isArray(r.relics)?r.relics:[]).slice(0,8).map(sanitizeRelic),'relic')
     };
   }),'room');
   const ids=new Set(rooms.map(r=>r.id));
@@ -59,6 +72,10 @@ export function normalizeAtlas(source,normalizeRoom){
     if(destination){
       portal.arrivalX=Math.min(portal.arrivalX,destination.scene.playable.worldWidth-28);
     }
+  }
+  const collectibleIds=new Set(availableRelicKeys({rooms}));
+  for(const room of rooms)for(const portal of room.portals){
+    if(!collectibleIds.has(portal.requiresRelic))portal.requiresRelic='';
   }
   const startRoom=ids.has(source.startRoom)?source.startRoom:rooms[0].id;
   return {schema:ATLAS_SCHEMA,startRoom,rooms};
@@ -84,11 +101,15 @@ export function makeStarterAtlas(scene,normalizeRoom){
   return normalizeAtlas({
     schema:ATLAS_SCHEMA,startRoom:'lantern-vault',
     rooms:[
-      {id:'lantern-vault',title:first.title,scene:first,portals:[
+      {id:'lantern-vault',title:first.title,scene:first,relics:[
+        {id:'lantern-shard',name:'Lantern Shard',x:320,y:360}
+      ],portals:[
         {id:'vault-to-reliquary',x:1515,y:424,w:56,h:76,
           targetRoom:'reliquary',arrivalX:112,arrivalY:458,requiresKey:true,label:'ENTER RELIQUARY'}
       ]},
-      {id:'reliquary',title:second.title,scene:second,portals:[
+      {id:'reliquary',title:second.title,scene:second,relics:[
+        {id:'echo-seal',name:'Echo Seal',x:1190,y:440}
+      ],portals:[
         {id:'reliquary-to-vault',x:55,y:424,w:56,h:76,
           targetRoom:'lantern-vault',arrivalX:1460,arrivalY:458,
           requiresKey:false,label:'RETURN TO VAULT'}
@@ -103,14 +124,15 @@ export function createWorldSession(rootScene){
   const scene=room?room.scene:rootScene;
   const game=startPuzzle(scene);
   game.worldTravel=Boolean(atlas);
-  return {atlas,roomId,scene,game,snapshots:{},transitions:0,notice:'',noticeLeft:0};
+  return {atlas,roomId,scene,game,snapshots:{},inventory:new Set(),
+    visitedRooms:new Set(atlas?[roomId]:[]),transitions:0,notice:'',noticeLeft:0};
 }
 export function nearbyPortal(session){
   if(!session.atlas)return null;
   const room=session.atlas.rooms.find(r=>r.id===session.roomId);
   return room?.portals.find(p=>overlaps(p,session.game.player))||null;
 }
-function snapshot(game){
+export function snapshotRoom(game){
   return {
     keyCollected:game.keyCollected,
     stones:game.enemies.filter(e=>e.stone).map(e=>e.id),
@@ -118,7 +140,7 @@ function snapshot(game){
     checkpoint:game.checkpoint?{...game.checkpoint}:null
   };
 }
-function restore(game,progress){
+export function restoreRoom(game,progress){
   if(!progress)return;
   game.keyCollected=progress.keyCollected===true;
   const stones=new Set(progress.stones||[]);
@@ -130,6 +152,19 @@ function restore(game,progress){
 export function stepWorldSession(session,input={},dt=1/60){
   const game=session.game;
   stepPuzzle(game,input,dt);
+  if(session.atlas&&game.status==='playing'){
+    const room=session.atlas.rooms.find(r=>r.id===session.roomId);
+    for(const relic of room?.relics||[]){
+      const id=collectibleKey(session.roomId,relic.id);
+      if(session.inventory.has(id))continue;
+      if(overlaps(game.player,{x:relic.x-12,y:relic.y-18,w:24,h:36})){
+        session.inventory.add(id);
+        session.notice='FOUND '+relic.name.toUpperCase();
+        session.noticeLeft=4;
+        session.pickupVersion=(session.pickupVersion||0)+1;
+      }
+    }
+  }
   session.noticeLeft=Math.max(0,session.noticeLeft-dt);
   if(!session.noticeLeft)session.notice='';
   if(!session.atlas||!input.interactPressed||game.status!=='playing')return {travelled:false};
@@ -141,18 +176,23 @@ export function stepWorldSession(session,input={},dt=1/60){
     session.noticeLeft=3;
     return {travelled:false,denied:'unlinked'};
   }
+  if(door.requiresRelic&&!session.inventory.has(door.requiresRelic)){
+    session.notice='A RELIC IS REQUIRED TO OPEN THIS DOOR.';
+    session.noticeLeft=3;
+    return {travelled:false,denied:'relic'};
+  }
   if(door.requiresKey&&!game.keyCollected){
     session.notice='THE DOOR NEEDS THIS ROOM’S KEY.';
     session.noticeLeft=3;
     return {travelled:false,denied:'key'};
   }
   const from=session.roomId;
-  session.snapshots[from]=snapshot(game);
+  session.snapshots[from]=snapshotRoom(game);
   const next=startPuzzle(target.scene);
   next.worldTravel=true;
   next.health=game.health;
   next.deaths=game.deaths;
-  restore(next,session.snapshots[target.id]);
+  restoreRoom(next,session.snapshots[target.id]);
   next.player.x=Math.min(Math.max(0,door.arrivalX),next.puzzle.worldWidth-next.player.w);
   next.player.y=door.arrivalY;
   next.player.vx=0;next.player.vy=0;
@@ -161,6 +201,7 @@ export function stepWorldSession(session,input={},dt=1/60){
   session.scene=target.scene;
   session.roomId=target.id;
   session.game=next;
+  session.visitedRooms.add(target.id);
   session.transitions++;
   session.notice='ENTERED '+target.title.toUpperCase();
   session.noticeLeft=3.5;
@@ -173,7 +214,8 @@ export function renderPortals(ctx,session,cameraX=0,{guides=false}={}){
   ctx.save();
   ctx.translate(-Math.round(cameraX),0);
   for(const portal of room.portals){
-    const open=(!portal.requiresKey||session.game.keyCollected) && portal.targetRoom;
+    const open=(!portal.requiresKey||session.game.keyCollected) &&
+      (!portal.requiresRelic||session.inventory?.has(portal.requiresRelic)) && portal.targetRoom;
     const x=portal.x,y=portal.y,w=portal.w,h=portal.h;
     ctx.fillStyle=open?'#165956b8':'#3a3448c9';
     ctx.fillRect(x,y,w,h);
@@ -194,9 +236,42 @@ export function renderPortalPrompt(ctx,session,viewWidth=960,viewHeight=540){
   const door=nearbyPortal(session);
   const message=session.noticeLeft>0?session.notice:door?
     !door.targetRoom?'UNLINKED PASSAGE':door.requiresKey&&!session.game.keyCollected?
-    'FIND THE KEY TO OPEN THIS DOOR':'PRESS E / X TO ENTER '+door.label:'';
+    'FIND THE KEY TO OPEN THIS DOOR':door.requiresRelic&&!session.inventory.has(door.requiresRelic)?
+    'FIND THE REQUIRED RELIC':'PRESS E / X TO ENTER '+door.label:'';
   if(!message)return;
   ctx.save();ctx.fillStyle='#061624de';ctx.fillRect(18,viewHeight-75,Math.max(100,viewWidth-36),45);
   ctx.fillStyle='#fff0c3';ctx.font='bold 13px ui-monospace,monospace';
   ctx.fillText(message.slice(0,100),30,viewHeight-47);ctx.restore();
+}
+
+export function renderRelics(ctx,session,cameraX=0){
+  if(!session.atlas)return;
+  const room=session.atlas.rooms.find(r=>r.id===session.roomId);
+  if(!room)return;
+  ctx.save();ctx.translate(-Math.round(cameraX),0);
+  for(const relic of room.relics||[]){
+    if(session.inventory.has(collectibleKey(room.id,relic.id)))continue;
+    const x=relic.x,y=relic.y+Math.sin(session.game.time*3)*3;
+    ctx.fillStyle='#f9df8a44';ctx.beginPath();ctx.arc(x,y,18,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#f9d78e';ctx.beginPath();
+    ctx.moveTo(x,y-12);ctx.lineTo(x+10,y);ctx.lineTo(x,y+12);ctx.lineTo(x-10,y);
+    ctx.closePath();ctx.fill();
+    ctx.fillStyle='#fff6cc';ctx.fillRect(x-2,y-4,4,8);
+  }
+  ctx.restore();
+}
+export function atlasMapData(session){
+  if(!session.atlas)return {rooms:[],edges:[]};
+  const rooms=session.atlas.rooms.map((r,i)=>({
+    id:r.id,title:r.title,index:i,active:r.id===session.roomId,
+    visited:session.visitedRooms.has(r.id),portals:r.portals.length,
+    collected:(r.relics||[]).filter(item=>session.inventory.has(collectibleKey(r.id,item.id))).length,
+    total:(r.relics||[]).length
+  }));
+  const edges=session.atlas.rooms.flatMap(room=>room.portals
+    .filter(p=>p.targetRoom).map(p=>({
+      from:room.id,to:p.targetRoom,label:p.label,requiresKey:p.requiresKey,
+      requiresRelic:p.requiresRelic||''
+    })));
+  return {rooms,edges};
 }
