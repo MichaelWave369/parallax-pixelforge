@@ -2,6 +2,7 @@ import {
   SCHEMA, KINDS, EFFECTS, MOTIONS,
   createScene, makeLayer, normalizeScene, normalizeLayer, renderScene, isSafeAsset
 } from './engine.js';
+import {normalizePuzzle,startPuzzle,renderPuzzle} from './puzzle.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -9,6 +10,8 @@ const ctx = canvas.getContext('2d', { alpha: false });
 const KEY = 'pixelforge.layer-scene.v1.local';
 let scene = createScene();
 let selectedId = scene.layers[3].id;
+let selectedPuzzle='enemy:0';
+let puzzlePreviewState=null;
 let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 let solo = false;
 let spread = 0;
@@ -125,6 +128,7 @@ function syncScene() {
   $('fpsBadge').textContent = playing && !reducedMotion ? 'ANIMATED' : 'PAUSED / STILL';
   renderLayerList();
   syncInspector();
+  syncPuzzleControls();
 }
 const bindings = [
   ['layerName','name',v => v.slice(0,80)],
@@ -217,6 +221,96 @@ canvas.addEventListener('pointermove',e=>{
 canvas.addEventListener('pointerup',()=>{drag=null;});
 canvas.addEventListener('pointercancel',()=>{drag=null;});
 
+function puzzleObjects(){
+  return [
+    {value:'spawn',label:'Player spawn'},
+    {value:'key',label:'Golden key'},
+    {value:'gate',label:'Exit gate'},
+    ...scene.playable.platforms.map((p,i)=>({value:'platform:'+i,label:'Platform / '+p.id})),
+    ...scene.playable.enemies.map((p,i)=>({value:'enemy:'+i,label:'Enemy / '+p.id}))
+  ];
+}
+function activePuzzleObject(){
+  const s=scene.playable;
+  if(selectedPuzzle==='spawn'||selectedPuzzle==='key'||selectedPuzzle==='gate')return s[selectedPuzzle];
+  const [type,num]=selectedPuzzle.split(':');
+  const list=type==='enemy'?s.enemies:type==='platform'?s.platforms:[];
+  return list[Number(num)]||s.spawn;
+}
+function syncPuzzleControls(){
+  scene.playable=normalizePuzzle(scene.playable);
+  const choices=puzzleObjects();
+  const select=$('puzzleObject');
+  if(!choices.some(x=>x.value===selectedPuzzle))selectedPuzzle='spawn';
+  select.replaceChildren();
+  for(const choice of choices){
+    const option=document.createElement('option');
+    option.value=choice.value;option.textContent=choice.label;
+    select.append(option);
+  }
+  select.value=selectedPuzzle;
+  const p=activePuzzleObject();
+  $('worldWidth').value=scene.playable.worldWidth;
+  $('puzzleX').value=p.x;$('puzzleY').value=p.y;
+  $('puzzleW').value=p.w||'';$('puzzleH').value=p.h||'';
+  const box=selectedPuzzle.startsWith('enemy:')||selectedPuzzle.startsWith('platform:');
+  $('puzzleW').disabled=!box;$('puzzleH').disabled=!box;
+  $('removePuzzle').disabled=!box;
+  $('addPlatform').disabled=scene.playable.platforms.length>=64;
+  $('addEnemy').disabled=scene.playable.enemies.length>=32;
+  puzzlePreviewState=startPuzzle(scene);
+}
+$('puzzleObject').onchange=e=>{selectedPuzzle=e.target.value;syncPuzzleControls();};
+for(const [id,key] of [['puzzleX','x'],['puzzleY','y'],['puzzleW','w'],['puzzleH','h']]){
+  $(id).onchange=e=>{
+    const item=activePuzzleObject();
+    if(!(key in item))return;
+    const value=Number(e.target.value);
+    if(!Number.isFinite(value)){syncPuzzleControls();return;}
+    item[key]=value;
+    syncPuzzleControls();
+  };
+}
+$('worldWidth').onchange=e=>{
+  scene.playable.worldWidth=Number(e.target.value);
+  syncPuzzleControls();
+};
+function nextPuzzleId(type){
+  const pool=type==='platform'?scene.playable.platforms:scene.playable.enemies;
+  const ids=new Set(pool.map(x=>x.id));
+  let i=1;while(ids.has(type+'-'+i))i++;
+  return type+'-'+i;
+}
+$('addPlatform').onclick=()=>{
+  const pool=scene.playable.platforms;
+  if(pool.length>=64)return;
+  pool.push({id:nextPuzzleId('platform'),x:Math.max(0,scene.camera.x+330),y:420,w:100,h:20});
+  selectedPuzzle='platform:'+(pool.length-1);
+  syncPuzzleControls();
+  flash('Platform added. Adjust its world-space coordinates.');
+};
+$('addEnemy').onclick=()=>{
+  const pool=scene.playable.enemies;
+  if(pool.length>=32)return;
+  pool.push({id:nextPuzzleId('enemy'),x:Math.max(0,scene.camera.x+450),y:448,w:44,h:52});
+  selectedPuzzle='enemy:'+(pool.length-1);
+  syncPuzzleControls();
+  flash('Petrifiable enemy added.');
+};
+$('removePuzzle').onclick=()=>{
+  const [type,index]=selectedPuzzle.split(':');
+  const list=type==='enemy'?scene.playable.enemies:type==='platform'?scene.playable.platforms:null;
+  if(!list||!list[Number(index)])return;
+  list.splice(Number(index),1);selectedPuzzle='spawn';syncPuzzleControls();
+};
+$('playPuzzle').onclick=()=>{
+  try{
+    sessionStorage.setItem('pixelforge.layer-studio.play-scene.v1',sceneJson());
+    location.href='./play.html';
+  }catch{
+    flash('The scene is too large for a browser handoff. Try exporting JSON and smaller art files.');
+  }
+};
 function download(blob,filename) {
   const url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();
@@ -308,6 +402,10 @@ function tick(now) {
   if(now-previousDraw>32){
     previousDraw=now;
     renderScene(ctx,scene,elapsed,{solo:solo?selectedId:null,spread,reducedMotion});
+    if($('puzzlePreview').checked&&puzzlePreviewState){
+      puzzlePreviewState.time=elapsed;
+      renderPuzzle(ctx,puzzlePreviewState,{cameraX:scene.camera.x,width:scene.width,height:scene.height,hud:false,reducedMotion});
+    }
   }
   requestAnimationFrame(tick);
 }

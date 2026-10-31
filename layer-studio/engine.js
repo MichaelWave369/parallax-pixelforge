@@ -1,5 +1,6 @@
 // PixelForge Layer Studio / standalone browser canvas renderer, no runtime privileges.
 // Scene format: pixelforge.layer-scene.v1. No remote assets, scripts or HTML are loaded.
+import {createPuzzle,normalizePuzzle} from './puzzle.js';
 export const SCHEMA = 'pixelforge.layer-scene.v1';
 export const KINDS = ['sky', 'mountains', 'ruins', 'arches', 'stairway', 'silhouettes', 'foreground', 'image'];
 export const EFFECTS = ['none', 'stars', 'mist', 'dust', 'runes', 'rain', 'embers', 'fireflies'];
@@ -44,7 +45,8 @@ export function createScene() {
   return {
     schema: SCHEMA, title: 'The Lantern Vault', width: 960, height: 540,
     camera: { x: 0 },
-    layers: seedLayers.map((_, i) => makeLayer(i))
+    layers: seedLayers.map((_, i) => makeLayer(i)),
+    playable: createPuzzle()
   };
 }
 export function normalizeLayer(source, index = 0) {
@@ -100,7 +102,8 @@ export function normalizeScene(input) {
     width: Math.round(number(input.width, 960, 320, 2048)),
     height: Math.round(number(input.height, 540, 180, 1152)),
     camera: { x: number(input.camera?.x, 0, -10000, 10000) },
-    layers
+    layers,
+    playable: normalizePuzzle(input.playable)
   };
 }
 export function layerOffset(layer, time, cameraX, reducedMotion = false) {
@@ -257,10 +260,15 @@ function imageLayer(ctx,asset,w,h,time,reducedMotion,scale=1) {
 export function renderScene(ctx,input,time=0,options={}) {
   const scene=input.schema===SCHEMA?input:normalizeScene(input);
   const w=scene.width,h=scene.height;
-  ctx.clearRect(0,0,w,h);
-  ctx.fillStyle='#081521';ctx.fillRect(0,0,w,h);
+  if(options.clear!==false){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle='#081521';ctx.fillRect(0,0,w,h);
+  }
   const camera=Number.isFinite(options.cameraX)?options.cameraX:scene.camera.x;
+  const start=Math.floor(number(options.startLayer,0,0,scene.layers.length));
+  const end=Math.floor(number(options.endLayer,scene.layers.length,start,scene.layers.length));
   scene.layers.forEach((layer,i)=>{
+    if(i<start||i>=end)return;
     if(!layer.visible || options.solo && options.solo!==layer.id)return;
     const offset=layerOffset(layer,time,camera,options.reducedMotion);
     const spread=number(options.spread,0,0,100)*(i-(scene.layers.length-1)/2)*.8;
