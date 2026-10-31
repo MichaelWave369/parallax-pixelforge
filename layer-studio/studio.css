@@ -85,3 +85,10 @@
 .atlas-builder select[id$="Camera"]{min-width:0}
 .atlas-builder input[id$="Ambient"],.atlas-builder input[id$="Cue"]{min-width:0}
 .atlas-builder input[id$="Cue"]{font-family:ui-monospace,monospace;font-size:11px}
+
+
+/* Rung 12 / World Sequence Tracks: pause-worthy discovery moments. */
+.journal-note + .boss-timeline-next{margin-top:16px}
+.atlas-builder #sequenceStatus{color:#c9b4ed;font:650 11px/1.55 ui-monospace,monospace}
+.atlas-builder input[id^="sequence"],.atlas-builder select[id^="sequence"]{min-width:0}
+.atlas-builder #sequenceCompletionFlag,.atlas-builder #sequenceBeatCue{font-family:ui-monospace,monospace;font-size:11px}

@@ -4,6 +4,7 @@ import {createWorldSession,availableRelicKeys,snapshotRoom,restoreRoom} from './
 import {knownWorldFlags,refreshQuestProgress} from './quest-world.js';
 import {initializeStoryRoom} from './living-story.js';
 import {initializeBossRoom,restoreBossProgress,normalizeBossProgress} from './boss-stage.js';
+import {initializeSequenceRoom} from './world-sequences.js';
 export const SAVE_SCHEMA='pixelforge.layer-save.v1';
 export const SLOT_COUNT=3;
 const clamp=(value,fallback,min,max)=>{
@@ -48,6 +49,7 @@ function limitProgress(rootScene,id,data){
   const authoredRoom=rootScene.atlas?.rooms.find(r=>r.id===id);
   const story=authoredRoom?.story;
   const bossDef=authoredRoom?.boss;
+  const sequenceIds=new Set((authoredRoom?.sequences?.tracks||[]).map(t=>t.id));
   const authoredStoryIds=new Set([...(story?.dialogues||[]),...(story?.encounters||[])].map(x=>x.id));
   const enemyIds=new Set(puzzle.enemies.map(e=>e.id));
   const triggerIds=new Set(puzzle.director?.triggers.map(t=>t.id)||[]);
@@ -60,6 +62,8 @@ function limitProgress(rootScene,id,data){
     ...(story?{storySeen:(Array.isArray(data.storySeen)?data.storySeen:[])
       .filter(v=>typeof v==='string'&&authoredStoryIds.has(v)).slice(0,24)}:{}),
     ...(bossDef?{boss:normalizeBossProgress(bossDef,data.boss)}:{}),
+    ...(authoredRoom?.sequences?{sequenceSeen:(Array.isArray(data.sequenceSeen)?data.sequenceSeen:[])
+      .filter(v=>typeof v==='string'&&sequenceIds.has(v)).slice(0,8)}:{}),
     checkpoint:point&&typeof point.id==='string'&&checkpointIds.has(point.id)?{
       id:point.id,x:clamp(point.x,puzzle.spawn.x,0,puzzle.worldWidth-28),
       y:clamp(point.y,puzzle.spawn.y,-200,750)
@@ -124,6 +128,7 @@ export function restoreSave(rootScene,data){
   initializeStoryRoom(session); // Reactivate only encounters earned in this room.
   initializeBossRoom(session);
   restoreBossProgress(session,safe[data.roomId]?.boss);
+  initializeSequenceRoom(session);
   session.game.health=clamp(data.health,3,1,3);
   session.game.deaths=clamp(data.deaths,0,0,100000);
   session.game.status=!session.atlas&&data.status==='won'?'won':'playing';

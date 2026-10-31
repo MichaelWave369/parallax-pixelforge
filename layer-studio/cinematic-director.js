@@ -10,6 +10,7 @@ export function normalizeCinematicCue(beat){
   const out={};
   if(focusOptions.has(beat?.camera))out.camera=beat.camera;
   if(beat?.ambient!=null)out.ambient=clamp(beat.ambient,.35,0,.8);
+  if(beat?.focusX!=null)out.focusX=clamp(beat.focusX,0,0,6000);
   if(beat?.cue!=null&&typeof beat.cue==='string')out.cue=beat.cue.slice(0,80);
   return out;
 }
@@ -20,8 +21,8 @@ function targetX(beat,session){
   const player=session.game?.player;
   const def=session.atlas?.rooms.find(r=>r.id===session.roomId)?.boss;
   const focus=focusOptions.has(beat?.camera)?beat.camera:'player';
-  const center=focus==='boss'&&def?
-    def.x+def.w/2:focus==='room'?worldWidth/2:
+  const center=beat?.focusX!=null?clamp(beat.focusX,worldWidth/2,0,worldWidth):
+    focus==='boss'&&def?def.x+def.w/2:focus==='room'?worldWidth/2:
     player?player.x+player.w/2:viewport/2;
   return clamp(center-viewport/2,0,0,max);
 }
