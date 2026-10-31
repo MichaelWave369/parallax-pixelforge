@@ -54,3 +54,14 @@
 .atlas-builder #questStatus{color:#9ad8c1;font:600 11px/1.55 ui-monospace,monospace}
 .director-builder #directorFlagId{font-family:ui-monospace,monospace;letter-spacing:.02em}
 .director-builder #directorFlagId:disabled{opacity:.4}
+
+
+/* Rung 08 / Living Story authoring. Keep bounded data fields legible on mobile. */
+.atlas-builder #storyText,.atlas-builder #storyChoiceA,.atlas-builder #storyChoiceB,
+.atlas-builder #storyEncounterMessage{min-width:0}
+.atlas-builder #storyStatus{color:#b7d9d0;font:600 11px/1.5 ui-monospace,monospace}
+.atlas-builder #storyChoiceAFlag,.atlas-builder #storyChoiceBFlag{
+  font-family:ui-monospace,monospace;font-size:11px
+}
+.atlas-builder #storyPreviewFlag{border-color:#b3a070}
+.atlas-builder #storyShowGuides{accent-color:#ddc699}
