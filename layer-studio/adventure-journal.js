@@ -43,6 +43,8 @@ function limitProgress(rootScene,id,data){
   const scene=roomScene(rootScene,id);
   if(!scene||!isObject(data))return null;
   const puzzle=scene.playable;
+  const story=rootScene.atlas?.rooms.find(r=>r.id===id)?.story;
+  const authoredStoryIds=new Set([...(story?.dialogues||[]),...(story?.encounters||[])].map(x=>x.id));
   const enemyIds=new Set(puzzle.enemies.map(e=>e.id));
   const triggerIds=new Set(puzzle.director?.triggers.map(t=>t.id)||[]);
   const checkpointIds=new Set((puzzle.director?.triggers||[]).filter(t=>t.kind==='checkpoint').map(t=>t.id));
@@ -51,6 +53,8 @@ function limitProgress(rootScene,id,data){
     keyCollected:data.keyCollected===true,
     stones:(Array.isArray(data.stones)?data.stones:[]).filter(v=>typeof v==='string'&&enemyIds.has(v)).slice(0,32),
     seen:(Array.isArray(data.seen)?data.seen:[]).filter(v=>typeof v==='string'&&triggerIds.has(v)).slice(0,32),
+    ...(story?{storySeen:(Array.isArray(data.storySeen)?data.storySeen:[])
+      .filter(v=>typeof v==='string'&&authoredStoryIds.has(v)).slice(0,24)}:{}),
     checkpoint:point&&typeof point.id==='string'&&checkpointIds.has(point.id)?{
       id:point.id,x:clamp(point.x,puzzle.spawn.x,0,puzzle.worldWidth-28),
       y:clamp(point.y,puzzle.spawn.y,-200,750)
