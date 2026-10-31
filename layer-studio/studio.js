@@ -9,6 +9,7 @@ import {makeStarterAtlas,stripAtlas,renderPortals,renderRelics} from './room-atl
 import {knownWorldFlags,normalizeQuestLine} from './quest-world.js';
 import {STORY_SCHEMA,normalizeStory,renderStoryGuides,storyScene} from './living-story.js';
 import {BOSS_SCHEMA,normalizeBoss,renderBossStage,bossTimelineBeats} from './boss-stage.js';
+import {WORLD_SEQUENCE_SCHEMA,normalizeWorldSequences,renderSequenceGuides} from './world-sequences.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -24,6 +25,7 @@ let selectedRelicIndex=0;
 let selectedQuestIndex=0;
 let selectedObjectiveIndex=0;
 let selectedStoryDialogue=0,selectedStoryEncounter=0,selectedStoryVariant=0;
+let selectedSequenceIndex=0,selectedSequenceBeatIndex=0;
 let previewStoryFlag='';
 let puzzlePreviewState=null;
 let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -347,6 +349,7 @@ function loadActiveRoom(){
   selectedPuzzle='spawn';selectedDirector='';selectedPortalIndex=0;selectedRelicIndex=0;
   selectedQuestIndex=0;selectedObjectiveIndex=0;
   selectedStoryDialogue=0;selectedStoryEncounter=0;selectedStoryVariant=0;
+  selectedSequenceIndex=0;selectedSequenceBeatIndex=0;
   previewStoryFlag='';elapsed=0;
   syncScene();
 }
@@ -448,6 +451,7 @@ function syncAtlasControls(){
   syncQuestControls();
   syncStoryControls();
   syncBossControls();
+  syncSequenceControls();
 }
 $('makeAtlas').onclick=()=>{
   if(scene.atlas)return;
@@ -1034,6 +1038,139 @@ for(const [kind,count] of [['Intro',3],['Victory',2]]){
     };
   }
 }
+function sequenceList(){
+  return currentRoom()?.sequences?.tracks||[];
+}
+function activeSequence(){return sequenceList()[selectedSequenceIndex]||null;}
+function activeSequenceBeat(){return activeSequence()?.beats[selectedSequenceBeatIndex]||null;}
+function syncSequenceControls(){
+  const room=currentRoom(),tracks=sequenceList();
+  if(selectedSequenceIndex>=tracks.length)selectedSequenceIndex=0;
+  const t=activeSequence();
+  if(selectedSequenceBeatIndex>=(t?.beats.length||0))selectedSequenceBeatIndex=0;
+  const beat=activeSequenceBeat();
+  const select=$('sequenceSelect');select.replaceChildren();
+  for(const [i,item] of tracks.entries()){
+    const option=document.createElement('option');option.value=String(i);
+    option.textContent=item.title+' / '+item.id;select.append(option);
+  }
+  if(t)select.value=String(selectedSequenceIndex);
+  select.disabled=!t;
+  const beatSelect=$('sequenceBeatSelect');beatSelect.replaceChildren();
+  for(const [i,item] of (t?.beats||[]).entries()){
+    const option=document.createElement('option');option.value=String(i);
+    option.textContent=(i+1)+' / '+item.title;beatSelect.append(option);
+  }
+  if(beat)beatSelect.value=String(selectedSequenceBeatIndex);
+  const values={
+    sequenceTitle:t?.title??'',sequenceX:t?.x??500,sequenceY:t?.y??360,
+    sequenceW:t?.w??130,sequenceH:t?.h??130,
+    sequenceCompletionFlag:t?.completionFlag??'',
+    sequenceBeatTitle:beat?.title??'',sequenceBeatText:beat?.text??'',
+    sequenceBeatSeconds:beat?.seconds??2,sequenceBeatCamera:beat?.camera??'',
+    sequenceBeatFocusX:beat?.focusX??'',sequenceBeatAmbient:beat?.ambient??'',
+    sequenceBeatCue:beat?.cue??''
+  };
+  for(const [id,value] of Object.entries(values)){
+    $(id).value=value;
+    $(id).disabled=id.startsWith('sequenceBeat')?!beat:!t;
+  }
+  const authored=scene.atlas?.rooms.map(r=>
+    r.id===activeRoomId?{...r,scene:stripAtlas(scene)}:r)||[];
+  const opts=[['','No required flag'],...knownWorldFlags({rooms:authored})
+    .filter(flag=>flag!==t?.completionFlag).map(flag=>[flag,flag])];
+  fillStoryOptions('sequenceRequiresFlag',opts,t?.requiresFlag??'');
+  $('sequenceRequiresFlag').disabled=!t;
+  $('sequenceOnce').checked=t?.once??true;
+  $('sequenceOnce').disabled=!t;
+  $('sequenceBeatSelect').disabled=!beat;
+  $('addSequence').disabled=!room||tracks.length>=8;
+  $('removeSequence').disabled=!t;
+  $('addSequenceBeat').disabled=!t||t.beats.length>=4;
+  $('removeSequenceBeat').disabled=!beat;
+  $('sequenceStatus').textContent=room?
+    tracks.length+' discovery sequences · '+tracks.reduce((total,item)=>total+item.beats.length,0)+
+    ' cinematic beats · Interaction opens the selected discovery.':
+    'Create a Room Atlas to author world discoveries.';
+}
+function rewriteSequence(kind,key,value){
+  const room=currentRoom(),track=activeSequence();if(!room||!track)return;
+  const tracks=room.sequences.tracks.map(item=>({
+    ...item,beats:item.beats.map(beat=>({...beat}))
+  }));
+  const item=tracks[selectedSequenceIndex];
+  if(kind==='track')item[key]=value;
+  else{
+    if(!item.beats[selectedSequenceBeatIndex])return;
+    if((key==='camera'||key==='ambient'||key==='focusX'||key==='cue')&&value===''){
+      delete item.beats[selectedSequenceBeatIndex][key];
+    }else item.beats[selectedSequenceBeatIndex][key]=value;
+  }
+  room.sequences=normalizeWorldSequences({...room.sequences,tracks});
+  if(key==='completionFlag'||key==='requiresFlag')syncAtlasControls();
+  else syncSequenceControls();
+}
+$('sequenceSelect').onchange=e=>{
+  selectedSequenceIndex=Number(e.target.value)||0;
+  selectedSequenceBeatIndex=0;syncSequenceControls();
+};
+$('sequenceBeatSelect').onchange=e=>{
+  selectedSequenceBeatIndex=Number(e.target.value)||0;syncSequenceControls();
+};
+for(const [id,key,number] of [
+  ['sequenceTitle','title',false],['sequenceX','x',true],
+  ['sequenceY','y',true],['sequenceW','w',true],['sequenceH','h',true],
+  ['sequenceCompletionFlag','completionFlag',false],
+  ['sequenceRequiresFlag','requiresFlag',false]
+])$(id).onchange=e=>{
+  const value=number?Number(e.target.value):e.target.value;
+  if(number&&!Number.isFinite(value))return syncSequenceControls();
+  rewriteSequence('track',key,value);
+};
+$('sequenceOnce').onchange=e=>rewriteSequence('track','once',e.target.checked);
+for(const [id,key,number] of [
+  ['sequenceBeatTitle','title',false],['sequenceBeatText','text',false],
+  ['sequenceBeatSeconds','seconds',true],['sequenceBeatCamera','camera',false],
+  ['sequenceBeatFocusX','focusX',true],['sequenceBeatAmbient','ambient',true],
+  ['sequenceBeatCue','cue',false]
+])$(id).onchange=e=>{
+  const raw=e.target.value;
+  if(number&&raw!==''&&!Number.isFinite(Number(raw)))return syncSequenceControls();
+  rewriteSequence('beat',key,raw===''&&key!=='seconds'?'':number?Number(raw):raw);
+};
+$('addSequence').onclick=()=>{
+  const room=currentRoom();if(!room)return;
+  const data=room.sequences||{schema:WORLD_SEQUENCE_SCHEMA,tracks:[]};
+  if(data.tracks.length>=8)return;
+  const used=new Set(data.tracks.map(s=>s.id));let n=1;
+  while(used.has('discovery-'+n))n++;
+  const x=Math.max(0,scene.camera.x+330);
+  data.tracks.push({id:'discovery-'+n,title:'New discovery',
+    x,y:370,w:130,h:125,requiresFlag:'',
+    completionFlag:'',once:true,
+    beats:[{title:'A HIDDEN MESSAGE',text:'A new secret is revealed.',seconds:2,
+      camera:'player',cue:'STONE RESONANCE'}]});
+  room.sequences=normalizeWorldSequences(data);
+  selectedSequenceIndex=room.sequences.tracks.length-1;selectedSequenceBeatIndex=0;
+  syncAtlasControls();flash('Sequence added. Add beats, lighting and camera direction.');
+};
+$('removeSequence').onclick=()=>{
+  const room=currentRoom(),track=activeSequence();if(!room||!track)return;
+  room.sequences.tracks.splice(selectedSequenceIndex,1);
+  selectedSequenceIndex=0;selectedSequenceBeatIndex=0;
+  syncAtlasControls();flash('Discovery removed. Review any door requirements using its old flag.');
+};
+$('addSequenceBeat').onclick=()=>{
+  const t=activeSequence();if(!t||t.beats.length>=4)return;
+  t.beats.push({title:'NEXT DISCOVERY',text:'The world reveals another detail.',seconds:2,
+    camera:'room'});
+  selectedSequenceBeatIndex=t.beats.length-1;syncSequenceControls();
+};
+$('removeSequenceBeat').onclick=()=>{
+  const t=activeSequence(),beat=activeSequenceBeat();if(!t||!beat)return;
+  t.beats.splice(selectedSequenceBeatIndex,1);
+  selectedSequenceBeatIndex=0;syncSequenceControls();
+};
 function directorChoices(){
   const d=scene.playable.director;
   return [
@@ -1372,6 +1509,8 @@ function tick(now) {
     if(currentRoom()?.boss)
       renderBossStage(ctx,{atlas:scene.atlas,roomId:activeRoomId,game:{}},scene.camera.x,
         {guides:$('bossShowGuides').checked});
+    if($('sequenceGuides').checked&&currentRoom()?.sequences)
+      renderSequenceGuides(ctx,currentRoom(),scene.camera.x);
     if($('storyShowGuides').checked&&currentRoom()?.story)
       renderStoryGuides(ctx,currentRoom().story,scene.camera.x);
     if($('portalPreview').checked&&scene.atlas){
