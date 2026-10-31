@@ -280,6 +280,39 @@
         </div>
         <p class="small-note">RUNG 11 / CINEMATIC DIRECTOR: Camera framing, ambient light and caption cues are optional per beat. The game remains frozen during cinematic playback.</p>
         <p id="bossStatus" class="small-note">Boss stages are optional and never alter older single-room scenes.</p>
+        <div class="field-rule"><span>RUNG 12 / WORLD SEQUENCE TRACKS</span></div>
+        <p class="small-note">Choreograph interactive discoveries anywhere in the room. Each sequence uses camera, lighting and captioned story beats; completed discoveries can set a persistent world flag.</p>
+        <div class="puzzle-fields">
+          <label>SEQUENCE TRACK<select id="sequenceSelect"></select></label>
+          <label>DISCOVERY TITLE<input id="sequenceTitle" type="text" maxlength="80"></label>
+          <label>ACTIVATION X<input id="sequenceX" type="number" step="1"></label>
+          <label>ACTIVATION Y<input id="sequenceY" type="number" step="1"></label>
+          <label>ACTIVATION WIDTH<input id="sequenceW" type="number" min="16" max="800"></label>
+          <label>ACTIVATION HEIGHT<input id="sequenceH" type="number" min="16" max="800"></label>
+          <label>NEEDS WORLD FLAG<select id="sequenceRequiresFlag"></select></label>
+          <label>COMPLETION FLAG<input id="sequenceCompletionFlag" type="text" maxlength="64" placeholder="archive-revealed"></label>
+          <label class="atlas-checkbox">ONCE ONLY<input id="sequenceOnce" type="checkbox" checked></label>
+          <label class="atlas-checkbox">PREVIEW SEQUENCE ZONES<input id="sequenceGuides" type="checkbox" checked></label>
+        </div>
+        <div class="puzzle-buttons">
+          <button id="addSequence" type="button">+ Sequence</button>
+          <button id="removeSequence" type="button">Remove sequence</button>
+        </div>
+        <div class="puzzle-fields">
+          <label>STORY BEAT<select id="sequenceBeatSelect"></select></label>
+          <label>BEAT TITLE<input id="sequenceBeatTitle" type="text" maxlength="70"></label>
+          <label>BEAT TEXT<input id="sequenceBeatText" type="text" maxlength="220"></label>
+          <label>SECONDS<input id="sequenceBeatSeconds" type="number" min=".7" max="7" step=".1"></label>
+          <label>CAMERA<select id="sequenceBeatCamera"><option value="">Default player</option><option value="player">Player</option><option value="boss">Boss (if present)</option><option value="room">Room-wide</option></select></label>
+          <label>FOCUS WORLD X<input id="sequenceBeatFocusX" type="number" min="0" max="6000" placeholder="Optional precise focal point"></label>
+          <label>AMBIENT LIGHT<input id="sequenceBeatAmbient" type="number" min="0" max=".8" step=".05" placeholder="Default"></label>
+          <label>CAPTION CUE<input id="sequenceBeatCue" type="text" maxlength="80"></label>
+        </div>
+        <div class="puzzle-buttons">
+          <button id="addSequenceBeat" type="button">+ Story beat</button>
+          <button id="removeSequenceBeat" type="button">Remove beat</button>
+        </div>
+        <p id="sequenceStatus" class="small-note">Create a Room Atlas to author discoveries.</p>
         <p id="atlasStatus" class="small-note">Single-room mode. Your existing scene remains fully playable.</p>
       </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
