@@ -55,6 +55,9 @@ window.addEventListener('keydown',e=>{
   if(controlKeys.has(e.code))e.preventDefault();
   if(e.repeat)return;
   if(e.code==='Escape'&&activePanel){closePanel();return;}
+  if(activePanel==='boss-intro'&&['KeyE','Enter','Space'].includes(e.code)){
+    beginBossBattle(session);closePanel();setMessage(session.notice);return;
+  }
   if(e.code==='KeyM'){togglePanel('map');return;}
   if(e.code==='KeyI'){togglePanel('inventory');return;}
   if(e.code==='KeyJ'){togglePanel('saves');return;}
@@ -323,6 +326,9 @@ function frame(now) {
   const dt=last?Math.min((now-last)/1000,.08):0;
   last=now;
   const pad=pollPad();
+  if(activePanel==='boss-intro'&&edge.interact){
+    beginBossBattle(session);closePanel();setMessage(session.notice);
+  }
   if(!paused&&!activePanel&&game.status==='playing'){
     accumulator+=dt;
     let runs=0;
