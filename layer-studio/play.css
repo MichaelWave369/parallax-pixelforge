@@ -117,3 +117,16 @@
 }
 .boss-director-focus{text-align:center;font:700 10px ui-monospace,monospace;
   color:#9bbcb8;letter-spacing:.07em}
+
+
+/* Rung 13: meaningful player decisions with visible controller selection. */
+.sequence-decision-heading{margin:22px 0 12px;color:#f6d8bb;
+  font:800 12px ui-monospace,monospace;letter-spacing:.12em}
+.story-choice.sequence-choice{border-color:#755e96;background:#23283d}
+.story-choice.sequence-choice-selected,.story-choice.sequence-choice:focus-visible{
+  border-color:#edcaa8;background:#40516b;
+  outline:2px solid #ebcbac;outline-offset:1px
+}
+@media(prefers-reduced-motion:reduce){
+  .story-choice.sequence-choice{transition:none}
+}
