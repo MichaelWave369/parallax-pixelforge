@@ -5,6 +5,7 @@ import {
 import {normalizePuzzle,startPuzzle,renderPuzzle} from './puzzle.js';
 import {importTileStudio,importSpriteStudio,renderTileWorld,tileCellsNear} from './studio-bridge.js';
 import {normalizeDirector,renderDirectorLighting,renderDirectorGuides} from './world-director.js';
+import {makeStarterAtlas,stripAtlas,renderPortals} from './room-atlas.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -14,6 +15,8 @@ let scene = createScene();
 let selectedId = scene.layers[3].id;
 let selectedPuzzle='enemy:0';
 let selectedDirector='trigger:0';
+let activeRoomId=null;
+let selectedPortalIndex=0;
 let puzzlePreviewState=null;
 let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 let solo = false;
@@ -134,6 +137,7 @@ function syncScene() {
   syncPuzzleControls();
   syncArtBridgeControls();
   syncDirectorControls();
+  syncAtlasControls();
 }
 const bindings = [
   ['layerName','name',v => v.slice(0,80)],
@@ -309,6 +313,176 @@ $('removeTileWorld').onclick=()=>{
 $('removeActor').onclick=()=>{
   scene.playable.actor=null;syncPuzzleControls();syncArtBridgeControls();
   flash('Built-in hero restored.');
+};
+function currentRoom(){
+  return scene.atlas?.rooms.find(room=>room.id===activeRoomId)||null;
+}
+function commitActiveRoom(){
+  const room=currentRoom();
+  if(!room)return;
+  // Never nest the atlas in a room. This keeps exported files finite.
+  room.scene=stripAtlas(normalizeScene({...scene,atlas:null}));
+  room.title=scene.title;
+}
+function adoptActiveRoom(){
+  const atlas=scene.atlas;
+  if(!atlas)return;
+  const room=atlas.rooms.find(r=>r.id===activeRoomId)||atlas.rooms[0];
+  activeRoomId=room.id;
+  const restored=normalizeScene({...room.scene,atlas:null});
+  scene={...restored,atlas};
+  scene.title=room.title;
+}
+function loadActiveRoom(){
+  adoptActiveRoom();
+  selectedId=scene.layers[0].id;
+  selectedPuzzle='spawn';selectedDirector='';selectedPortalIndex=0;elapsed=0;
+  syncScene();
+}
+function currentPortal(){
+  return currentRoom()?.portals[selectedPortalIndex]||null;
+}
+function syncAtlasControls(){
+  const atlas=scene.atlas;
+  if(atlas&&!currentRoom())activeRoomId=atlas.startRoom;
+  const room=currentRoom();
+  const roomSelect=$('atlasRoom');
+  roomSelect.replaceChildren();
+  const rooms=atlas?.rooms||[];
+  for(const entry of rooms){
+    const option=document.createElement('option');
+    option.value=entry.id;
+    option.textContent=entry.title+(entry.id===atlas.startRoom?' / START':'');
+    roomSelect.append(option);
+  }
+  if(rooms.length)roomSelect.value=activeRoomId;
+  const portals=room?.portals||[];
+  if(selectedPortalIndex>=portals.length)selectedPortalIndex=0;
+  const portalSelect=$('atlasPortal');portalSelect.replaceChildren();
+  for(const [i,portal] of portals.entries()){
+    const option=document.createElement('option');
+    option.value=String(i);option.textContent=portal.label+' / '+(portal.targetRoom||'UNLINKED');
+    portalSelect.append(option);
+  }
+  if(portals.length)portalSelect.value=String(selectedPortalIndex);
+  const p=currentPortal();
+  const target=$('portalTarget');target.replaceChildren();
+  for(const [id,label] of [['','Unlinked passage'],...rooms.map(r=>[r.id,r.title])]){
+    const option=document.createElement('option');option.value=id;option.textContent=label;target.append(option);
+  }
+  const fields={
+    atlasRoomTitle:room?.title??'',
+    portalLabel:p?.label??'',portalTarget:p?.targetRoom??'',
+    portalX:p?.x??0,portalY:p?.y??0,portalW:p?.w??56,portalH:p?.h??76,
+    portalArrivalX:p?.arrivalX??80,portalArrivalY:p?.arrivalY??458
+  };
+  for(const [id,value] of Object.entries(fields))$(id).value=value;
+  $('portalRequiresKey').checked=p?.requiresKey??false;
+  $('makeAtlas').disabled=Boolean(atlas);
+  $('addRoom').disabled=!atlas||rooms.length>=6;
+  $('removeRoom').disabled=!atlas||rooms.length<=1;
+  $('setStartRoom').disabled=!atlas||activeRoomId===atlas.startRoom;
+  $('addPortal').disabled=!room||portals.length>=8;
+  $('removePortal').disabled=!p;
+  for(const id of ['atlasRoom','atlasRoomTitle','atlasPortal'])$(id).disabled=!room;
+  for(const id of ['portalLabel','portalTarget','portalX','portalY','portalW','portalH',
+    'portalArrivalX','portalArrivalY','portalRequiresKey'])$(id).disabled=!p;
+  $('atlasStatus').textContent=atlas?
+    rooms.length+' linked rooms · '+rooms.reduce((n,r)=>n+r.portals.length,0)+
+    ' doors · current: '+room?.title+' · starts: '+rooms.find(r=>r.id===atlas.startRoom)?.title+
+    '. Export JSON preserves every room.':
+    'Single-room mode. Create a two-room adventure to author doors and connected worlds.';
+}
+$('makeAtlas').onclick=()=>{
+  if(scene.atlas)return;
+  scene.atlas=makeStarterAtlas(scene,normalizeScene);
+  activeRoomId=scene.atlas.startRoom;selectedPortalIndex=0;
+  syncScene();flash('Two connected rooms created. Customize each room and its doors.');
+};
+$('atlasRoom').onchange=e=>{
+  commitActiveRoom();activeRoomId=e.target.value;loadActiveRoom();
+  flash('Editing '+scene.title+'. Current room artwork and puzzles restored.');
+};
+$('atlasRoomTitle').onchange=e=>{
+  const room=currentRoom();if(!room)return;
+  const title=e.target.value.trim().slice(0,80)||'Untitled Chamber';
+  room.title=title;scene.title=title;
+  syncAtlasControls();$('sceneTitle').textContent=title;
+};
+$('setStartRoom').onclick=()=>{
+  if(!scene.atlas)return;
+  commitActiveRoom();scene.atlas.startRoom=activeRoomId;syncAtlasControls();
+  flash('Adventure now starts in '+scene.title+'.');
+};
+function uniqueRoomId(){
+  const used=new Set(scene.atlas.rooms.map(r=>r.id));
+  let i=1;while(used.has('chamber-'+i))i++;
+  return 'chamber-'+i;
+}
+$('addRoom').onclick=()=>{
+  if(!scene.atlas||scene.atlas.rooms.length>=6)return;
+  commitActiveRoom();
+  const oldRoom=currentRoom();
+  const nextId=uniqueRoomId();
+  const source=stripAtlas(normalizeScene({...scene,atlas:null}));
+  source.title='Chamber '+(scene.atlas.rooms.length+1);
+  source.playable.spawn={x:75,y:458};
+  source.playable.key={x:1145,y:455};
+  const newRoom={id:nextId,title:source.title,scene:source,portals:[]};
+  scene.atlas.rooms.push(newRoom);
+  // Auto-connect in both directions when portal capacity permits.
+  if(oldRoom&&oldRoom.portals.length<8)
+    oldRoom.portals.push({id:'to-'+nextId,x:1515,y:424,w:56,h:76,targetRoom:nextId,
+      arrivalX:135,arrivalY:458,requiresKey:false,label:'ENTER '+source.title.toUpperCase()});
+  newRoom.portals.push({id:'back-to-'+oldRoom.id,x:55,y:424,w:56,h:76,targetRoom:oldRoom.id,
+    arrivalX:1425,arrivalY:458,requiresKey:false,label:'RETURN '+oldRoom.title.toUpperCase()});
+  activeRoomId=nextId;loadActiveRoom();
+  flash('New room connected with two-way doors. Move the doors to match the level.');
+};
+$('removeRoom').onclick=()=>{
+  const atlas=scene.atlas;if(!atlas||atlas.rooms.length<=1)return;
+  if(!confirm('Delete this room and its incoming door links?'))return;
+  const removing=activeRoomId;
+  atlas.rooms=atlas.rooms.filter(r=>r.id!==removing);
+  for(const r of atlas.rooms)r.portals=r.portals.filter(p=>p.targetRoom!==removing);
+  if(atlas.startRoom===removing)atlas.startRoom=atlas.rooms[0].id;
+  activeRoomId=atlas.rooms[0].id;loadActiveRoom();
+  flash('Removed the room and all links pointing to it.');
+};
+$('atlasPortal').onchange=e=>{selectedPortalIndex=Number(e.target.value)||0;syncAtlasControls();};
+const portalFields={
+  portalLabel:'label',portalTarget:'targetRoom',
+  portalX:'x',portalY:'y',portalW:'w',portalH:'h',
+  portalArrivalX:'arrivalX',portalArrivalY:'arrivalY'
+};
+for(const [id,key] of Object.entries(portalFields)){
+  $(id).onchange=e=>{
+    const p=currentPortal();if(!p)return;
+    const val=['label','targetRoom'].includes(key)?e.target.value:Number(e.target.value);
+    if(typeof val==='number'&&!Number.isFinite(val)){syncAtlasControls();return;}
+    p[key]=val;
+    // Normalizing bounds at export; also immediately update preview.
+    syncAtlasControls();
+  };
+}
+$('portalRequiresKey').onchange=e=>{
+  const p=currentPortal();if(!p)return;p.requiresKey=e.target.checked;syncAtlasControls();
+};
+$('addPortal').onclick=()=>{
+  const room=currentRoom();if(!room||room.portals.length>=8)return;
+  const other=scene.atlas.rooms.find(r=>r.id!==room.id);
+  let i=1;const used=new Set(room.portals.map(p=>p.id));
+  while(used.has('door-'+i))i++;
+  room.portals.push({id:'door-'+i,x:Math.max(0,scene.camera.x+365),y:424,w:56,h:76,
+    targetRoom:other?.id||'',arrivalX:other?.scene.playable.spawn.x??80,
+    arrivalY:other?.scene.playable.spawn.y??458,requiresKey:false,label:'NEW PASSAGE'});
+  selectedPortalIndex=room.portals.length-1;syncAtlasControls();
+  flash('Door added. Set its destination and arrival position.');
+};
+$('removePortal').onclick=()=>{
+  const room=currentRoom();if(!room||!currentPortal())return;
+  room.portals.splice(selectedPortalIndex,1);
+  selectedPortalIndex=0;syncAtlasControls();flash('Door removed.');
 };
 function directorChoices(){
   const d=scene.playable.director;
@@ -516,7 +690,7 @@ function download(blob,filename) {
   a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-function sceneJson(){return JSON.stringify(normalizeScene(scene),null,2);}
+function sceneJson(){commitActiveRoom();return JSON.stringify(normalizeScene(scene),null,2);}
 function filename(){return scene.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'layer-scene';}
 $('exportScene').onclick=()=>{
   download(new Blob([sceneJson()],{type:'application/json'}),filename()+'.layer-scene.json');
@@ -528,7 +702,7 @@ $('saveScene').onclick=()=>{
 };
 $('newScene').onclick=()=>{
   if(!confirm('Replace the current scene with the seven-plane demo? Export first to keep edits.'))return;
-  scene=createScene();selectedId=scene.layers[3].id;elapsed=0;syncScene();
+  scene=createScene();activeRoomId=null;selectedPortalIndex=0;selectedId=scene.layers[3].id;elapsed=0;syncScene();
 };
 $('importScene').onclick=()=>$('sceneFile').click();
 $('sceneFile').onchange=async e=>{
@@ -537,7 +711,9 @@ $('sceneFile').onchange=async e=>{
   if(file.size>12_000_000){flash('Scene file too large (12 MB max).');return;}
   try{
     const parsed=JSON.parse(await file.text());
-    scene=normalizeScene(parsed);selectedId=scene.layers[0].id;elapsed=0;
+    scene=normalizeScene(parsed);activeRoomId=scene.atlas?.startRoom??null;
+    if(scene.atlas)adoptActiveRoom();
+    selectedId=scene.layers[0].id;elapsed=0;
     syncScene();flash('Imported '+scene.layers.length+' animated planes.');
   }catch(err){flash('Cannot import scene: '+err.message);}
 };
@@ -636,12 +812,15 @@ function tick(now) {
       renderDirectorLighting(ctx,director,scene.camera.x,scene.width,scene.height);
     if($('directorPreview').checked)
       renderDirectorGuides(ctx,director,scene.camera.x,scene.width,scene.height);
+    if($('portalPreview').checked&&scene.atlas)
+      renderPortals(ctx,{atlas:scene.atlas,roomId:activeRoomId,game:{keyCollected:true}},scene.camera.x,{guides:true});
   }
   requestAnimationFrame(tick);
 }
 try{
   const saved=localStorage.getItem(KEY);
-  if(saved){scene=normalizeScene(JSON.parse(saved));selectedId=scene.layers[0].id;}
+  if(saved){scene=normalizeScene(JSON.parse(saved));activeRoomId=scene.atlas?.startRoom??null;
+    if(scene.atlas)adoptActiveRoom();selectedId=scene.layers[0].id;}
 }catch{/* Invalid older browser save: leave demo available. */}
 syncScene();
 if(!ctx){$('statusIndicator').textContent='CANVAS UNAVAILABLE';flash('Canvas 2D is unavailable in this browser.');}
