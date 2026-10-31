@@ -73,10 +73,7 @@ export function normalizeAtlas(source,normalizeRoom){
       portal.arrivalX=Math.min(portal.arrivalX,destination.scene.playable.worldWidth-28);
     }
   }
-  const collectibleIds=new Set(availableRelicKeys({rooms}));
-  for(const room of rooms)for(const portal of room.portals){
-    if(!collectibleIds.has(portal.requiresRelic))portal.requiresRelic='';
-  }
+  // Dangling relic requirements remain visibly locked, never silently become open doors.
   const startRoom=ids.has(source.startRoom)?source.startRoom:rooms[0].id;
   return {schema:ATLAS_SCHEMA,startRoom,rooms};
 }
