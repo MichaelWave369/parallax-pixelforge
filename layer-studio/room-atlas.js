@@ -3,6 +3,7 @@
 import {startPuzzle,stepPuzzle} from './puzzle.js';
 import {normalizeQuestLine,consumeWorldEvents,refreshQuestProgress} from './quest-world.js';
 import {normalizeStory,initializeStoryRoom,stepStoryEvents,storyFor,nearbyDialogue} from './living-story.js';
+import {BOSS_SCHEMA,normalizeBoss,initializeBossRoom,stepBossStage,snapshotBoss,restoreBossProgress} from './boss-stage.js';
 
 export const ATLAS_SCHEMA='pixelforge.layer-atlas.v1';
 const bounded=(v,fallback,low,high)=>Number.isFinite(Number(v))?Math.max(low,Math.min(high,Number(v))):fallback;
@@ -66,7 +67,8 @@ export function normalizeAtlas(source,normalizeRoom){
       scene:stripAtlas(cleaned),
       portals:distinctIds((Array.isArray(r.portals)?r.portals:[]).slice(0,8).map(sanitizePortal),'portal'),
       relics:distinctIds((Array.isArray(r.relics)?r.relics:[]).slice(0,8).map(sanitizeRelic),'relic'),
-      ...(r.story!=null?{story:normalizeStory(r.story)}:{})
+      ...(r.story!=null?{story:normalizeStory(r.story)}:{}),
+      ...(r.boss!=null?{boss:normalizeBoss(r.boss)}:{})
     };
   }),'room');
   const ids=new Set(rooms.map(r=>r.id));
@@ -153,6 +155,7 @@ export function createWorldSession(rootScene){
     visitedRooms:new Set(atlas?[roomId]:[]),worldFlags:new Set(),completedQuests:new Set(),
     flagVersion:0,questVersion:0,transitions:0,notice:'',noticeLeft:0};
   initializeStoryRoom(session);
+  initializeBossRoom(session);
   refreshQuestProgress(session,{silent:true});
   return session;
 }
@@ -167,7 +170,8 @@ export function snapshotRoom(game){
     stones:game.enemies.filter(e=>e.stone).map(e=>e.id),
     seen:[...(game.directorSeen||[])],
     checkpoint:game.checkpoint?{...game.checkpoint}:null,
-    ...(game.storySeen?{storySeen:[...game.storySeen]}:{})
+    ...(game.storySeen?{storySeen:[...game.storySeen]}:{}),
+    ...(game.boss?{boss:snapshotBoss(game.boss)}:{})
   };
 }
 export function restoreRoom(game,progress){
@@ -199,8 +203,11 @@ export function stepWorldSession(session,input={},dt=1/60){
   }
   refreshQuestProgress(session);
   const storyResult=stepStoryEvents(session,input);
+  const bossResult=stepBossStage(session,dt);
+  if(bossResult.defeated)refreshQuestProgress(session);
   session.noticeLeft=Math.max(0,session.noticeLeft-dt);
   if(!session.noticeLeft)session.notice='';
+  if(bossResult.introStarted)return {travelled:false,bossIntro:true};
   if(storyResult.storyOpen)return {travelled:false,storyOpen:true};
   if(!session.atlas||!input.interactPressed||game.status!=='playing')return {travelled:false};
   const door=nearbyPortal(session);
@@ -248,6 +255,8 @@ export function stepWorldSession(session,input={},dt=1/60){
   session.game=next;
   session.visitedRooms.add(target.id);
   initializeStoryRoom(session);
+  initializeBossRoom(session);
+  restoreBossProgress(session,session.snapshots[target.id]?.boss);
   refreshQuestProgress(session);
   session.transitions++;
   session.notice='ENTERED '+target.title.toUpperCase();
