@@ -99,3 +99,71 @@
   font-family:ui-monospace,monospace;font-size:11px
 }
 .atlas-builder #sequenceChoiceLabel,.atlas-builder #sequenceChoiceSelect{min-width:0}
+
+
+/* Rung 14 / World Branch Map. Offline SVG inspector with keyboard-selectable nodes. */
+.branch-map-builder .puzzle-head{margin-bottom:12px}
+.branch-map-toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin:12px 0}
+.branch-map-toolbar label{display:flex;flex-direction:column;gap:5px;color:#b5cbd8;
+  font:700 11px ui-monospace,monospace;letter-spacing:.07em}
+.branch-map-toolbar select{max-width:260px;min-width:170px}
+.branch-map-toolbar button{min-height:36px}
+.branch-map-legend{display:flex;gap:8px 20px;flex-wrap:wrap;margin:10px 0 12px;
+  color:#c8d8e0;font:650 11px ui-monospace,monospace}
+.branch-map-legend span::before{content:'';display:inline-block;width:20px;margin-right:6px;
+  border-top:3px solid #7ec4b0;vertical-align:middle}
+.branch-map-legend .branch-map-legend-choice::before{border-color:#d0a8ed}
+.branch-map-legend .branch-map-legend-requires::before{border-color:#b7c6e0}
+.branch-map-legend .branch-map-legend-blocks::before{border-color:#de9c91;border-top-style:dashed}
+.branch-map-scroll{max-height:560px;max-width:100%;min-height:270px;
+  overflow:auto;overscroll-behavior:contain;
+  background:linear-gradient(120deg,#101b2b,#0e1825);
+  border:1px solid #415671;border-radius:12px;
+  scrollbar-color:#63788b #111c2a}
+.branch-map-scroll:focus-visible{outline:2px solid #e5c49e;outline-offset:3px}
+#branchMapCanvas{display:block;max-width:none;color:#deecf0}
+.branch-map-column{font:700 13px ui-monospace,monospace;letter-spacing:.09em;fill:#e2ccb9}
+.branch-map-divider{stroke:#45617a;stroke-width:2}
+.branch-map-edge{fill:none;stroke:#77b9a4;stroke-width:1.8;
+  opacity:.77;marker-end:url(#branch-map-arrow)}
+.branch-map-arrow{fill:#d9e4e7}
+.branch-map-edge--choice{stroke:#cba4df;stroke-width:2.4}
+.branch-map-edge--requires{stroke:#bbcae0}
+.branch-map-edge--blocks{stroke:#e59a92;stroke-dasharray:6 4}
+.branch-map-edge--grant{stroke:#7bc6af}
+.branch-map-back-edge{opacity:.53}
+.branch-map-muted{opacity:.22}
+.branch-map-node{cursor:pointer;outline:none}
+.branch-map-node rect{stroke:#5f7c91;stroke-width:1.5;fill:#233247}
+.branch-map-node--flag rect{fill:#203d3d;stroke:#5c9e9a}
+.branch-map-node--track rect{fill:#392d51;stroke:#9883b3}
+.branch-map-node--gate rect{fill:#3d3344;stroke:#a08aa9}
+.branch-map-node--unreachable rect{stroke:#d49c87;stroke-dasharray:5 3;opacity:.86}
+.branch-map-node--selected rect,.branch-map-node--linked rect{stroke:#f5d39d;stroke-width:2.7}
+.branch-map-node:focus-visible rect{stroke:#fff4cc;stroke-width:3.5}
+.branch-map-node-title{font:700 13px ui-monospace,monospace;fill:#f0eef2}
+.branch-map-node-detail{font:10px ui-monospace,monospace;fill:#bccbd0}
+.branch-map-empty,.branch-map-truncated{fill:#d6c5b8;font:13px ui-monospace,monospace}
+.branch-map-detail{margin:12px 0;padding:12px 14px;border:1px solid #354c64;
+  border-radius:8px;background:#152334;color:#d5e5e4;
+  font:12px/1.6 ui-monospace,monospace}
+.branch-map-diagnostics-head h3{font:800 15px ui-monospace,monospace;
+  letter-spacing:.06em;color:#f2d4b8;margin:18px 0 6px}
+.branch-map-diagnostics{display:grid;gap:8px;padding:0;list-style:none}
+.branch-map-diagnostics li{padding:10px 12px;border-left:3px solid #8c9ba5;
+  background:#182638;border-radius:5px;color:#dbe1e4;
+  font:12px/1.6 ui-monospace,monospace}
+.branch-map-diagnostics li.branch-map-diagnostic--error{border-color:#e6a099}
+.branch-map-diagnostics li.branch-map-diagnostic--warning{border-color:#e7c18c}
+.branch-map-diagnostics li.branch-map-diagnostic--clear{border-color:#80c5a8}
+.branch-map-diagnostics li button{margin-left:10px;padding:4px 8px;
+  background:#2e435c;color:#f0e9e3;border:1px solid #8093a6;border-radius:4px;cursor:pointer}
+.branch-map-diagnostics li button:focus-visible{outline:2px solid #ffe0aa}
+@media(max-width:720px){
+  .branch-map-toolbar{align-items:stretch}
+  .branch-map-toolbar label,.branch-map-toolbar select{width:100%;max-width:100%}
+  .branch-map-scroll{max-height:420px}
+}
+@media(prefers-reduced-motion:reduce){
+  .branch-map-node,.branch-map-edge{transition:none}
+}

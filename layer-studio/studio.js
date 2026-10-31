@@ -10,6 +10,8 @@ import {knownWorldFlags,normalizeQuestLine} from './quest-world.js';
 import {STORY_SCHEMA,normalizeStory,renderStoryGuides,storyScene} from './living-story.js';
 import {BOSS_SCHEMA,normalizeBoss,renderBossStage,bossTimelineBeats} from './boss-stage.js';
 import {WORLD_SEQUENCE_SCHEMA,normalizeWorldSequences,renderSequenceGuides} from './world-sequences.js';
+import {analyzeWorldBranches} from './world-branch-map.js';
+import {renderWorldBranchMap} from './world-branch-view.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -26,6 +28,8 @@ let selectedQuestIndex=0;
 let selectedObjectiveIndex=0;
 let selectedStoryDialogue=0,selectedStoryEncounter=0,selectedStoryVariant=0;
 let selectedSequenceIndex=0,selectedSequenceBeatIndex=0,selectedSequenceChoiceIndex=0;
+let branchMapSelected='';
+let branchMapReport=null;
 let previewStoryFlag='';
 let puzzlePreviewState=null;
 let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1038,6 +1042,118 @@ for(const [kind,count] of [['Intro',3],['Victory',2]]){
     };
   }
 }
+function branchMapAtlas(){
+  if(!scene.atlas)return null;
+  // The active room's editing copy may contain unsaved Director changes.
+  // Analyze a read-only projection, never export or mutate it here.
+  return {...scene.atlas,rooms:scene.atlas.rooms.map(r=>
+    r.id===activeRoomId?{...r,scene:stripAtlas(scene)}:r)};
+}
+function syncBranchMap(){
+  const atlas=branchMapAtlas();
+  const select=$('branchMapScope'),oldScope=select.value||'all';
+  select.replaceChildren();
+  const all=document.createElement('option');all.value='all';all.textContent='All rooms';
+  select.append(all);
+  for(const room of atlas?.rooms||[]){
+    const option=document.createElement('option');
+    option.value=room.id;option.textContent=room.title;select.append(option);
+  }
+  select.value=(atlas?.rooms||[]).some(r=>r.id===oldScope)?oldScope:'all';
+  select.disabled=!atlas;
+  $('branchMapRefresh').disabled=!atlas;
+  const panel=$('branchMapScroll'),scrollTop=panel.scrollTop,scrollLeft=panel.scrollLeft;
+  const report=analyzeWorldBranches(atlas);
+  branchMapReport=report;
+  if(branchMapSelected&&!report.nodes.some(n=>n.id===branchMapSelected))
+    branchMapSelected='';
+  const result=renderWorldBranchMap($('branchMapCanvas'),atlas,{
+    graph:report,roomId:select.value==='all'?'':select.value,
+    selectedId:branchMapSelected,
+    onSelect:node=>{branchMapSelected=node.id;syncBranchMap()}
+  });
+  panel.scrollTop=scrollTop;panel.scrollLeft=scrollLeft;
+  const s=report.summary;
+  $('branchMapSummary').textContent=atlas?
+    s.rooms+' rooms · '+s.sequences+' discovery tracks · '+s.flags+
+    ' flags · '+s.connections+' connections · '+
+    s.potentiallyReachable+'/'+s.sequences+' potentially reachable tracks · '+
+    s.errors+' errors / '+s.warnings+' warnings'+
+    (result.truncated?' · '+result.truncated+' nodes hidden by display cap':''):
+    'Create a Room Atlas to visualize story branches.';
+  const node=report.nodes.find(n=>n.id===branchMapSelected)||null;
+  $('branchMapEdit').disabled=!node||node.kind!=='track';
+  $('branchMapSelection').textContent=node?
+    node.kind.toUpperCase()+': '+node.label+
+    ' · '+node.detail+
+    (node.reachable===false?' · No known optimistic route':' · Reachability is advisory')+
+    ' · '+report.edges.filter(e=>e.from===node.id||e.to===node.id).length+
+    ' direct connections':
+    'Click a node to inspect its connections. Select a discovery to jump to its editor.';
+  const warnings=$('branchMapDiagnostics');warnings.replaceChildren();
+  if(!atlas){
+    const li=document.createElement('li');li.textContent='No Room Atlas loaded.';
+    warnings.append(li);
+    return;
+  }
+  if(!report.diagnostics.length){
+    const li=document.createElement('li');
+    li.className='branch-map-diagnostic--clear';
+    li.textContent='No static dependency problems found. Physical routes and exclusive choices still require playtesting.';
+    warnings.append(li);
+  }
+  for(const diagnostic of report.diagnostics.slice(0,80)){
+    const li=document.createElement('li');
+    li.className='branch-map-diagnostic--'+diagnostic.severity;
+    const strong=document.createElement('strong');
+    strong.textContent=diagnostic.code.replaceAll('-',' ').toUpperCase()+': ';
+    li.append(strong);
+    const description=document.createElement('span');
+    description.textContent=diagnostic.description;
+    li.append(description);
+    if(report.nodes.some(n=>n.id===diagnostic.subject)){
+      const button=document.createElement('button');
+      button.type='button';button.textContent='Inspect';
+      button.onclick=()=>{
+        branchMapSelected=diagnostic.subject;
+        // Keep the relevant node visible when a room filter hid it.
+        const subject=report.nodes.find(n=>n.id===diagnostic.subject);
+        if(subject?.roomId)select.value=subject.roomId;
+        else select.value='all';
+        syncBranchMap();
+      };
+      li.append(button);
+    }
+    warnings.append(li);
+  }
+  if(report.diagnostics.length>80){
+    const li=document.createElement('li');
+    li.textContent='Showing 80 of '+report.diagnostics.length+
+      ' diagnostics. Use a room filter for a smaller visual graph.';
+    warnings.append(li);
+  }
+}
+$('branchMapScope').onchange=()=>{
+  branchMapSelected='';
+  $('branchMapScroll').scrollTop=0;
+  $('branchMapScroll').scrollLeft=0;
+  syncBranchMap();
+};
+$('branchMapRefresh').onclick=()=>syncBranchMap();
+$('branchMapEdit').onclick=()=>{
+  const n=branchMapReport?.nodes.find(n=>n.id===branchMapSelected);
+  if(n?.kind!=='track'||!scene.atlas)return;
+  if(n.roomId!==activeRoomId){
+    commitActiveRoom();activeRoomId=n.roomId;loadActiveRoom();
+  }
+  const index=sequenceList().findIndex(t=>t.id===n.trackId);
+  if(index<0){flash('That discovery is no longer in this room.');return;}
+  selectedSequenceIndex=index;
+  selectedSequenceBeatIndex=0;selectedSequenceChoiceIndex=0;
+  syncSequenceControls();
+  $('sequenceSelect').scrollIntoView({behavior:reducedMotion?'instant':'smooth',block:'center'});
+  flash('Editing discovery: '+n.label);
+};
 function sequenceList(){
   return currentRoom()?.sequences?.tracks||[];
 }
@@ -1109,6 +1225,7 @@ function syncSequenceControls(){
     ' cinematic beats · '+tracks.reduce((sum,item)=>sum+(item.choices?.length||0),0)+
     ' authored choices · Interaction opens the selected discovery.':
     'Create a Room Atlas to author world discoveries.';
+  syncBranchMap();
 }
 function rewriteSequence(kind,key,value){
   const room=currentRoom(),track=activeSequence();if(!room||!track)return;
