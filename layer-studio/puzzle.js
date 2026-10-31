@@ -254,7 +254,7 @@ export function renderPuzzle(ctx,state,options={}) {
   const w=options.width||960,h=options.height||540;
   const camera=Number.isFinite(options.cameraX)?options.cameraX:cameraFor(state,w);
   const t=options.reducedMotion?0:state.time;
-  renderTileWorld(ctx,state.puzzle.tileWorld,camera,w,h);
+  if(options.tiles!==false)renderTileWorld(ctx,state.puzzle.tileWorld,camera,w,h);
   ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();
   ctx.translate(-Math.round(camera),0);
   for(const platform of state.puzzle.platforms){
