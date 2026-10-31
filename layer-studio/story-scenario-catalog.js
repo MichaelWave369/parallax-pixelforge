@@ -1,6 +1,6 @@
 // PixelForge Rung 17 / Playtest Scenario Catalog.
 // Reusable hypothetical route receipts, distinct from real Adventure Journal saves.
-// Pure data only; the browser editor owns localStorage and file download interactions.
+// Pure data only; the browser editor owns persistence and file-download interactions.
 import {
   ROUTE_REPORT_SCHEMA,createRouteReport,verifyRouteReport,routeWorldFingerprint
 } from './story-path-reports.js';
