@@ -11,7 +11,7 @@ import {
   refreshQuestProgress,consumeWorldEvents
 } from '../layer-studio/quest-world.js';
 import {
-  captureSave,restoreSave,writeSaveSlot,readSaveSlot
+  captureSave,restoreSave,writeSaveSlot,readSaveSlot,worldFingerprint
 } from '../layer-studio/adventure-journal.js';
 
 const world=()=>{
@@ -153,6 +153,26 @@ test('forged save flags are removed and cannot fabricate quest completion',()=>{
   data.worldFlags='not-an-array';
   const second=restoreSave(root,data);
   assert.equal(second.worldFlags.size,0);
+});
+test('legacy worlds retain their original Rung 6 save fingerprint when new defaults are empty',()=>{
+  const old=world();
+  delete old.atlas.quests;
+  // Strip the Rung 7-only authoring fields as they did not exist in prior files.
+  for(const room of old.atlas.rooms){
+    for(const portal of room.portals){delete portal.requiresFlag;delete portal.requiresQuest;}
+    for(const trigger of room.scene.playable.director.triggers){
+      delete trigger.flagId;
+      if(trigger.kind==='flag')trigger.kind='message';
+    }
+  }
+  const normalized=normalizeScene(old);
+  const oldText=JSON.stringify(old);
+  let hash=2166136261;
+  for(let i=0;i<oldText.length;i++){
+    hash^=oldText.charCodeAt(i);hash=Math.imul(hash,16777619);
+  }
+  const expected=(hash>>>0).toString(16).padStart(8,'0')+'-'+oldText.length;
+  assert.equal(worldFingerprint(normalized),expected);
 });
 test('legacy single-room gameplay and historical Room Atlas without quests remain valid',()=>{
   const single=createWorldSession(createScene());
