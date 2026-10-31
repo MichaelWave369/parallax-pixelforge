@@ -106,7 +106,7 @@ test('untrusted relic metadata and unsupported key requirements are bounded and 
   assert.equal(normalized.rooms[0].relics[0].y,-200);
   assert.equal(normalized.rooms[0].relics[1].x,6000);
   assert.equal('code' in normalized.rooms[0].relics[0],false);
-  assert.equal(normalized.rooms[0].portals[0].requiresRelic,'');
+  assert.equal(normalized.rooms[0].portals[0].requiresRelic,'missing:no-such-relic');
   atlas.rooms[0].relics=Array.from({length:30},(_,i)=>({id:'r'+i}));
   assert.equal(normalizeAtlas(atlas,scene=>normalizeScene({...scene,atlas:null})).rooms[0].relics.length,8);
 });
