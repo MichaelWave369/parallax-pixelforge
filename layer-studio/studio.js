@@ -17,6 +17,7 @@ let selectedPuzzle='enemy:0';
 let selectedDirector='trigger:0';
 let activeRoomId=null;
 let selectedPortalIndex=0;
+let selectedRelicIndex=0;
 let puzzlePreviewState=null;
 let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 let solo = false;
@@ -336,7 +337,7 @@ function adoptActiveRoom(){
 function loadActiveRoom(){
   adoptActiveRoom();
   selectedId=scene.layers[0].id;
-  selectedPuzzle='spawn';selectedDirector='';selectedPortalIndex=0;elapsed=0;
+  selectedPuzzle='spawn';selectedDirector='';selectedPortalIndex=0;selectedRelicIndex=0;elapsed=0;
   syncScene();
 }
 function currentPortal(){
@@ -370,6 +371,33 @@ function syncAtlasControls(){
   for(const [id,label] of [['','Unlinked passage'],...rooms.map(r=>[r.id,r.title])]){
     const option=document.createElement('option');option.value=id;option.textContent=label;target.append(option);
   }
+  const relicChoices=rooms.flatMap(r=>(r.relics||[]).map(relic=>({
+    key:r.id+':'+relic.id,label:r.title+' / '+relic.name
+  })));
+  const required=$('portalRequiresRelic');required.replaceChildren();
+  for(const choice of [{key:'',label:'No relic required'},...relicChoices]){
+    const option=document.createElement('option');
+    option.value=choice.key;option.textContent=choice.label;required.append(option);
+  }
+  required.value=p?.requiresRelic||'';
+  const relics=room?.relics||[];
+  if(selectedRelicIndex>=relics.length)selectedRelicIndex=0;
+  const relicSelect=$('atlasRelic');relicSelect.replaceChildren();
+  for(const [index,relic] of relics.entries()){
+    const option=document.createElement('option');
+    option.value=String(index);option.textContent=relic.name;relicSelect.append(option);
+  }
+  if(relics.length)relicSelect.value=String(selectedRelicIndex);
+  const relic=relics[selectedRelicIndex]||null;
+  $('relicName').value=relic?.name??'';
+  $('relicX').value=relic?.x??0;
+  $('relicY').value=relic?.y??440;
+  $('atlasRelic').disabled=!relic;
+  $('relicName').disabled=!relic;
+  $('relicX').disabled=!relic;
+  $('relicY').disabled=!relic;
+  $('addRelic').disabled=!room||relics.length>=8;
+  $('removeRelic').disabled=!relic;
   const fields={
     atlasRoomTitle:room?.title??'',
     portalLabel:p?.label??'',portalTarget:p?.targetRoom??'',
@@ -386,7 +414,7 @@ function syncAtlasControls(){
   $('removePortal').disabled=!p;
   for(const id of ['atlasRoom','atlasRoomTitle','atlasPortal'])$(id).disabled=!room;
   for(const id of ['portalLabel','portalTarget','portalX','portalY','portalW','portalH',
-    'portalArrivalX','portalArrivalY','portalRequiresKey'])$(id).disabled=!p;
+    'portalArrivalX','portalArrivalY','portalRequiresKey','portalRequiresRelic'])$(id).disabled=!p;
   $('atlasStatus').textContent=atlas?
     rooms.length+' linked rooms · '+rooms.reduce((n,r)=>n+r.portals.length,0)+
     ' doors · current: '+room?.title+' · starts: '+rooms.find(r=>r.id===atlas.startRoom)?.title+
@@ -428,7 +456,7 @@ $('addRoom').onclick=()=>{
   source.title='Chamber '+(scene.atlas.rooms.length+1);
   source.playable.spawn={x:75,y:458};
   source.playable.key={x:1145,y:455};
-  const newRoom={id:nextId,title:source.title,scene:source,portals:[]};
+  const newRoom={id:nextId,title:source.title,scene:source,portals:[],relics:[]};
   scene.atlas.rooms.push(newRoom);
   // Auto-connect in both directions when portal capacity permits.
   if(oldRoom&&oldRoom.portals.length<8)
@@ -444,7 +472,10 @@ $('removeRoom').onclick=()=>{
   if(!confirm('Delete this room and its incoming door links?'))return;
   const removing=activeRoomId;
   atlas.rooms=atlas.rooms.filter(r=>r.id!==removing);
-  for(const r of atlas.rooms)r.portals=r.portals.filter(p=>p.targetRoom!==removing);
+  for(const r of atlas.rooms){
+    r.portals=r.portals.filter(p=>p.targetRoom!==removing);
+    for(const p of r.portals)if(p.requiresRelic?.startsWith(removing+':'))p.requiresRelic='';
+  }
   if(atlas.startRoom===removing)atlas.startRoom=atlas.rooms[0].id;
   activeRoomId=atlas.rooms[0].id;loadActiveRoom();
   flash('Removed the room and all links pointing to it.');
@@ -467,6 +498,39 @@ for(const [id,key] of Object.entries(portalFields)){
 }
 $('portalRequiresKey').onchange=e=>{
   const p=currentPortal();if(!p)return;p.requiresKey=e.target.checked;syncAtlasControls();
+};
+$('portalRequiresRelic').onchange=e=>{
+  const p=currentPortal();if(!p)return;p.requiresRelic=e.target.value;syncAtlasControls();
+};
+$('atlasRelic').onchange=e=>{
+  selectedRelicIndex=Number(e.target.value)||0;syncAtlasControls();
+};
+for(const [id,key] of [['relicName','name'],['relicX','x'],['relicY','y']]){
+  $(id).onchange=e=>{
+    const room=currentRoom();const relic=room?.relics[selectedRelicIndex];
+    if(!relic)return;
+    const value=key==='name'?e.target.value.trim().slice(0,70):Number(e.target.value);
+    if(typeof value==='number'&&!Number.isFinite(value)){syncAtlasControls();return;}
+    relic[key]=value;
+    syncAtlasControls();
+  };
+}
+$('addRelic').onclick=()=>{
+  const room=currentRoom();if(!room||room.relics.length>=8)return;
+  const used=new Set(room.relics.map(r=>r.id));let n=1;
+  while(used.has('relic-'+n))n++;
+  room.relics.push({id:'relic-'+n,name:'Ancient Relic',x:Math.max(0,scene.camera.x+360),y:420});
+  selectedRelicIndex=room.relics.length-1;syncAtlasControls();
+  flash('Relic added. Collect it in play mode to unlock inventory gates.');
+};
+$('removeRelic').onclick=()=>{
+  const room=currentRoom();const relic=room?.relics[selectedRelicIndex];if(!relic)return;
+  const id=room.id+':'+relic.id;
+  room.relics.splice(selectedRelicIndex,1);
+  for(const entry of scene.atlas.rooms)for(const portal of entry.portals){
+    if(portal.requiresRelic===id)portal.requiresRelic='';
+  }
+  selectedRelicIndex=0;syncAtlasControls();flash('Relic removed; its door requirements cleared.');
 };
 $('addPortal').onclick=()=>{
   const room=currentRoom();if(!room||room.portals.length>=8)return;
@@ -813,7 +877,7 @@ function tick(now) {
     if($('directorPreview').checked)
       renderDirectorGuides(ctx,director,scene.camera.x,scene.width,scene.height);
     if($('portalPreview').checked&&scene.atlas)
-      renderPortals(ctx,{atlas:scene.atlas,roomId:activeRoomId,game:{keyCollected:true}},scene.camera.x,{guides:true});
+      renderPortals(ctx,{atlas:scene.atlas,roomId:activeRoomId,game:{keyCollected:true},inventory:new Set(scene.atlas.rooms.flatMap(r=>(r.relics||[]).map(item=>r.id+':'+item.id)))},scene.camera.x,{guides:true});
   }
   requestAnimationFrame(tick);
 }
