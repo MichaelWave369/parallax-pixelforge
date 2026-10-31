@@ -36,3 +36,12 @@
 .director-builder .puzzle-buttons .toggle{color:#b8d9ce;font:700 12px system-ui}
 @media(max-width:850px){.director-builder .puzzle-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.director-builder .puzzle-fields{grid-template-columns:1fr}.director-builder .puzzle-fields label:last-child{grid-column:span 1}}
+
+/* Rung 05 / Room Atlas: compact multi-room and portal inspector. */
+.atlas-builder .puzzle-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
+.atlas-builder .puzzle-fields .atlas-checkbox{display:flex;gap:10px;align-items:center;justify-content:flex-start}
+.atlas-builder .puzzle-fields .atlas-checkbox input{width:auto;min-width:auto;accent-color:#a6e5ce}
+.atlas-builder .puzzle-fields input:disabled,.atlas-builder .puzzle-fields select:disabled{opacity:.42}
+.atlas-builder .puzzle-buttons .small-note{flex:1;min-width:180px;color:#94bcb8;font-size:11px}
+@media(max-width:850px){.atlas-builder .puzzle-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.atlas-builder .puzzle-fields{grid-template-columns:1fr}}
