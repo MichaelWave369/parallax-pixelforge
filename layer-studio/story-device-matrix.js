@@ -35,7 +35,8 @@ export function validateDeviceMatrix(matrix){
   const keys=new Set(),records=[];
   for(const r of matrix.records){
     if(!object(r)||!validId(r.missionId,'mission')||
-      !validId(r.goalId,'goal')||!profileById(r.profileId)||
+      !validId(r.goalId,'goal')||typeof r.targetId!=='string'||
+      !r.targetId||r.targetId.length>300||!profileById(r.profileId)||
       !STATUS.includes(r.status)||r.confirmed!==true||
       typeof r.notes!=='string'||r.notes.trim().length<8||
       r.notes.length>500||typeof r.environment!=='string'||
@@ -46,7 +47,8 @@ export function validateDeviceMatrix(matrix){
     const id=key(r.missionId,r.goalId,r.profileId);
     if(keys.has(id))throw Error('Duplicate device/goal record.');
     keys.add(id);
-    records.push({missionId:r.missionId,goalId:r.goalId,profileId:r.profileId,
+    records.push({missionId:r.missionId,goalId:r.goalId,targetId:r.targetId,
+      profileId:r.profileId,
       status:r.status,notes:r.notes,environment:r.environment,
       confirmed:true,worldFingerprint:r.worldFingerprint});
   }
@@ -54,15 +56,16 @@ export function validateDeviceMatrix(matrix){
 }
 function knownGoal(book,missionId,goalId){
   const current=validateTestMissionBook(book);
-  if(!current.missions.some(m=>m.id===missionId&&
-    m.goals.some(g=>g.id===goalId)))
-    throw Error('Device result must belong to a current authoring mission goal.');
+  const goal=current.missions.find(m=>m.id===missionId)?
+    .goals.find(g=>g.id===goalId);
+  if(!goal)throw Error('Device result must belong to a current authoring mission goal.');
+  return goal;
 }
 export function recordDeviceTest(matrix,book,atlas,missionId,goalId,profileId,{
   status='not-run',notes='',environment='',confirmed=false
 }={}){
   const current=validateDeviceMatrix(matrix);
-  knownGoal(book,missionId,goalId);
+  const goal=knownGoal(book,missionId,goalId);
   if(!profileById(profileId))throw Error('Unknown device/input profile.');
   const prior=current.records.filter(r=>key(r.missionId,r.goalId,r.profileId)!==
     key(missionId,goalId,profileId));
@@ -78,7 +81,7 @@ export function recordDeviceTest(matrix,book,atlas,missionId,goalId,profileId,{
     throw Error('Describe the actual operating system, browser or device build (3 to 120 characters).');
   const fingerprint=fullTestWorldFingerprint(atlas);
   if(!fingerprint)throw Error('Load the authored world before recording gameplay evidence.');
-  const record={missionId,goalId,profileId,status,notes,
+  const record={missionId,goalId,targetId:goal.targetId,profileId,status,notes,
     environment:environment.trim(),confirmed:true,worldFingerprint:fingerprint};
   return validateDeviceMatrix({...current,records:[...prior,record]});
 }
@@ -93,6 +96,14 @@ export function mergeDeviceMatrix(current,incoming){
     out.push(r);ids.add(id);imported++;
   }
   return {matrix:validateDeviceMatrix({...a,records:out}),imported,skipped};
+}
+export function pruneDeviceMatrixForBook(matrix,book){
+  const current=validateDeviceMatrix(matrix);
+  const missions=validateTestMissionBook(book).missions;
+  const live=new Set(missions.flatMap(m=>m.goals.map(g=>
+    [m.id,g.id,g.targetId].join(':'))));
+  return validateDeviceMatrix({...current,records:current.records.filter(r=>
+    live.has([r.missionId,r.goalId,r.targetId].join(':')))});
 }
 export function reviewDeviceMatrix(atlas,book,coverage,matrix){
   const current=validateDeviceMatrix(matrix);
@@ -112,7 +123,8 @@ export function reviewDeviceMatrix(atlas,book,coverage,matrix){
       if(goal.narrativeStatus==='verified')totals.simVerified++;
       const cells=DEVICE_PROFILES.map(profile=>{
         const id=key(mission.id,goal.id,profile.id);
-        const record=records.get(id);
+        const found=records.get(id);
+        const record=found?.targetId===goal.targetId?found:null;
         if(record)used.add(id);
         const deviceStatus=!record?'not-run':
           fingerprint&&record.worldFingerprint===fingerprint?
