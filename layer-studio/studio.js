@@ -5,7 +5,7 @@ import {
 import {normalizePuzzle,startPuzzle,renderPuzzle} from './puzzle.js';
 import {importTileStudio,importSpriteStudio,renderTileWorld,tileCellsNear} from './studio-bridge.js';
 import {normalizeDirector,renderDirectorLighting,renderDirectorGuides} from './world-director.js';
-import {makeStarterAtlas,stripAtlas,renderPortals} from './room-atlas.js';
+import {makeStarterAtlas,stripAtlas,renderPortals,renderRelics} from './room-atlas.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -876,8 +876,12 @@ function tick(now) {
       renderDirectorLighting(ctx,director,scene.camera.x,scene.width,scene.height);
     if($('directorPreview').checked)
       renderDirectorGuides(ctx,director,scene.camera.x,scene.width,scene.height);
-    if($('portalPreview').checked&&scene.atlas)
-      renderPortals(ctx,{atlas:scene.atlas,roomId:activeRoomId,game:{keyCollected:true},inventory:new Set(scene.atlas.rooms.flatMap(r=>(r.relics||[]).map(item=>r.id+':'+item.id)))},scene.camera.x,{guides:true});
+    if($('portalPreview').checked&&scene.atlas){
+      const previewSession={atlas:scene.atlas,roomId:activeRoomId,game:{keyCollected:true,time:elapsed},
+        inventory:new Set(scene.atlas.rooms.flatMap(r=>(r.relics||[]).map(item=>r.id+':'+item.id)))};
+      renderPortals(ctx,previewSession,scene.camera.x,{guides:true});
+      renderRelics(ctx,{...previewSession,inventory:new Set()},scene.camera.x);
+    }
   }
   requestAnimationFrame(tick);
 }
