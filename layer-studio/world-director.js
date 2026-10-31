@@ -68,12 +68,13 @@ export function stepDirector(state,dt=1/60){
   const player=state.player,inside=new Set();
   for(const trigger of director.triggers){
     if(!rectsOverlap(player,trigger))continue;
+    // A checkpoint entered in midair must remain eligible when the player lands.
+    if(trigger.kind==='checkpoint'&&!player.grounded)continue;
     inside.add(trigger.id);
     if(state.directorSeen.has(trigger.id)&&trigger.once)continue;
     if(state.directorInside.has(trigger.id))continue;
     // Save a grounded checkpoint only, so respawns cannot trap the hero in midair.
     if(trigger.kind==='checkpoint'){
-      if(!player.grounded)continue;
       state.checkpoint={id:trigger.id,x:player.x,y:player.y};
     }
     if(trigger.once)state.directorSeen.add(trigger.id);
