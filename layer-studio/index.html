@@ -470,6 +470,21 @@
           </table>
         </div>
         <p id="storyCoverageNote" class="small-note story-coverage-note">No routes are certified physically. Door, combat, NPC and inventory assumptions remain hypothetical.</p>
+        <div class="field-rule"><span>RUNG 19 / COVERAGE-GUIDED SCENARIO BUILDER</span></div>
+        <div class="story-guide-head">
+          <h3>Build the Next Untested Route</h3>
+          <p class="small-note">Select an uncovered or outdated coverage target. Find a bounded, valid route from the current simulator state using only authored actions. Follow the steps one by one. Never grants flags, keys, or victory by itself.</p>
+        </div>
+        <div class="story-guide-toolbar">
+          <label for="storyGuideTarget">STORY COVERAGE TARGET
+            <select id="storyGuideTarget" aria-describedby="storyGuideStatus"></select>
+          </label>
+          <button type="button" id="storyGuideFind">Find Valid Route</button>
+          <button type="button" id="storyGuideNext" disabled>Apply Next Suggested Step</button>
+        </div>
+        <p id="storyGuideStatus" class="small-note story-guide-status" role="status" aria-live="polite">Choose an untested branch to plan the next hypothetical scenario.</p>
+        <ol id="storyGuideSteps" class="story-guide-steps" aria-label="Suggested simulation steps"></ol>
+        <p class="small-note story-guide-caveat">Planning is limited to 16 proposed steps and 1,400 explored states. No route found does not mean a route is impossible. NPC, boss and non-flag door actions remain explicitly labeled assumptions, and require your click before applying.</p>
       </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
         <div class="puzzle-head">
