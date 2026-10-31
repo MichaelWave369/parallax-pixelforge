@@ -56,8 +56,8 @@ export function validateDeviceMatrix(matrix){
 }
 function knownGoal(book,missionId,goalId){
   const current=validateTestMissionBook(book);
-  const goal=current.missions.find(m=>m.id===missionId)?
-    .goals.find(g=>g.id===goalId);
+  const goal=current.missions.find(m=>m.id===missionId)
+    ?.goals.find(g=>g.id===goalId);
   if(!goal)throw Error('Device result must belong to a current authoring mission goal.');
   return goal;
 }
