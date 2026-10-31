@@ -573,6 +573,134 @@ $('removePortal').onclick=()=>{
   room.portals.splice(selectedPortalIndex,1);
   selectedPortalIndex=0;syncAtlasControls();flash('Door removed.');
 };
+function selectedQuest(){
+  return scene.atlas?.quests?.[selectedQuestIndex]||null;
+}
+function selectedObjective(){
+  return selectedQuest()?.objectives?.[selectedObjectiveIndex]||null;
+}
+function questTargetChoices(kind){
+  const atlas=scene.atlas;
+  if(!atlas)return [];
+  if(kind==='visit')return atlas.rooms.map(r=>({value:r.id,label:'Visit: '+r.title}));
+  if(kind==='relic')return atlas.rooms.flatMap(r=>(r.relics||[])
+    .map(relic=>({value:r.id+':'+relic.id,label:r.title+' / '+relic.name})));
+  if(kind==='flag'){
+    const rooms=atlas.rooms.map(r=>r.id===activeRoomId?{...r,scene:stripAtlas(scene)}:r);
+    return knownWorldFlags({rooms}).map(value=>({value,label:'Activate: '+value}));
+  }
+  return [];
+}
+function syncQuestControls(){
+  const atlas=scene.atlas;
+  const quests=atlas?.quests||[];
+  if(selectedQuestIndex>=quests.length)selectedQuestIndex=0;
+  const quest=selectedQuest(),select=$('questSelect');
+  select.replaceChildren();
+  for(const [i,q] of quests.entries()){
+    const option=document.createElement('option');option.value=String(i);
+    option.textContent=q.title;select.append(option);
+  }
+  if(quest)select.value=String(selectedQuestIndex);
+  if(selectedObjectiveIndex>=(quest?.objectives.length||0))selectedObjectiveIndex=0;
+  const objective=selectedObjective(),objectives=$('objectiveSelect');
+  objectives.replaceChildren();
+  for(const [i,o] of (quest?.objectives||[]).entries()){
+    const option=document.createElement('option');option.value=String(i);
+    option.textContent=o.label;objectives.append(option);
+  }
+  if(objective)objectives.value=String(selectedObjectiveIndex);
+  $('questTitle').value=quest?.title||'';
+  $('questDescription').value=quest?.description||'';
+  $('objectiveLabel').value=objective?.label||'';
+  $('objectiveKind').value=objective?.kind==='invalid'?'relic':objective?.kind||'visit';
+  const targets=$('objectiveTarget');targets.replaceChildren();
+  const choices=questTargetChoices(objective?.kind);
+  for(const choice of choices){
+    const option=document.createElement('option');
+    option.value=choice.value;option.textContent=choice.label;targets.append(option);
+  }
+  if(objective&&!choices.some(choice=>choice.value===objective.target)){
+    const option=document.createElement('option');option.value=objective.target;
+    option.textContent=objective.target?'Missing target: '+objective.target:'Select a valid target';
+    targets.append(option);
+  }
+  if(objective)targets.value=objective.target;
+  for(const id of ['questSelect','questTitle','questDescription'])$(id).disabled=!quest;
+  for(const id of ['objectiveSelect','objectiveLabel','objectiveKind','objectiveTarget'])
+    $(id).disabled=!objective;
+  $('addQuest').disabled=!atlas||quests.length>=12;
+  $('removeQuest').disabled=!quest;
+  $('addObjective').disabled=!quest||quest.objectives.length>=6;
+  $('removeObjective').disabled=!objective;
+  $('questStatus').textContent=atlas?
+    quests.length+' quests · '+quests.reduce((n,q)=>n+q.objectives.length,0)+
+    ' objectives · Complete objectives to unlock quest-gated doors.':
+    'Create a multi-room adventure to author quests.';
+}
+$('questSelect').onchange=e=>{
+  selectedQuestIndex=Number(e.target.value)||0;selectedObjectiveIndex=0;syncQuestControls();
+};
+$('objectiveSelect').onchange=e=>{
+  selectedObjectiveIndex=Number(e.target.value)||0;syncQuestControls();
+};
+for(const [control,key] of [['questTitle','title'],['questDescription','description']]){
+  $(control).onchange=e=>{
+    const quest=selectedQuest();if(!quest)return;
+    quest[key]=e.target.value.slice(0,key==='title'?80:220);
+    scene.atlas.quests=normalizeQuestLine(scene.atlas.quests);
+    syncAtlasControls();
+  };
+}
+$('objectiveKind').onchange=e=>{
+  const obj=selectedObjective();if(!obj)return;
+  obj.kind=e.target.value;
+  obj.target=questTargetChoices(obj.kind)[0]?.value||'';
+  syncQuestControls();
+};
+$('objectiveTarget').onchange=e=>{
+  const obj=selectedObjective();if(!obj)return;obj.target=e.target.value;
+  syncQuestControls();
+};
+$('objectiveLabel').onchange=e=>{
+  const obj=selectedObjective();if(!obj)return;
+  obj.label=e.target.value.slice(0,100);
+  syncQuestControls();
+};
+function nextQuestId(){
+  const ids=new Set((scene.atlas.quests||[]).map(q=>q.id));
+  let i=1;while(ids.has('quest-'+i))i++;
+  return 'quest-'+i;
+}
+$('addQuest').onclick=()=>{
+  const atlas=scene.atlas;if(!atlas||atlas.quests.length>=12)return;
+  atlas.quests.push({id:nextQuestId(),title:'New quest',description:'Write this quest\'s story here.',
+    objectives:[]});
+  selectedQuestIndex=atlas.quests.length-1;selectedObjectiveIndex=0;
+  syncAtlasControls();flash('Quest added. Add a room, relic or world-flag objective.');
+};
+$('removeQuest').onclick=()=>{
+  const atlas=scene.atlas,quest=selectedQuest();if(!atlas||!quest)return;
+  atlas.quests.splice(selectedQuestIndex,1);
+  for(const room of atlas.rooms)for(const portal of room.portals)
+    if(portal.requiresQuest===quest.id)portal.requiresQuest='';
+  selectedQuestIndex=0;selectedObjectiveIndex=0;syncAtlasControls();
+  flash('Quest removed. Its linked door requirements were cleared.');
+};
+$('addObjective').onclick=()=>{
+  const quest=selectedQuest();if(!quest||quest.objectives.length>=6)return;
+  let i=1;const used=new Set(quest.objectives.map(o=>o.id));
+  while(used.has('objective-'+i))i++;
+  const kind='visit',target=questTargetChoices(kind).at(-1)?.value||'';
+  quest.objectives.push({id:'objective-'+i,kind,target,label:'Visit the chamber'});
+  selectedObjectiveIndex=quest.objectives.length-1;
+  syncQuestControls();flash('Objective added. Select its condition and destination.');
+};
+$('removeObjective').onclick=()=>{
+  const quest=selectedQuest(),objective=selectedObjective();if(!quest||!objective)return;
+  quest.objectives.splice(selectedObjectiveIndex,1);
+  selectedObjectiveIndex=0;syncQuestControls();
+};
 function directorChoices(){
   const d=scene.playable.director;
   return [
