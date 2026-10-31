@@ -93,6 +93,39 @@
         <p id="tileWorldStatus" class="small-note">No Tile Studio map. Stonebridge platforms are still playable.</p>
         <p id="actorStatus" class="small-note">No Sprite Studio character. Built-in hero is active.</p>
       </section>
+      <section class="puzzle-builder atlas-builder" aria-label="Room Atlas editor">
+        <div class="puzzle-head">
+          <div><span class="micro">RUNG 05 / LINKED LEVELS</span><h2>Room Atlas</h2>
+            <p>Turn a single 2.5D scene into a connected adventure. Give each room its own layers, tile art, puzzles, lighting, and doors. Room progress stays with that room as you travel.</p></div>
+          <label class="toggle"><input type="checkbox" id="portalPreview" checked> Show door guides</label>
+        </div>
+        <div class="puzzle-buttons">
+          <button id="makeAtlas" type="button">Create two-room adventure</button>
+          <button id="addRoom" type="button">+ New room</button>
+          <button id="removeRoom" type="button">Delete current room</button>
+          <button id="setStartRoom" type="button">Set play start here</button>
+        </div>
+        <div class="puzzle-fields">
+          <label>CURRENT ROOM<select id="atlasRoom"></select></label>
+          <label>ROOM TITLE<input id="atlasRoomTitle" type="text" maxlength="80"></label>
+          <label>PORTAL TO EDIT<select id="atlasPortal"></select></label>
+          <label>PORTAL LABEL<input id="portalLabel" type="text" maxlength="60"></label>
+          <label>DESTINATION ROOM<select id="portalTarget"></select></label>
+          <label>DOOR X<input id="portalX" type="number" step="1"></label>
+          <label>DOOR Y<input id="portalY" type="number" step="1"></label>
+          <label>DOOR WIDTH<input id="portalW" type="number" min="12" max="300" step="1"></label>
+          <label>DOOR HEIGHT<input id="portalH" type="number" min="12" max="300" step="1"></label>
+          <label>DESTINATION X<input id="portalArrivalX" type="number" min="0" max="6000" step="1"></label>
+          <label>DESTINATION Y<input id="portalArrivalY" type="number" min="-200" max="750" step="1"></label>
+          <label class="atlas-checkbox">REQUIRES THIS ROOM'S KEY <input id="portalRequiresKey" type="checkbox"></label>
+        </div>
+        <div class="puzzle-buttons">
+          <button id="addPortal" type="button">+ Linked doorway</button>
+          <button id="removePortal" type="button">Remove doorway</button>
+          <span class="small-note">Interact with doors using E / Xbox X / touchscreen Enter. Save or Export JSON to keep every room.</span>
+        </div>
+        <p id="atlasStatus" class="small-note">Single-room mode. Your existing scene remains fully playable.</p>
+      </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
         <div class="puzzle-head">
           <div><span class="micro">RUNG 04 / EVENTS &amp; ATMOSPHERE</span>
