@@ -25,7 +25,7 @@ let selectedRelicIndex=0;
 let selectedQuestIndex=0;
 let selectedObjectiveIndex=0;
 let selectedStoryDialogue=0,selectedStoryEncounter=0,selectedStoryVariant=0;
-let selectedSequenceIndex=0,selectedSequenceBeatIndex=0;
+let selectedSequenceIndex=0,selectedSequenceBeatIndex=0,selectedSequenceChoiceIndex=0;
 let previewStoryFlag='';
 let puzzlePreviewState=null;
 let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -349,7 +349,7 @@ function loadActiveRoom(){
   selectedPuzzle='spawn';selectedDirector='';selectedPortalIndex=0;selectedRelicIndex=0;
   selectedQuestIndex=0;selectedObjectiveIndex=0;
   selectedStoryDialogue=0;selectedStoryEncounter=0;selectedStoryVariant=0;
-  selectedSequenceIndex=0;selectedSequenceBeatIndex=0;
+  selectedSequenceIndex=0;selectedSequenceBeatIndex=0;selectedSequenceChoiceIndex=0;
   previewStoryFlag='';elapsed=0;
   syncScene();
 }
@@ -1049,6 +1049,16 @@ function syncSequenceControls(){
   const t=activeSequence();
   if(selectedSequenceBeatIndex>=(t?.beats.length||0))selectedSequenceBeatIndex=0;
   const beat=activeSequenceBeat();
+  const choices=t?.choices||[];
+  if(selectedSequenceChoiceIndex>=choices.length)selectedSequenceChoiceIndex=0;
+  const choice=choices[selectedSequenceChoiceIndex]||null;
+  const choiceSelect=$('sequenceChoiceSelect');choiceSelect.replaceChildren();
+  for(const [i,item] of choices.entries()){
+    const option=document.createElement('option');option.value=String(i);
+    option.textContent=item.label+' / '+item.id;choiceSelect.append(option);
+  }
+  if(choice)choiceSelect.value=String(selectedSequenceChoiceIndex);
+  choiceSelect.disabled=!choice;
   const select=$('sequenceSelect');select.replaceChildren();
   for(const [i,item] of tracks.entries()){
     const option=document.createElement('option');option.value=String(i);
@@ -1069,11 +1079,13 @@ function syncSequenceControls(){
     sequenceBeatTitle:beat?.title??'',sequenceBeatText:beat?.text??'',
     sequenceBeatSeconds:beat?.seconds??2,sequenceBeatCamera:beat?.camera??'',
     sequenceBeatFocusX:beat?.focusX??'',sequenceBeatAmbient:beat?.ambient??'',
-    sequenceBeatCue:beat?.cue??''
+    sequenceBeatCue:beat?.cue??'',
+    sequenceChoiceLabel:choice?.label??'',sequenceChoiceFlag:choice?.setFlag??''
   };
   for(const [id,value] of Object.entries(values)){
     $(id).value=value;
-    $(id).disabled=id.startsWith('sequenceBeat')?!beat:!t;
+    $(id).disabled=id.startsWith('sequenceBeat')?!beat:
+      id.startsWith('sequenceChoice')?!choice:!t;
   }
   const authored=scene.atlas?.rooms.map(r=>
     r.id===activeRoomId?{...r,scene:stripAtlas(scene)}:r)||[];
@@ -1081,6 +1093,8 @@ function syncSequenceControls(){
     .filter(flag=>flag!==t?.completionFlag).map(flag=>[flag,flag])];
   fillStoryOptions('sequenceRequiresFlag',opts,t?.requiresFlag??'');
   $('sequenceRequiresFlag').disabled=!t;
+  fillStoryOptions('sequenceUnlessFlag',opts,t?.unlessFlag??'');
+  $('sequenceUnlessFlag').disabled=!t;
   $('sequenceOnce').checked=t?.once??true;
   $('sequenceOnce').disabled=!t;
   $('sequenceBeatSelect').disabled=!beat;
@@ -1088,31 +1102,40 @@ function syncSequenceControls(){
   $('removeSequence').disabled=!t;
   $('addSequenceBeat').disabled=!t||t.beats.length>=4;
   $('removeSequenceBeat').disabled=!beat;
+  $('addSequenceChoice').disabled=!t||choices.length>=3;
+  $('removeSequenceChoice').disabled=!choice;
   $('sequenceStatus').textContent=room?
     tracks.length+' discovery sequences · '+tracks.reduce((total,item)=>total+item.beats.length,0)+
-    ' cinematic beats · Interaction opens the selected discovery.':
+    ' cinematic beats · '+tracks.reduce((sum,item)=>sum+(item.choices?.length||0),0)+
+    ' authored choices · Interaction opens the selected discovery.':
     'Create a Room Atlas to author world discoveries.';
 }
 function rewriteSequence(kind,key,value){
   const room=currentRoom(),track=activeSequence();if(!room||!track)return;
   const tracks=room.sequences.tracks.map(item=>({
-    ...item,beats:item.beats.map(beat=>({...beat}))
+    ...item,beats:item.beats.map(beat=>({...beat})),
+    ...(item.choices?{choices:item.choices.map(choice=>({...choice}))}:{})
   }));
   const item=tracks[selectedSequenceIndex];
-  if(kind==='track')item[key]=value;
-  else{
+  if(kind==='track'){
+    if(key==='unlessFlag'&&value==='')delete item.unlessFlag;
+    else item[key]=value;
+  }else if(kind==='choice'){
+    if(!item.choices?.[selectedSequenceChoiceIndex])return;
+    item.choices[selectedSequenceChoiceIndex][key]=value;
+  }else{
     if(!item.beats[selectedSequenceBeatIndex])return;
     if((key==='camera'||key==='ambient'||key==='focusX'||key==='cue')&&value===''){
       delete item.beats[selectedSequenceBeatIndex][key];
     }else item.beats[selectedSequenceBeatIndex][key]=value;
   }
   room.sequences=normalizeWorldSequences({...room.sequences,tracks});
-  if(key==='completionFlag'||key==='requiresFlag')syncAtlasControls();
+  if(key==='completionFlag'||key==='requiresFlag'||key==='unlessFlag'||kind==='choice')syncAtlasControls();
   else syncSequenceControls();
 }
 $('sequenceSelect').onchange=e=>{
   selectedSequenceIndex=Number(e.target.value)||0;
-  selectedSequenceBeatIndex=0;syncSequenceControls();
+  selectedSequenceBeatIndex=0;selectedSequenceChoiceIndex=0;syncSequenceControls();
 };
 $('sequenceBeatSelect').onchange=e=>{
   selectedSequenceBeatIndex=Number(e.target.value)||0;syncSequenceControls();
@@ -1121,7 +1144,8 @@ for(const [id,key,number] of [
   ['sequenceTitle','title',false],['sequenceX','x',true],
   ['sequenceY','y',true],['sequenceW','w',true],['sequenceH','h',true],
   ['sequenceCompletionFlag','completionFlag',false],
-  ['sequenceRequiresFlag','requiresFlag',false]
+  ['sequenceRequiresFlag','requiresFlag',false],
+  ['sequenceUnlessFlag','unlessFlag',false]
 ])$(id).onchange=e=>{
   const value=number?Number(e.target.value):e.target.value;
   if(number&&!Number.isFinite(value))return syncSequenceControls();
@@ -1152,12 +1176,13 @@ $('addSequence').onclick=()=>{
       camera:'player',cue:'STONE RESONANCE'}]});
   room.sequences=normalizeWorldSequences(data);
   selectedSequenceIndex=room.sequences.tracks.length-1;selectedSequenceBeatIndex=0;
+  selectedSequenceChoiceIndex=0;
   syncAtlasControls();flash('Sequence added. Add beats, lighting and camera direction.');
 };
 $('removeSequence').onclick=()=>{
   const room=currentRoom(),track=activeSequence();if(!room||!track)return;
   room.sequences.tracks.splice(selectedSequenceIndex,1);
-  selectedSequenceIndex=0;selectedSequenceBeatIndex=0;
+  selectedSequenceIndex=0;selectedSequenceBeatIndex=0;selectedSequenceChoiceIndex=0;
   syncAtlasControls();flash('Discovery removed. Review any door requirements using its old flag.');
 };
 $('addSequenceBeat').onclick=()=>{
@@ -1170,6 +1195,31 @@ $('removeSequenceBeat').onclick=()=>{
   const t=activeSequence(),beat=activeSequenceBeat();if(!t||!beat)return;
   t.beats.splice(selectedSequenceBeatIndex,1);
   selectedSequenceBeatIndex=0;syncSequenceControls();
+};
+$('sequenceChoiceSelect').onchange=e=>{
+  selectedSequenceChoiceIndex=Number(e.target.value)||0;syncSequenceControls();
+};
+$('sequenceChoiceLabel').onchange=e=>rewriteSequence('choice','label',e.target.value);
+$('sequenceChoiceFlag').onchange=e=>rewriteSequence('choice','setFlag',e.target.value);
+$('addSequenceChoice').onclick=()=>{
+  const room=currentRoom(),track=activeSequence();if(!room||!track)return;
+  const choices=track.choices||(track.choices=[]);
+  if(choices.length>=3)return;
+  const used=new Set(choices.map(x=>x.id));
+  let n=1;while(used.has('choice-'+n))n++;
+  choices.push({id:'choice-'+n,label:'New decision',setFlag:''});
+  selectedSequenceChoiceIndex=choices.length-1;
+  room.sequences=normalizeWorldSequences(room.sequences);
+  syncAtlasControls();flash('Decision added. Give it a unique world flag.');
+};
+$('removeSequenceChoice').onclick=()=>{
+  const room=currentRoom(),track=activeSequence();
+  if(!room||!track?.choices?.[selectedSequenceChoiceIndex])return;
+  track.choices.splice(selectedSequenceChoiceIndex,1);
+  if(!track.choices.length)delete track.choices;
+  selectedSequenceChoiceIndex=0;
+  room.sequences=normalizeWorldSequences(room.sequences);
+  syncAtlasControls();flash('Decision removed.');
 };
 function directorChoices(){
   const d=scene.playable.director;
