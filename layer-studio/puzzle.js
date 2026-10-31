@@ -46,7 +46,7 @@ export function normalizePuzzle(input) {
     };
   };
   const normalizeSet=(v,type,max)=> {
-    const list=Array.isArray(v)?v:d[type+'s'];
+    const list=Array.isArray(v)?v:(type==='enemy'?d.enemies:d.platforms);
     const unique=new Set();
     return list.slice(0,max).map((value,i)=>{
       const item=shape(value,i,type);
