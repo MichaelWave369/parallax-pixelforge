@@ -1,5 +1,6 @@
 import {createScene, normalizeScene, renderScene} from './engine.js';
 import {startPuzzle,stepPuzzle,renderPuzzle,renderPuzzleHud,cameraFor} from './puzzle.js';
+import {renderDirectorLighting} from './world-director.js';
 
 const $=id=>document.getElementById(id);
 const SCENE_KEY='pixelforge.layer-studio.play-scene.v1';
@@ -90,8 +91,9 @@ function updateMessage(old){
   if(game.status==='won')setMessage('VAULT CLEARED! The stone bridge led you to the key and the exit.');
   else if(!old.keyCollected&&game.keyCollected)setMessage('KEY ACQUIRED. The cathedral gate is unlocked. Head right!');
   else if(old.petrified!==game.petrified)setMessage('PETRIFIED! The spirit is now a solid stone platform. Jump onto it.');
-  else if(old.deaths!==game.deaths)setMessage('Back to the courtyard. The statues and key remain until restart.');
+  else if(old.deaths!==game.deaths)setMessage(game.checkpoint?'Returned to the activated beacon.':'Back to the courtyard. The statues and key remain until restart.');
   else if(old.health!==game.health)setMessage('A spirit struck you! Keep some distance and fire your stone ray.');
+  else if(old.eventVersion!==game.eventVersion)setMessage(game.eventMessage);
 }
 let last=0,accumulator=0;
 const STEP=1/60;
@@ -103,7 +105,7 @@ function frame(now) {
     accumulator+=dt;
     let runs=0;
     while(accumulator>=STEP && runs<6){
-      const before={health:game.health,deaths:game.deaths,petrified:game.petrified,keyCollected:game.keyCollected};
+      const before={health:game.health,deaths:game.deaths,petrified:game.petrified,keyCollected:game.keyCollected,eventVersion:game.eventVersion};
       stepPuzzle(game,controls(pad),STEP);
       edge.jump=false;edge.fire=false;
       updateMessage(before);
@@ -121,6 +123,7 @@ function frame(now) {
     renderScene(ctx,scene,game.time,{cameraX:cam,endLayer:split,reducedMotion});
     renderPuzzle(ctx,game,{cameraX:cam,width:scene.width,height:scene.height,reducedMotion,hud:false});
     renderScene(ctx,scene,game.time,{cameraX:cam,startLayer:split,clear:false,reducedMotion});
+    renderDirectorLighting(ctx,game.puzzle.director,cam,scene.width,scene.height);
     renderPuzzleHud(ctx,game,{width:scene.width,height:scene.height});
     if(paused){
       ctx.save();ctx.fillStyle='#061522bb';ctx.fillRect(0,0,scene.width,scene.height);
