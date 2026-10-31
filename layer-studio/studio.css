@@ -72,3 +72,10 @@
 .atlas-builder #bossStatus{color:#d6b7ad;font:650 11px/1.6 ui-monospace,monospace}
 .atlas-builder #bossVictoryFlag{font-family:ui-monospace,monospace;font-size:11px}
 .atlas-builder #bossShowGuides{accent-color:#edae97}
+
+
+/* Rung 10 / Telegraphed boss attacks and timeline authoring. */
+.atlas-builder #bossStatus{line-height:1.6}
+.atlas-builder input[id^="bossIntroBeat"],.atlas-builder input[id^="bossVictoryBeat"],
+.atlas-builder input[id$="Telegraph"],.atlas-builder input[id$="Cue"]{min-width:0}
+.atlas-builder input[id$="Cue"]{font-family:ui-monospace,monospace;font-size:11px}

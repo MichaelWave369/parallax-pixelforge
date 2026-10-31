@@ -5,7 +5,7 @@ import {createWorldSession,stepWorldSession,renderPortals,renderPortalPrompt,ren
 import {writeSaveSlot,readSaveSlot,inspectSaveSlot,deleteSaveSlot,SLOT_COUNT} from './adventure-journal.js';
 import {evaluateQuestLine,refreshQuestProgress} from './quest-world.js';
 import {storyScene,chooseDialogue} from './living-story.js';
-import {currentBoss,beginBossBattle,renderBossStage,renderBossHud} from './boss-stage.js';
+import {currentBoss,beginBossBattle,renderBossStage,renderBossHud,createBossTimeline,stepBossTimeline} from './boss-stage.js';
 
 const $=id=>document.getElementById(id);
 const SCENE_KEY='pixelforge.layer-studio.play-scene.v1';
@@ -25,6 +25,7 @@ const rootScene=loadScene();
 let session=createWorldSession(rootScene);
 let scene=session.scene,game=session.game,paused=false;
 let activePanel='';
+let bossTimeline=null;
 function fitCanvas(){
   canvas.width=scene.width;canvas.height=scene.height;
   canvas.style.aspectRatio=scene.width+' / '+scene.height;
@@ -55,6 +56,9 @@ window.addEventListener('keydown',e=>{
   if(controlKeys.has(e.code))e.preventDefault();
   if(e.repeat)return;
   if(e.code==='Escape'&&activePanel){closePanel();return;}
+  if(activePanel==='boss-victory'&&['KeyE','Enter','Space'].includes(e.code)){
+    closePanel();setMessage(session.notice);return;
+  }
   if(activePanel==='boss-intro'&&['KeyE','Enter','Space'].includes(e.code)){
     beginBossBattle(session);closePanel();setMessage(session.notice);return;
   }
@@ -136,6 +140,7 @@ function closePanel(){
   if(activePanel==='story')session.dialogue=null;
   if(activePanel==='boss-intro')beginBossBattle(session);
   activePanel='';
+  bossTimeline=null;
   $('journalPanel').hidden=true;
   clearMovement();
   last=0;accumulator=0;
@@ -145,6 +150,8 @@ function togglePanel(name){
   if(activePanel==='story')session.dialogue=null;
   if(activePanel==='boss-intro')beginBossBattle(session);
   activePanel=name;
+  bossTimeline=['boss-intro','boss-victory'].includes(name)?
+    createBossTimeline(currentBoss(session),name==='boss-intro'?'intro':'victory'):null;
   clearMovement();
   last=0;accumulator=0;
   renderPanel();
@@ -158,18 +165,35 @@ function element(tag,klass,label){
 function renderPanel(){
   const panel=$('journalPanel'),content=$('journalContent');
   panel.hidden=false;content.replaceChildren();
-  if(activePanel==='boss-intro'){
-    const boss=currentBoss(session);
-    $('journalTitle').textContent=boss?.name||'Boss Encounter';
-    content.append(element('p','boss-cinematic-label','THE ARENA AWAKENS'));
-    content.append(element('p','boss-cinematic-intro',boss?.intro||'A formidable guardian awaits.'));
-    content.append(element('p','journal-note','Three phases. Use the stone ray, avoid incoming energy orbs and watch the guardian adapt as its health falls.'));
-    for(const [index,phase] of (boss?.phases||[]).entries()){
-      content.append(element('div','boss-phase-preview','PHASE '+(index+1)+' · '+phase.name));
+  if(activePanel==='boss-intro'||activePanel==='boss-victory'){
+    const boss=currentBoss(session),victory=activePanel==='boss-victory';
+    $('journalTitle').textContent=victory?'Victory · '+(boss?.name||'Guardian'):
+      boss?.name||'Boss Encounter';
+    const timeline=bossTimeline,beat=timeline?.beats[timeline.index];
+    content.append(element('p','boss-cinematic-label',victory?'THE GUARDIAN FALLS':'THE ARENA AWAKENS'));
+    content.append(element('p','boss-timeline-counter',timeline?
+      'BEAT '+(timeline.index+1)+' / '+timeline.beats.length:'INTRODUCTION'));
+    content.append(element('h3','boss-timeline-title',beat?.title||
+      (victory?'VICTORY':boss?.name)||'THE GUARDIAN'));
+    content.append(element('p','boss-cinematic-intro',beat?.text||
+      (victory?'The path opens.':boss?.intro)||'The guardian awaits.'));
+    content.append(element('p','journal-note',victory?
+      'Your victory flag is recorded. Quest and door progress are now available.':
+      'Watch the warning lane, move out of its path, and answer with the stone ray.'));
+    if(timeline&&!timeline.finished){
+      const next=element('button','boss-timeline-next','NEXT BEAT');
+      next.onclick=()=>{
+        timeline.index=Math.min(timeline.index+1,timeline.beats.length-1);
+        timeline.elapsed=0;
+        if(timeline.index===timeline.beats.length-1)timeline.finished=true;
+        renderPanel();
+      };
+      content.append(next);
     }
-    const fight=element('button','story-choice boss-start','FACE THE GUARDIAN');
-    fight.onclick=()=>{beginBossBattle(session);closePanel();setMessage(session.notice);};
-    content.append(fight);
+    const finish=element('button','story-choice boss-start',
+      victory?'RETURN TO THE WORLD':timeline?.finished?'FACE THE GUARDIAN':'SKIP INTRO & FIGHT');
+    finish.onclick=()=>{closePanel();setMessage(session.notice);};
+    content.append(finish);
   }else if(activePanel==='story'){
     $('journalTitle').textContent='Living Story';
     const room=session.atlas?.rooms.find(r=>r.id===session.roomId);
@@ -326,8 +350,11 @@ function frame(now) {
   const dt=last?Math.min((now-last)/1000,.08):0;
   last=now;
   const pad=pollPad();
-  if(activePanel==='boss-intro'&&edge.interact){
-    beginBossBattle(session);closePanel();setMessage(session.notice);
+  if((activePanel==='boss-intro'||activePanel==='boss-victory')&&edge.interact){
+    closePanel();setMessage(session.notice);
+  }
+  if(bossTimeline&&activePanel.startsWith('boss-')&&!paused){
+    if(stepBossTimeline(bossTimeline,dt))renderPanel();
   }
   if(!paused&&!activePanel&&game.status==='playing'){
     accumulator+=dt;
@@ -338,8 +365,8 @@ function frame(now) {
         storyVersion:session.storyVersion,bossVersion:session.bossVersion};
       const outcome=stepWorldSession(session,controls(pad),STEP);
       game=session.game;
-      if(outcome.bossIntro){
-        togglePanel('boss-intro');
+      if(outcome.bossIntro||outcome.bossVictory){
+        togglePanel(outcome.bossIntro?'boss-intro':'boss-victory');
         edge.jump=false;edge.fire=false;edge.interact=false;accumulator=0;
         break;
       }
