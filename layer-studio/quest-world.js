@@ -1,5 +1,6 @@
 // PixelForge Layer Studio / Rung 7: declarative quests and global world flags.
 // All quest evaluation is derived from already-earned state: no custom code or remote actions.
+import {storyFlags} from './living-story.js';
 export const QUEST_SCHEMA='pixelforge.layer-quests.v1';
 export const OBJECTIVE_KINDS=['relic','visit','flag'];
 const safe=(v,fallback,max=96)=>typeof v==='string'&&v.trim()?v.trim().slice(0,max):fallback;
@@ -20,6 +21,7 @@ export function knownWorldFlags(atlas){
   for(const room of atlas.rooms||[])
     for(const trigger of room.scene?.playable?.director?.triggers||[])
       if(trigger.kind==='flag'&&id(trigger.flagId,'')!=='')out.add(trigger.flagId);
+  for(const storyFlag of storyFlags(atlas))out.add(storyFlag);
   return [...out];
 }
 export function normalizeQuestLine(source){
