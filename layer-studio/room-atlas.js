@@ -151,6 +151,40 @@ export function makeStarterAtlas(scene,normalizeRoom){
           targetRoom:'reliquary',arrivalX:112,arrivalY:458,requiresKey:true,label:'ENTER RELIQUARY'}
       ]},
       {id:'reliquary',title:second.title,scene:second,story:secondStory,
+        sequences:{schema:WORLD_SEQUENCE_SCHEMA,tracks:[
+          {
+            id:'forked-echo',title:'The Forked Echo',x:695,y:375,w:150,h:125,
+            requiresFlag:'archive-revealed',completionFlag:'fork-decided',once:true,
+            beats:[
+              {title:'TWO VOICES',text:'The inscription from the Stone Archive splits into two voices.',seconds:2.2,
+                camera:'player',ambient:.53,cue:'TWO ECHOES ANSWER'},
+              {title:'A CHOICE REMAINS',text:'One memory asks to be carried. The other asks to be released.',seconds:2.5,
+                focusX:1110,ambient:.67,cue:'THE ECHO DIVIDES'}
+            ],
+            choices:[
+              {id:'honor',label:'Carry the forgotten promise',setFlag:'echo-honored'},
+              {id:'silence',label:'Release the echo into silence',setFlag:'echo-silenced'}
+            ]
+          },
+          {
+            id:'promise-path',title:'The Kept Promise',x:1040,y:380,w:135,h:120,
+            requiresFlag:'echo-honored',unlessFlag:'echo-silenced',
+            completionFlag:'promise-kept',once:true,
+            beats:[
+              {title:'A VOICE REMEMBERED',text:'A warm glow answers the promise you chose to carry.',seconds:2.5,
+                focusX:1180,ambient:.22,cue:'THE STONES ANSWER SOFTLY'}
+            ]
+          },
+          {
+            id:'silence-path',title:'The Hushed Chamber',x:1040,y:380,w:135,h:120,
+            requiresFlag:'echo-silenced',unlessFlag:'echo-honored',
+            completionFlag:'chamber-hushed',once:true,
+            beats:[
+              {title:'A GENTLE FAREWELL',text:'The old voice fades, leaving the chamber at peace.',seconds:2.5,
+                camera:'room',ambient:.54,cue:'THE ECHO GOES QUIET'}
+            ]
+          }
+        ]},
         boss:{
           schema:BOSS_SCHEMA,id:'ash-warden',name:'THE ASH WARDEN',
           intro:'You restored a spark to a dying world. But every flame must face its shadow.',
