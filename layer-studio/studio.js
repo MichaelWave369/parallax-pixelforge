@@ -19,6 +19,7 @@ import {analyzeRouteCoverage,filterRouteCoverage,COVERAGE_KINDS} from './story-r
 import {guidedCoverageTargets,planCoverageRoute,guideStateFingerprint} from './story-coverage-guide.js';
 import {analyzeScenarioRecommendations} from './story-scenario-recommendations.js';
 import {TEST_MISSIONS_KEY,createTestMissionBook,validateTestMissionBook,addTestMission,removeTestMission,addMissionGoal,removeMissionGoal,markMissionPhysicalTest,reviewTestMissionBook} from './story-test-missions.js';
+import {DEVICE_MATRIX_KEY,DEVICE_PROFILES,createDeviceMatrix,validateDeviceMatrix,recordDeviceTest,mergeDeviceMatrix,pruneDeviceMatrixForBook,reviewDeviceMatrix} from './story-device-matrix.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -43,6 +44,13 @@ let storyCatalog=createScenarioCatalog(),storyCatalogMessage='';
 let routeCoverageSnapshot=null;
 let scenarioRecommendationsSnapshot=null;
 let testMissionBook=createTestMissionBook(),activeTestMissionId='',testMissionMessage='';
+let deviceMatrix=createDeviceMatrix(),deviceMatrixMessage='';
+try{
+  const savedDeviceMatrix=localStorage.getItem(DEVICE_MATRIX_KEY);
+  if(savedDeviceMatrix)deviceMatrix=validateDeviceMatrix(JSON.parse(savedDeviceMatrix));
+}catch(error){
+  deviceMatrixMessage='Saved device test records could not load: '+error.message;
+}
 try{
   const savedMissions=localStorage.getItem(TEST_MISSIONS_KEY);
   if(savedMissions)testMissionBook=validateTestMissionBook(JSON.parse(savedMissions));
@@ -1358,6 +1366,179 @@ $('storyRecoExport').onclick=()=>{
     $('storyRecoNote').textContent='Recommendation export failed: '+error.message;
   }
 };
+function persistDeviceMatrix(updated){
+  const clean=validateDeviceMatrix(updated);
+  deviceMatrix=clean;
+  try{
+    localStorage.setItem(DEVICE_MATRIX_KEY,JSON.stringify(clean));
+    return true;
+  }catch(error){
+    deviceMatrixMessage='Browser storage unavailable: '+error.message+
+      '. Export Device Matrix JSON before closing the editor.';
+    return false;
+  }
+}
+function selectedDeviceReport(){
+  const missionId=activeTestMissionId,goalId=$('deviceMatrixGoal').value,
+    profileId=$('deviceMatrixProfile').value;
+  return deviceMatrix.records.find(record=>
+    record.missionId===missionId&&record.goalId===goalId&&
+    record.profileId===profileId);
+}
+function fillDeviceFields(){
+  const record=selectedDeviceReport();
+  $('deviceMatrixOutcome').value=record?.status||'not-run';
+  $('deviceMatrixEnvironment').value=record?.environment||'';
+  $('deviceMatrixNotes').value=record?.notes||'';
+  // Never allow an earlier attestation to authorize the next button click.
+  $('deviceMatrixConfirm').checked=false;
+}
+$('deviceMatrixGoal').onchange=fillDeviceFields;
+$('deviceMatrixProfile').onchange=fillDeviceFields;
+$('deviceMatrixRecord').onclick=()=>{
+  try{
+    const updated=recordDeviceTest(deviceMatrix,testMissionBook,branchMapAtlas(),
+      activeTestMissionId,$('deviceMatrixGoal').value,
+      $('deviceMatrixProfile').value,{
+        status:$('deviceMatrixOutcome').value,
+        environment:$('deviceMatrixEnvironment').value,
+        notes:$('deviceMatrixNotes').value,
+        confirmed:$('deviceMatrixConfirm').checked
+      });
+    const stored=persistDeviceMatrix(updated);
+    if(stored)deviceMatrixMessage=
+      $('deviceMatrixOutcome').value==='not-run'?
+        'Cleared the selected device/input test result.':
+        'Recorded an explicitly author-reported result for this specific device/input profile.';
+  }catch(error){deviceMatrixMessage='Could not record device test: '+error.message}
+  renderDeviceMatrixPanel(branchMapAtlas(),routeCoverageSnapshot);
+};
+$('deviceMatrixExport').onclick=()=>{
+  try{
+    routeFileDownload('pixelforge-device-input-matrix.json',
+      JSON.stringify(validateDeviceMatrix(deviceMatrix),null,2)+'\n',
+      'application/json');
+    deviceMatrixMessage='Exported the self-reported device matrix as portable JSON.';
+  }catch(error){deviceMatrixMessage='Device matrix export failed: '+error.message}
+  renderDeviceMatrixPanel(branchMapAtlas(),routeCoverageSnapshot);
+};
+$('deviceMatrixFile').onchange=()=>{
+  deviceMatrixMessage='File selected. Choose Merge Selected Reports to import.';
+  renderDeviceMatrixPanel(branchMapAtlas(),routeCoverageSnapshot);
+};
+$('deviceMatrixImport').onclick=async()=>{
+  const file=$('deviceMatrixFile').files?.[0];
+  if(!file){deviceMatrixMessage='Choose an exported device matrix JSON first.';}
+  else if(file.size>450000){deviceMatrixMessage='Device matrix import exceeds 450 KB.';}
+  else try{
+    const incoming=validateDeviceMatrix(JSON.parse(await file.text()));
+    const merged=mergeDeviceMatrix(deviceMatrix,incoming);
+    const stored=persistDeviceMatrix(merged.matrix);
+    if(stored)deviceMatrixMessage='Imported '+merged.imported+
+      ' device reports; kept '+merged.skipped+
+      ' existing records when mission/goal/profile IDs matched. Imported reports are still unverified author claims.';
+  }catch(error){deviceMatrixMessage='Device matrix import rejected: '+error.message}
+  renderDeviceMatrixPanel(branchMapAtlas(),routeCoverageSnapshot);
+};
+function renderDeviceMatrixPanel(atlas,coverage){
+  let report;
+  try{
+    report=reviewDeviceMatrix(atlas,testMissionBook,coverage,deviceMatrix);
+  }catch(error){
+    $('deviceMatrixSummary').textContent='Device matrix unavailable: '+error.message;
+    return;
+  }
+  const mission=report.missions.find(m=>m.id===activeTestMissionId);
+  const goalPicker=$('deviceMatrixGoal'),oldGoal=goalPicker.value;
+  goalPicker.replaceChildren();
+  for(const goal of mission?.goals||[]){
+    const option=document.createElement('option');
+    option.value=goal.id;option.textContent=goal.label;goalPicker.append(option);
+  }
+  if(mission?.goals.some(goal=>goal.id===oldGoal))goalPicker.value=oldGoal;
+  const profilePicker=$('deviceMatrixProfile'),oldProfile=profilePicker.value;
+  profilePicker.replaceChildren();
+  for(const profile of DEVICE_PROFILES){
+    const option=document.createElement('option');
+    option.value=profile.id;option.textContent=profile.name;profilePicker.append(option);
+  }
+  if(DEVICE_PROFILES.some(profile=>profile.id===oldProfile))
+    profilePicker.value=oldProfile;
+  const enabled=Boolean(atlas&&mission?.goals.length);
+  goalPicker.disabled=!enabled;
+  profilePicker.disabled=!enabled;
+  for(const field of ['deviceMatrixOutcome','deviceMatrixEnvironment',
+    'deviceMatrixNotes','deviceMatrixConfirm','deviceMatrixRecord'])
+    $(field).disabled=!enabled;
+  $('deviceMatrixExport').disabled=!deviceMatrix.records.length;
+  $('deviceMatrixImport').disabled=false;
+  $('deviceMatrixSummary').textContent=
+    (mission?mission.name+' · ':'Select or create a release-test mission · ')+
+    report.summary.completeCells+'/'+report.summary.goalProfiles+
+      ' device/goal cells have BOTH current hypothetical story coverage and a current author-reported physical pass · '+
+    report.summary.authorFailed+' failed · '+report.summary.authorBlocked+
+      ' blocked · '+report.summary.stale+' stale · '+
+    report.summary.orphanRecords+' unmatched stored reports'+
+    (deviceMatrixMessage?' · '+deviceMatrixMessage:'');
+  const thead=$('deviceMatrixHead'),tbody=$('deviceMatrixBody');
+  thead.replaceChildren();tbody.replaceChildren();
+  const header=document.createElement('tr');
+  const title=document.createElement('th');title.scope='col';
+  title.textContent='Authored Goal / Sim';header.append(title);
+  for(const profile of DEVICE_PROFILES){
+    const th=document.createElement('th');th.scope='col';
+    th.textContent=profile.name;th.title=profile.platform+' · '+profile.input;
+    header.append(th);
+  }
+  thead.append(header);
+  if(!mission?.goals.length){
+    const row=document.createElement('tr'),cell=document.createElement('td');
+    cell.colSpan=DEVICE_PROFILES.length+1;
+    cell.textContent='Add a story-testing goal in Rung 21 to begin recording device-specific results.';
+    row.append(cell);tbody.append(row);
+  }
+  for(const goal of mission?.goals||[]){
+    const tr=document.createElement('tr');
+    const heading=document.createElement('th');heading.scope='row';
+    const bold=document.createElement('strong');bold.textContent=goal.label;
+    const small=document.createElement('small');
+    small.textContent='SIM: '+goal.simStatus.toUpperCase()+
+      ' · '+goal.kind.toUpperCase();
+    heading.append(bold,small);tr.append(heading);
+    for(const cell of goal.cells){
+      const td=document.createElement('td');
+      td.className='device-matrix-cell device-matrix-cell--'+
+        (cell.ready?'ready':cell.deviceStatus);
+      const choose=document.createElement('button');
+      choose.type='button';choose.className='device-matrix-cell-button';
+      choose.textContent=cell.deviceStatus==='not-run'?'Not tested':
+        cell.deviceStatus==='stale'?'Stale / Retest':
+        'Reported '+cell.deviceStatus.toUpperCase();
+      choose.title=cell.profileName+' / '+goal.label+
+        '. Select this cell to record or inspect its author report.';
+      choose.onclick=()=>{
+        goalPicker.value=goal.id;profilePicker.value=cell.profileId;
+        fillDeviceFields();
+        $('deviceMatrixOutcome').scrollIntoView({
+          behavior:reducedMotion?'auto':'smooth',block:'center'});
+      };
+      td.append(choose);
+      if(cell.ready){
+        const label=document.createElement('small');
+        label.textContent='SIM verified + author pass';
+        td.append(label);
+      }
+      tr.append(td);
+    }
+    tbody.append(tr);
+  }
+  fillDeviceFields();
+  $('deviceMatrixNote').textContent=
+    'These are manually entered author reports, NOT hardware detection or gameplay telemetry. Each input profile has independent evidence. '+(
+    report.summary.orphanRecords?
+      report.summary.orphanRecords+' archived records reference removed mission goals; they are excluded from this matrix. ':'')+
+    'A changed authored world marks old reports stale, even when the hypothetical story route remains verified.';
+}
 function persistTestMissionBook(updated){
   const clean=validateTestMissionBook(updated);
   testMissionBook=clean;
@@ -1398,6 +1579,7 @@ $('testMissionRemove').onclick=()=>{
   try{
     const next=removeTestMission(testMissionBook,m.id);
     const stored=persistTestMissionBook(next);
+    persistDeviceMatrix(pruneDeviceMatrixForBook(deviceMatrix,next));
     activeTestMissionId=next.missions[0]?.id||'';
     if(stored)testMissionMessage='Removed '+m.name+'.';
   }catch(error){testMissionMessage='Could not remove mission: '+error.message}
@@ -1471,6 +1653,7 @@ function renderTestMissionPanel(atlas,coverage){
     report.summary.completeMissions+' author checklists complete'+
     (testMissionMessage?' · '+testMissionMessage:'');
   const list=$('testMissionGoals');list.replaceChildren();
+  renderDeviceMatrixPanel(atlas,coverage);
   if(!active){
     const empty=document.createElement('p');empty.className='small-note';
     empty.textContent='Create a named release-test mission, then add specific authored coverage goals.';
@@ -1562,6 +1745,7 @@ function renderTestMissionPanel(atlas,coverage){
       try{
         const changed=removeMissionGoal(testMissionBook,active.id,goal.id);
         const stored=persistTestMissionBook(changed);
+        persistDeviceMatrix(pruneDeviceMatrixForBook(deviceMatrix,changed));
         if(stored)testMissionMessage='Removed goal '+goal.targetLabel+'.';
       }catch(error){testMissionMessage='Could not remove goal: '+error.message}
       renderTestMissionPanel(branchMapAtlas(),routeCoverageSnapshot);

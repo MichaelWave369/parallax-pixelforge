@@ -535,6 +535,53 @@
         <p id="testMissionSummary" class="small-note story-mission-summary" role="status" aria-live="polite">No release test missions saved.</p>
         <div id="testMissionGoals" class="story-mission-goals" aria-label="Release-test mission goals and manual playtest evidence"></div>
         <p class="small-note story-mission-caveat">A green route receipt does NOT mean hands-on testing passed. Physical outcomes are author-reported, not independently verified. Even a completed checklist cannot guarantee game quality or release readiness.</p>
+        <div class="field-rule"><span>RUNG 22 / DEVICE &amp; INPUT TEST MATRIX</span></div>
+        <div class="device-matrix-head">
+          <h3>Platform-Specific Playtest Results</h3>
+          <p class="small-note">For the selected Rung 21 test mission, record your hands-on results separately for desktop keyboard/mouse, Xbox controller, mobile touch and Quest 3 WebXR. No platform inherits success from another. Results are author-reported, not detected by the browser.</p>
+        </div>
+        <p class="small-note device-matrix-summary" id="deviceMatrixSummary" role="status" aria-live="polite">Create a test mission and goals to record platform-specific observations.</p>
+        <div class="device-matrix-scroll" tabindex="0" aria-label="Scrollable authored goal by input device test results">
+          <table class="device-matrix-table" aria-describedby="deviceMatrixSummary">
+            <thead id="deviceMatrixHead"></thead>
+            <tbody id="deviceMatrixBody"></tbody>
+          </table>
+        </div>
+        <div class="device-matrix-fields">
+          <label for="deviceMatrixGoal">MISSION GOAL
+            <select id="deviceMatrixGoal"></select>
+          </label>
+          <label for="deviceMatrixProfile">DEVICE / INPUT PROFILE
+            <select id="deviceMatrixProfile"></select>
+          </label>
+          <label for="deviceMatrixOutcome">HANDS-ON RESULT
+            <select id="deviceMatrixOutcome">
+              <option value="not-run">Not run / clear selected result</option>
+              <option value="passed">Author-reported pass</option>
+              <option value="failed">Author-reported fail</option>
+              <option value="blocked">Author-reported blocked</option>
+            </select>
+          </label>
+          <label for="deviceMatrixEnvironment">TESTED OS / BROWSER / HARDWARE
+            <input id="deviceMatrixEnvironment" type="text" maxlength="120" placeholder="e.g. Quest 3 / Meta Browser version">
+          </label>
+          <label class="device-matrix-notes" for="deviceMatrixNotes">WHAT HAPPENED ON THIS ACTUAL DEVICE?
+            <textarea id="deviceMatrixNotes" rows="2" maxlength="500" placeholder="Record real hands-on observations, not a simulated route."></textarea>
+          </label>
+          <label class="device-matrix-ack" for="deviceMatrixConfirm">
+            <input id="deviceMatrixConfirm" type="checkbox">
+            <span>I personally tested this mission goal on the selected physical device and input method in the actual game.</span>
+          </label>
+          <button type="button" id="deviceMatrixRecord">Record Selected Device Result</button>
+        </div>
+        <div class="device-matrix-portable">
+          <button type="button" id="deviceMatrixExport">Export Device Matrix JSON</button>
+          <label for="deviceMatrixFile">IMPORT DEVICE REPORTS
+            <input id="deviceMatrixFile" type="file" accept=".json,application/json">
+          </label>
+          <button type="button" id="deviceMatrixImport">Merge Selected Reports</button>
+        </div>
+        <p id="deviceMatrixNote" class="small-note device-matrix-note">Results are manual author reports, not automated telemetry. A simulated receipt or an Rung 21 general pass does not certify Xbox, touch or VR compatibility. Changed worlds require retesting.</p>
       </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
         <div class="puzzle-head">
