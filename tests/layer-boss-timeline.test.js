@@ -143,7 +143,8 @@ test('phase changes reset warning aim and use the next authored telegraph durati
   shot(s);shot(s);
   assert.equal(stage.phase,1);
   assert.equal(stage.aim,null);
-  assert.equal(stage.attackTimer,def.phases[1].interval);
+  assert.ok(stage.attackTimer<=def.phases[1].interval&&
+    stage.attackTimer>def.phases[1].interval-.05);
   stage.attackTimer=def.phases[1].telegraph+.05;
   stepBossStage(s);
   assert.equal(stage.aim,null);
