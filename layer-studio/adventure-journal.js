@@ -1,6 +1,7 @@
 // Rung 6 / Adventure Journal: three browser-local save slots for a fixed authored world.
 // Explicit save/load only. No background persistence, network calls or executable data.
 import {createWorldSession,availableRelicKeys,snapshotRoom,restoreRoom} from './room-atlas.js';
+import {knownWorldFlags,refreshQuestProgress} from './quest-world.js';
 export const SAVE_SCHEMA='pixelforge.layer-save.v1';
 export const SLOT_COUNT=3;
 const clamp=(value,fallback,min,max)=>{
@@ -72,6 +73,7 @@ export function captureSave(rootScene,session,slot,now=Date.now()){
     health:clamp(session.game.health,3,1,3),deaths:clamp(session.game.deaths,0,0,100000),
     transitions:clamp(session.transitions,0,0,100000),
     visited,inventory:[...(session.inventory||[])].filter(k=>allowedRelics.has(k)),
+    worldFlags:[...(session.worldFlags||[])].filter(f=>knownWorldFlags(rootScene.atlas).includes(f)), 
     snapshots,player:{x:clamp(p.x,0,0,session.game.puzzle.worldWidth-p.w),
       y:clamp(p.y,458,-200,750)}
   };
@@ -94,6 +96,9 @@ export function restoreSave(rootScene,data){
     .filter(id=>typeof id==='string'&&availableRelicKeys(rootScene.atlas).includes(id)));
   session.visitedRooms=new Set((Array.isArray(data.visited)?data.visited:[])
     .filter(id=>ids.has(id)));
+  const allowedFlags=new Set(knownWorldFlags(rootScene.atlas));
+  session.worldFlags=new Set((Array.isArray(data.worldFlags)?data.worldFlags:[])
+    .filter(f=>typeof f==='string'&&allowedFlags.has(f)));
   if(session.atlas){
     const target=session.atlas.rooms.find(r=>r.id===data.roomId);
     session.roomId=target.id;session.scene=target.scene;
@@ -106,6 +111,8 @@ export function restoreSave(rootScene,data){
   session.game.status=!session.atlas&&data.status==='won'?'won':'playing';
   session.transitions=clamp(data.transitions,0,0,100000);
   session.visitedRooms.add(data.roomId);
+  // Completed quests are always derived, never trusted as writable save claims.
+  refreshQuestProgress(session,{silent:true});
   session.game.player.x=clamp(data.player?.x,session.game.puzzle.spawn.x,0,
     session.game.puzzle.worldWidth-session.game.player.w);
   session.game.player.y=clamp(data.player?.y,session.game.puzzle.spawn.y,-200,750);
