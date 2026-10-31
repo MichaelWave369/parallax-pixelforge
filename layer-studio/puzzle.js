@@ -262,7 +262,12 @@ export function renderPuzzle(ctx,state,options={}) {
   }
   drawPlayer(ctx,state.player,t);
   ctx.restore();
-  // HUD always screen-space: never parallax-scrolled.
+  if(options.hud!==false)renderPuzzleHud(ctx,state,{width:w,height:h});
+}
+// HUD is a separate compositing pass so that foreground planes can occlude actors,
+// while interface text always remains on top of the finished scene.
+export function renderPuzzleHud(ctx,state,options={}) {
+  const w=options.width||960;
   ctx.save();
   ctx.fillStyle='#07131fe8';ctx.fillRect(10,10,365,48);
   ctx.fillStyle='#ffe1b1';ctx.font='bold 16px ui-monospace,monospace';
