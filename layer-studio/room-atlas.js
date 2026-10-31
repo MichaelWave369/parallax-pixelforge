@@ -141,10 +141,19 @@ export function makeStarterAtlas(scene,normalizeRoom){
           x:1380,y:412,w:80,h:88,
           triggerX:1240,triggerY:360,triggerW:145,triggerH:140,
           maxHealth:6,victoryFlag:'ash-warden-fallen',
+          introBeats:[
+            {title:'THE SILENCE',text:'A shape stirs beyond the last lantern.',seconds:2.1},
+            {title:'THE ASH WARDEN',text:'You restored a spark to a dying world. But every flame must face its shadow.',seconds:3},
+            {title:'THE CHALLENGE',text:'Read the warning lines. Dodge the orb. Answer with stone.',seconds:2.3}
+          ],
+          victoryBeats:[
+            {title:'THE LAST EMBER',text:'The guardian falls. The smoke parts.',seconds:2.3},
+            {title:'A PATH OPENS',text:'Ash settles upon the reliquary floor. The world remembers your victory.',seconds:3}
+          ],
           phases:[
-            {name:'THE FIRST VEIL',interval:2.1,speed:210},
-            {name:'THE SHADOW STIRS',interval:1.4,speed:275},
-            {name:'THE LAST EMBER',interval:.85,speed:345}
+            {name:'THE FIRST VEIL',interval:2.1,speed:210,telegraph:.85,cue:'ASH ORB INCOMING'},
+            {name:'THE SHADOW STIRS',interval:1.4,speed:275,telegraph:.63,cue:'SHADOW BOLT'},
+            {name:'THE LAST EMBER',interval:.85,speed:345,telegraph:.38,cue:'LAST EMBER'}
           ]
         },
         relics:[
@@ -221,6 +230,7 @@ export function stepWorldSession(session,input={},dt=1/60){
   session.noticeLeft=Math.max(0,session.noticeLeft-dt);
   if(!session.noticeLeft)session.notice='';
   if(bossResult.introStarted)return {travelled:false,bossIntro:true};
+  if(bossResult.defeated)return {travelled:false,bossVictory:true};
   if(storyResult.storyOpen)return {travelled:false,storyOpen:true};
   if(!session.atlas||!input.interactPressed||game.status!=='playing')return {travelled:false};
   const door=nearbyPortal(session);
