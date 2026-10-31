@@ -25,3 +25,14 @@
 .puzzle-builder .source-link{white-space:nowrap}
 .puzzle-builder .puzzle-head>div{max-width:675px}
 @media(max-width:650px){.puzzle-builder .source-link{width:100%}}
+
+/* Rung 04 / World Director: local scene scripting without executable scripts. */
+.director-builder .puzzle-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
+.director-builder .puzzle-fields label:last-child{grid-column:span 2}
+.director-builder .puzzle-fields input[type="color"]{cursor:pointer;min-height:42px;padding:4px}
+.director-builder .puzzle-fields input[type="range"]{padding:8px 3px;accent-color:#e7bd88}
+.director-builder .puzzle-fields input:disabled,.director-builder .puzzle-fields select:disabled{opacity:.42;cursor:not-allowed}
+.director-builder .puzzle-buttons{gap:9px}
+.director-builder .puzzle-buttons .toggle{color:#b8d9ce;font:700 12px system-ui}
+@media(max-width:850px){.director-builder .puzzle-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.director-builder .puzzle-fields{grid-template-columns:1fr}.director-builder .puzzle-fields label:last-child{grid-column:span 1}}
