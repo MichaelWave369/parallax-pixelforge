@@ -16,3 +16,12 @@
 .puzzle-buttons button:disabled{opacity:.4}
 @media(max-width:780px){.puzzle-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.puzzle-buttons a{margin-left:0}}
 @media(max-width:480px){.puzzle-fields{grid-template-columns:1fr}.puzzle-builder{padding:16px}}
+
+/* Rung 03: source artwork import dock shares the existing puzzle field grid. */
+.puzzle-fields button,.source-link{display:inline-flex;align-items:center;justify-content:center;min-height:42px;border:1px solid #507c77;border-radius:8px;background:#1c3940;color:#d8f0e3;font:750 12px ui-sans-serif,system-ui;letter-spacing:normal;text-decoration:none;padding:10px;cursor:pointer}
+.puzzle-fields button:hover,.source-link:hover{background:#29505a;border-color:#9dd8c0}
+.puzzle-fields button:disabled{opacity:.45;cursor:not-allowed}
+.puzzle-builder>.small-note{color:#9cbdba;margin:12px 0 2px;font-size:11px;line-height:1.5}
+.puzzle-builder .source-link{white-space:nowrap}
+.puzzle-builder .puzzle-head>div{max-width:675px}
+@media(max-width:650px){.puzzle-builder .source-link{width:100%}}
