@@ -7,6 +7,7 @@ import {evaluateQuestLine,refreshQuestProgress} from './quest-world.js';
 import {storyScene,chooseDialogue} from './living-story.js';
 import {currentBoss,beginBossBattle,renderBossStage,renderBossHud,createBossTimeline,stepBossTimeline} from './boss-stage.js';
 import {createCinematicDirector,stepCinematicDirector,cinematicView} from './cinematic-director.js';
+import {createWorldTimeline,activeWorldTrack,completeWorldSequence,cancelWorldSequence} from './world-sequences.js';
 
 const $=id=>document.getElementById(id);
 const SCENE_KEY='pixelforge.layer-studio.play-scene.v1';
@@ -58,6 +59,10 @@ window.addEventListener('keydown',e=>{
   if(controlKeys.has(e.code))e.preventDefault();
   if(e.repeat)return;
   if(e.code==='Escape'&&activePanel){closePanel();return;}
+  if(activePanel==='world-sequence'&&['KeyE','Enter','Space'].includes(e.code)){
+    const earned=completeWorldSequence(session);refreshQuestProgress(session);
+    closePanel();setMessage(earned?'DISCOVERED: '+earned.id:session.notice);return;
+  }
   if(activePanel==='boss-victory'&&['KeyE','Enter','Space'].includes(e.code)){
     closePanel();setMessage(session.notice);return;
   }
@@ -140,6 +145,7 @@ function clearMovement(){
 }
 function closePanel(){
   if(activePanel==='story')session.dialogue=null;
+  if(activePanel==='world-sequence')cancelWorldSequence(session);
   if(activePanel==='boss-intro')beginBossBattle(session);
   activePanel='';
   bossTimeline=null;
@@ -151,9 +157,11 @@ function closePanel(){
 function togglePanel(name){
   if(activePanel===name){closePanel();return;}
   if(activePanel==='story')session.dialogue=null;
+  if(activePanel==='world-sequence')cancelWorldSequence(session);
   if(activePanel==='boss-intro')beginBossBattle(session);
   activePanel=name;
-  bossTimeline=['boss-intro','boss-victory'].includes(name)?
+  bossTimeline=name==='world-sequence'?createWorldTimeline(session):
+    ['boss-intro','boss-victory'].includes(name)?
     createBossTimeline(currentBoss(session),name==='boss-intro'?'intro':'victory'):null;
   cinematicDirector=bossTimeline?createCinematicDirector(session,bossTimeline,
     cameraFor(game,scene.width)):null;
@@ -170,7 +178,38 @@ function element(tag,klass,label){
 function renderPanel(){
   const panel=$('journalPanel'),content=$('journalContent');
   panel.hidden=false;content.replaceChildren();
-  if(activePanel==='boss-intro'||activePanel==='boss-victory'){
+  if(activePanel==='world-sequence'){
+    const track=activeWorldTrack(session),timeline=bossTimeline;
+    const beat=timeline?.beats[timeline.index];
+    $('journalTitle').textContent=track?.title||'World Discovery';
+    content.append(element('p','boss-cinematic-label','WORLD SEQUENCE TRACK'));
+    content.append(element('p','boss-timeline-counter',timeline?
+      'BEAT '+(timeline.index+1)+' / '+timeline.beats.length:'DISCOVERY'));
+    content.append(element('h3','boss-timeline-title',beat?.title||'THE DISCOVERY'));
+    content.append(element('p','boss-cinematic-intro',beat?.text||'A secret is revealed.'));
+    if(beat?.cue)content.append(element('p','boss-director-caption',beat.cue));
+    content.append(element('p','journal-note',
+      'Finish the sequence to record this discovery. Closing with Escape cancels it.'));
+    if(timeline&&!timeline.finished){
+      const next=element('button','boss-timeline-next','NEXT BEAT');
+      next.onclick=()=>{
+        timeline.index=Math.min(timeline.index+1,timeline.beats.length-1);
+        timeline.elapsed=0;
+        if(timeline.index===timeline.beats.length-1)timeline.finished=true;
+        renderPanel();
+      };
+      content.append(next);
+    }
+    const finish=element('button','story-choice boss-start',
+      timeline?.finished?'COMPLETE DISCOVERY':'SKIP & COMPLETE DISCOVERY');
+    finish.onclick=()=>{
+      const earned=completeWorldSequence(session);
+      refreshQuestProgress(session);
+      closePanel();
+      if(earned)setMessage('DISCOVERED: '+earned.id.toUpperCase());
+    };
+    content.append(finish);
+  }else if(activePanel==='boss-intro'||activePanel==='boss-victory'){
     const boss=currentBoss(session),victory=activePanel==='boss-victory';
     $('journalTitle').textContent=victory?'Victory · '+(boss?.name||'Guardian'):
       boss?.name||'Boss Encounter';
@@ -359,10 +398,14 @@ function frame(now) {
   const dt=last?Math.min((now-last)/1000,.08):0;
   last=now;
   const pad=pollPad();
-  if((activePanel==='boss-intro'||activePanel==='boss-victory')&&edge.interact){
-    closePanel();setMessage(session.notice);
+  if(['boss-intro','boss-victory','world-sequence'].includes(activePanel)&&edge.interact){
+    if(activePanel==='world-sequence'){
+      const earned=completeWorldSequence(session);
+      refreshQuestProgress(session);
+      closePanel();setMessage(earned?'DISCOVERED: '+earned.id.toUpperCase():session.notice);
+    }else{closePanel();setMessage(session.notice);}
   }
-  if(bossTimeline&&activePanel.startsWith('boss-')&&!paused){
+  if(bossTimeline&&['boss-intro','boss-victory','world-sequence'].includes(activePanel)&&!paused){
     if(stepBossTimeline(bossTimeline,dt))renderPanel();
     stepCinematicDirector(cinematicDirector,session,dt,{reducedMotion});
   }
@@ -375,6 +418,11 @@ function frame(now) {
         storyVersion:session.storyVersion,bossVersion:session.bossVersion};
       const outcome=stepWorldSession(session,controls(pad),STEP);
       game=session.game;
+      if(outcome.worldSequence){
+        togglePanel('world-sequence');
+        edge.jump=false;edge.fire=false;edge.interact=false;accumulator=0;
+        break;
+      }
       if(outcome.bossIntro||outcome.bossVictory){
         togglePanel(outcome.bossIntro?'boss-intro':'boss-victory');
         edge.jump=false;edge.fire=false;edge.interact=false;accumulator=0;
