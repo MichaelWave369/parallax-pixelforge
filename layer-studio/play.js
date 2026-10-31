@@ -6,6 +6,7 @@ import {writeSaveSlot,readSaveSlot,inspectSaveSlot,deleteSaveSlot,SLOT_COUNT} fr
 import {evaluateQuestLine,refreshQuestProgress} from './quest-world.js';
 import {storyScene,chooseDialogue} from './living-story.js';
 import {currentBoss,beginBossBattle,renderBossStage,renderBossHud,createBossTimeline,stepBossTimeline} from './boss-stage.js';
+import {createCinematicDirector,stepCinematicDirector,cinematicView} from './cinematic-director.js';
 
 const $=id=>document.getElementById(id);
 const SCENE_KEY='pixelforge.layer-studio.play-scene.v1';
@@ -26,6 +27,7 @@ let session=createWorldSession(rootScene);
 let scene=session.scene,game=session.game,paused=false;
 let activePanel='';
 let bossTimeline=null;
+let cinematicDirector=null;
 function fitCanvas(){
   canvas.width=scene.width;canvas.height=scene.height;
   canvas.style.aspectRatio=scene.width+' / '+scene.height;
@@ -141,6 +143,7 @@ function closePanel(){
   if(activePanel==='boss-intro')beginBossBattle(session);
   activePanel='';
   bossTimeline=null;
+  cinematicDirector=null;
   $('journalPanel').hidden=true;
   clearMovement();
   last=0;accumulator=0;
@@ -152,6 +155,8 @@ function togglePanel(name){
   activePanel=name;
   bossTimeline=['boss-intro','boss-victory'].includes(name)?
     createBossTimeline(currentBoss(session),name==='boss-intro'?'intro':'victory'):null;
+  cinematicDirector=bossTimeline?createCinematicDirector(session,bossTimeline,
+    cameraFor(game,scene.width)):null;
   clearMovement();
   last=0;accumulator=0;
   renderPanel();
@@ -177,6 +182,10 @@ function renderPanel(){
       (victory?'VICTORY':boss?.name)||'THE GUARDIAN'));
     content.append(element('p','boss-cinematic-intro',beat?.text||
       (victory?'The path opens.':boss?.intro)||'The guardian awaits.'));
+    if(beat?.cue)content.append(element('p','boss-director-caption',beat.cue));
+    if(beat?.camera)content.append(element('p','boss-director-focus',
+      'CAMERA: '+beat.camera.toUpperCase()+' · '+
+      (beat.ambient!=null?'LIGHT: '+Math.round(beat.ambient*100)+'%':'NATURAL LIGHT')));
     content.append(element('p','journal-note',victory?
       'Your victory flag is recorded. Quest and door progress are now available.':
       'Watch the warning lane, move out of its path, and answer with the stone ray.'));
@@ -355,6 +364,7 @@ function frame(now) {
   }
   if(bossTimeline&&activePanel.startsWith('boss-')&&!paused){
     if(stepBossTimeline(bossTimeline,dt))renderPanel();
+    stepCinematicDirector(cinematicDirector,session,dt,{reducedMotion});
   }
   if(!paused&&!activePanel&&game.status==='playing'){
     accumulator+=dt;
@@ -388,7 +398,8 @@ function frame(now) {
     edge.jump=false;edge.fire=false;edge.interact=false;
   }
   if(ctx){
-    const cam=cameraFor(game,scene.width);
+    const directedView=cinematicView(cinematicDirector);
+    const cam=directedView?.cameraX??cameraFor(game,scene.width);
     const split=scene.layers.length-1;
     const visibleScene=storyScene(session);
     renderScene(ctx,visibleScene,game.time,{cameraX:cam,endLayer:split,reducedMotion});
@@ -397,7 +408,10 @@ function frame(now) {
     renderRelics(ctx,session,cam);
     renderPortals(ctx,session,cam);
     renderScene(ctx,visibleScene,game.time,{cameraX:cam,startLayer:split,clear:false,reducedMotion});
-    renderDirectorLighting(ctx,game.puzzle.director,cam,scene.width,scene.height);
+    const directedLight=directedView?{
+      ...game.puzzle.director,ambient:directedView.ambient
+    }:game.puzzle.director;
+    renderDirectorLighting(ctx,directedLight,cam,scene.width,scene.height);
     renderPuzzleHud(ctx,game,{width:scene.width,height:scene.height});
     renderBossHud(ctx,session,scene.width);
     renderPortalPrompt(ctx,session,scene.width,scene.height);
