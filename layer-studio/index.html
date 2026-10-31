@@ -118,11 +118,23 @@
           <label>DESTINATION X<input id="portalArrivalX" type="number" min="0" max="6000" step="1"></label>
           <label>DESTINATION Y<input id="portalArrivalY" type="number" min="-200" max="750" step="1"></label>
           <label class="atlas-checkbox">REQUIRES THIS ROOM'S KEY <input id="portalRequiresKey" type="checkbox"></label>
+          <label>REQUIRED RELIC<select id="portalRequiresRelic"></select></label>
         </div>
         <div class="puzzle-buttons">
           <button id="addPortal" type="button">+ Linked doorway</button>
           <button id="removePortal" type="button">Remove doorway</button>
           <span class="small-note">Interact with doors using E / Xbox X / touchscreen Enter. Save or Export JSON to keep every room.</span>
+        </div>
+        <div class="field-rule"><span>RUNG 06 / COLLECTIBLE RELICS</span></div>
+        <div class="puzzle-fields">
+          <label>COLLECTIBLE <select id="atlasRelic"></select></label>
+          <label>RELIC NAME <input id="relicName" type="text" maxlength="70" placeholder="Ancient Relic"></label>
+          <label>WORLD X <input id="relicX" type="number" min="0" max="6000" step="1"></label>
+          <label>WORLD Y <input id="relicY" type="number" min="-200" max="800" step="1"></label>
+        </div>
+        <div class="puzzle-buttons">
+          <button id="addRelic" type="button">+ Collectible relic</button>
+          <button id="removeRelic" type="button">Remove relic</button>
         </div>
         <p id="atlasStatus" class="small-note">Single-room mode. Your existing scene remains fully playable.</p>
       </section>
