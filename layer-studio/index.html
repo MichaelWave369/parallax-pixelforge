@@ -17,6 +17,7 @@
       <button id="importScene" type="button">Import JSON</button>
       <button id="saveScene" type="button">Save local</button>
       <button id="exportScene" type="button" class="primary">Export JSON ↗</button>
+      <button id="playPuzzle" type="button" class="primary">▶ Play Stonebridge</button>
       <input type="file" id="sceneFile" accept=".json,application/json" hidden>
     </div>
   </header>
@@ -52,7 +53,27 @@
         <label class="range-row">EXPLODE DEPTH <input id="spread" type="range" min="0" max="100" value="0" step="1"><output id="spreadValue">0</output></label>
         <label class="toggle"><input type="checkbox" id="solo"> Solo plane</label>
       </div>
-      <div class="help-strip"><span>01 / CAMERA PARALLAX</span><span>02 / INDEPENDENT MOTION</span><span>03 / ANIMATED EFFECTS</span><span>04 / IMAGE OR SPRITESHEET</span></div>
+      <div class="help-strip"><span>01 / CAMERA PARALLAX</span><span>02 / INDEPENDENT MOTION</span><span>03 / ANIMATED EFFECTS</span><span>04 / IMAGE OR SPRITESHEET</span><span>05 / PLAYABLE PUZZLE</span></div>
+      <section class="puzzle-builder" aria-label="Stonebridge puzzle editor">
+        <div class="puzzle-head">
+          <div><span class="micro">RUNG 02 / GAMEPLAY PLANE</span><h2>Stonebridge Puzzle Builder</h2><p>Place platforms, stone-ray targets, the golden key, and the exit in world coordinates. Play the puzzle with your current animated scenery.</p></div>
+          <label class="toggle"><input type="checkbox" id="puzzlePreview"> Preview puzzle objects</label>
+        </div>
+        <div class="puzzle-fields">
+          <label>WORLD WIDTH <input id="worldWidth" type="number" min="960" max="6000" step="10" value="1700"></label>
+          <label>SELECT OBJECT <select id="puzzleObject"></select></label>
+          <label>X <input id="puzzleX" type="number" step="1"></label>
+          <label>Y <input id="puzzleY" type="number" step="1"></label>
+          <label>WIDTH <input id="puzzleW" type="number" min="8" max="2500" step="1"></label>
+          <label>HEIGHT <input id="puzzleH" type="number" min="8" max="120" step="1"></label>
+        </div>
+        <div class="puzzle-buttons">
+          <button type="button" id="addPlatform">+ Platform</button>
+          <button type="button" id="addEnemy">+ Stone-ray enemy</button>
+          <button type="button" id="removePuzzle">Remove selected</button>
+          <a href="./play.html">Open playable challenge ↗</a>
+        </div>
+      </section>
     </section>
     <aside class="sidebar inspector">
       <div class="section-heading"><div><span class="micro">SELECTED PLANE</span><h2>Inspector</h2></div><span id="selectedNumber" class="counter">01</span></div>
