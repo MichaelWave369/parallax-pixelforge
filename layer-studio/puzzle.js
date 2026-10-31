@@ -215,7 +215,7 @@ export function stepPuzzle(state,input={},dt=1/60) {
   const key=box(state.puzzle.key.x-13,state.puzzle.key.y-14,26,28);
   if(!state.keyCollected&&rectOverlap(p,key))state.keyCollected=true;
   const gate=box(state.puzzle.gate.x-12,state.puzzle.gate.y,56,76);
-  if(state.keyCollected&&rectOverlap(p,gate))state.status='won';
+  if(state.keyCollected&&rectOverlap(p,gate)&&!state.worldTravel)state.status='won';
   stepDirector(state,delta);
   return state;
 }
