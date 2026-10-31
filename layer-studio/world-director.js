@@ -43,7 +43,8 @@ export function normalizeDirector(source){
     x:limit(t?.x,0,-2048,6000),y:limit(t?.y,400,-1000,1500),
     w:limit(t?.w,90,8,1200),h:limit(t?.h,100,8,1200),
     message:label(t?.message,'',180),once:t?.once!==false,
-    flagId:typeof t?.flagId==='string'&&/^[a-z0-9][a-z0-9:_-]{0,63}$/.test(t.flagId)?t.flagId:''
+    ...(t?.kind==='flag'?{flagId:typeof t?.flagId==='string'&&
+      /^[a-z0-9][a-z0-9:_-]{0,63}$/.test(t.flagId)?t.flagId:''}:{})
   }));
   const cameras=(Array.isArray(source.cameras)?source.cameras:[]).slice(0,16).map((z,i)=>({
     id:unique(z,'camera',i),
