@@ -36,7 +36,7 @@ export function selectBranchNodes(graph,roomId=''){
   return graph.nodes.filter(n=>selected.has(n.id));
 }
 export function renderWorldBranchMap(svg,atlas,{
-  roomId='',selectedId='',onSelect=()=>{},graph=null
+  roomId='',selectedId='',onSelect=()=>{},graph=null,simulator=null
 }={}){
   const report=graph||analyzeWorldBranches(atlas);
   const all=selectBranchNodes(report,roomId);
@@ -90,6 +90,9 @@ export function renderWorldBranchMap(svg,atlas,{
     path.append(t);edgeLayer.append(path);
   }
   svg.append(edgeLayer);
+  const simFlags=new Set(simulator?.flags||[]);
+  const simReady=new Set(simulator?.readyTracks||[]);
+  const simFinished=new Set(simulator?.completedTracks||[]);
   for(const n of visible){
     const p=coords.get(n.id);
     const linked=selectedId&&edges.some(e=>
@@ -101,10 +104,17 @@ export function renderWorldBranchMap(svg,atlas,{
         (n.reachable===false?' branch-map-node--unreachable':'')+
         (selected?' branch-map-node--selected':'')+
         (linked?' branch-map-node--linked':'')+
+        (n.kind==='flag'&&simFlags.has(n.label)?' branch-map-node--sim-earned':'')+
+        (n.kind==='track'&&simReady.has(n.id)?' branch-map-node--sim-ready':'')+
+        (n.kind==='track'&&simFinished.has(n.id)?' branch-map-node--sim-finished':'')+
+        (n.roomId===simulator?.roomId?' branch-map-node--sim-current':'')+
         (selectedId&&!selected&&!linked?' branch-map-muted':''),
       role:'button',tabindex:0,'data-node-id':n.id,
       'aria-label':n.kind+': '+n.label+
-        (n.reachable===false?'. No known optimistic route':'')
+        (n.reachable===false?'. No known optimistic route':'')+
+        (n.kind==='flag'&&simFlags.has(n.label)?'. Earned in simulated run':'')+
+        (simFinished.has(n.id)?'. Completed in simulated run':'')+
+        (simReady.has(n.id)?'. Available now in simulated run':'')
     });
     group.append(svgEl('rect',{x:p.x,y:p.y,width:p.w,height:p.h,rx:7}));
     group.append(svgEl('text',{x:p.x+12,y:p.y+25,class:'branch-map-node-title'},
