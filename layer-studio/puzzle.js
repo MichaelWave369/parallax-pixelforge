@@ -1,6 +1,7 @@
 // PixelForge Layer Studio Rung 2: tiny, deterministic, dependency-free 2.5D puzzle runtime.
 // All gameplay takes place in one world-space plane. Visual depth is rendered separately.
 import {normalizeTileWorld,normalizeActor,tileCellsNear,renderTileWorld,renderActor} from './studio-bridge.js';
+import {demoDirector,normalizeDirector,stepDirector,cameraFocus} from './world-director.js';
 export const PUZZLE_SCHEMA = 'pixelforge.layer-puzzle.v1';
 const bound = (value, fallback, min, max) => {
   const n = Number(value);
@@ -30,7 +31,8 @@ export function createPuzzle() {
     key: {x:1150,y:455},
     gate: {x:1515,y:424},
     tileWorld:null,
-    actor:null
+    actor:null,
+    director:demoDirector()
   };
 }
 
@@ -76,7 +78,8 @@ export function normalizePuzzle(input) {
       y:bound(s.gate?.y,d.gate.y,-200,800)
     },
     tileWorld:normalizeTileWorld(s.tileWorld),
-    actor:normalizeActor(s.actor)
+    actor:normalizeActor(s.actor),
+    director:normalizeDirector(s.director)
   };
 }
 export function stonePlatform(enemy) {
@@ -99,6 +102,12 @@ export function startPuzzle(sceneOrPuzzle) {
     time:0,
     cooldown:0,
     cameraX:0,
+    checkpoint:null,
+    directorSeen:new Set(),
+    directorInside:new Set(),
+    eventMessage:'',
+    eventMessageRemaining:0,
+    eventVersion:0,
     status:'playing'
   };
 }
@@ -118,7 +127,8 @@ function solidSurfaces(s) {
 }
 function respawn(state) {
   const p=state.player;
-  p.x=state.puzzle.spawn.x;p.y=state.puzzle.spawn.y;
+  p.x=state.checkpoint?.x??state.puzzle.spawn.x;
+  p.y=state.checkpoint?.y??state.puzzle.spawn.y;
   p.vx=0;p.vy=0;p.grounded=false;p.invulnerable=1.1;
   state.deaths++;
 }
@@ -206,11 +216,12 @@ export function stepPuzzle(state,input={},dt=1/60) {
   if(!state.keyCollected&&rectOverlap(p,key))state.keyCollected=true;
   const gate=box(state.puzzle.gate.x-12,state.puzzle.gate.y,56,76);
   if(state.keyCollected&&rectOverlap(p,gate))state.status='won';
+  stepDirector(state,delta);
   return state;
 }
 export function cameraFor(state,viewportWidth) {
   const w=bound(viewportWidth,960,320,2048);
-  return Math.max(0,Math.min(Math.max(0,state.puzzle.worldWidth-w),state.player.x-w*.38));
+  return Math.max(0,Math.min(Math.max(0,state.puzzle.worldWidth-w),state.player.x-w*cameraFocus(state)));
 }
 function polygon(ctx,points,fill) {
   ctx.fillStyle=fill;ctx.beginPath();
@@ -306,6 +317,10 @@ export function renderPuzzleHud(ctx,state,options={}) {
   ctx.fillText('STATUES '+state.petrified+'/'+state.enemies.length,113,38);
   ctx.fillStyle=state.keyCollected?'#f7d092':'#87a2a8';
   ctx.fillText(state.keyCollected?'KEY FOUND':'FIND THE KEY',245,38);
+  if(state.checkpoint){
+    ctx.fillStyle='#98e1b7';ctx.font='10px ui-monospace,monospace';
+    ctx.fillText('BEACON ACTIVE',19,70);
+  }
   if(state.status==='won') {
     ctx.fillStyle='#061522e8';ctx.fillRect(190,160,w-380,200);
     ctx.strokeStyle='#e4c38f';ctx.strokeRect(190,160,w-380,200);
