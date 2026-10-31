@@ -242,6 +242,26 @@ async function readBoundedFile(file){
   try{return JSON.parse(await file.text());}
   catch{throw Error('Could not parse JSON from that file.');}
 }
+$('useSavedStudio').onclick=()=>{
+  try{
+    const saved=localStorage.getItem('parallax.pixelforge.v5.0.project');
+    if(!saved)throw Error('No saved Creator Studio project found in this browser.');
+    if(saved.length>12_000_000)throw Error('Saved Studio project is too large for the browser handoff.');
+    const project=JSON.parse(saved);
+    // Creator Studio's canonical state has spriteStudio and tileStudio top-level keys.
+    if(project.tileStudio?.studioType!=='pixelforge.tile-studio.v5.10' ||
+       project.spriteStudio?.studioType!=='pixelforge.sprite-studio.v5.9')
+      throw Error('Saved project has no compatible native Tile Studio and Sprite Studio states.');
+    const world=importTileStudio(project);
+    const actor=importSpriteStudio(project);
+    scene.playable.tileWorld=world;scene.playable.actor=actor;
+    scene.playable.worldWidth=Math.min(6000,Math.max(960,world.originX+world.width*world.tileSize*world.scale));
+    scene.playable=normalizePuzzle(scene.playable);
+    syncPuzzleControls();syncArtBridgeControls();
+    $('puzzlePreview').checked=true;
+    flash('Imported painted tiles and sprite animation from saved Creator Studio.');
+  }catch(err){flash('Saved Studio import failed: '+err.message);}
+};
 $('importTileWorld').onclick=()=>$('tileWorldFile').click();
 $('tileWorldFile').onchange=async e=>{
   const file=e.target.files?.[0];e.target.value='';if(!file)return;
