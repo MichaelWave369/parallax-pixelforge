@@ -428,3 +428,64 @@
   .story-reco-columns{grid-template-columns:1fr}
   .story-reco-toolbar button{width:100%}
 }
+
+
+/* Rung 21 / Explicit author-reported real playtesting, distinct from sim receipts. */
+.story-mission-head h3{margin:22px 0 7px;color:#f1dfc3;
+  font:800 16px ui-monospace,monospace}
+.story-mission-head p{max-width:80ch;line-height:1.65}
+.story-mission-create,.story-mission-controls,.story-mission-goal-tools{
+  display:flex;flex-wrap:wrap;align-items:end;gap:11px 13px;margin:13px 0}
+.story-mission-create label,.story-mission-controls label,
+.story-mission-goal-tools label,.story-mission-physical>label:not(.story-mission-confirm){
+  display:flex;flex:1 1 210px;flex-direction:column;gap:7px;
+  color:#d3d2e2;font:750 11px ui-monospace,monospace;letter-spacing:.045em}
+.story-mission-create textarea,.story-mission-physical textarea{resize:vertical;min-height:66px}
+.story-mission-create input,.story-mission-create textarea,.story-mission-controls select,
+.story-mission-goal-tools select,.story-mission-physical select,.story-mission-physical textarea{
+  min-width:0;width:100%;padding:9px 11px;color:#f0efe8;
+  background:#17283b;border:1px solid #6f839b;border-radius:6px;
+  font:12px/1.55 ui-monospace,monospace}
+.story-mission-create button,.story-mission-controls button,
+.story-mission-goal-tools button{min-height:39px}
+.story-mission-controls label,.story-mission-goal-tools label{flex:1 1 280px}
+.story-mission-summary{padding:13px 14px;border-left:3px solid #c4bc89;
+  border-radius:6px;background:#282d39;color:#ece4d4;font:700 12px/1.7 ui-monospace,monospace}
+.story-mission-goals{display:grid;gap:12px;margin:14px 0}
+.story-mission-intro{margin:0 0 3px;line-height:1.65}
+.story-mission-goal{min-width:0;padding:14px;border:1px solid #4c607b;
+  border-left:4px solid #99a5be;border-radius:9px;background:#17293c}
+.story-mission-goal--checked{border-left-color:#94d1af}
+.story-mission-goal--stale{border-left-color:#deb584}
+.story-mission-goal-header{display:flex;justify-content:space-between;
+  flex-wrap:wrap;align-items:center;gap:8px 12px}
+.story-mission-goal-header strong{font:800 13px ui-monospace,monospace;
+  color:#f9ebd4;overflow-wrap:anywhere}
+.story-mission-goal-tags{color:#bad3d7;font:700 10px/1.55 ui-monospace,monospace;
+  overflow-wrap:anywhere}
+.story-mission-goal .small-note{margin:8px 0;color:#bdc9d7;line-height:1.65}
+.story-mission-physical{display:grid;grid-template-columns:minmax(180px,1fr) minmax(220px,2fr);
+  gap:12px;align-items:start;margin-top:13px;padding-top:12px;
+  border-top:1px solid #40566f}
+.story-mission-confirm{display:flex;gap:10px;align-items:flex-start;
+  grid-column:1/-1;color:#e7d7b8;font:12px/1.6 ui-monospace,monospace}
+.story-mission-confirm input{width:18px;height:18px;flex:0 0 auto;margin-top:2px;
+  accent-color:#b7cfae}
+.story-mission-goal-actions{display:flex;flex-wrap:wrap;gap:10px;grid-column:1/-1}
+.story-mission-goal-actions button{min-height:38px;padding:9px 12px;
+  border:1px solid #8fa9b0;border-radius:5px;
+  background:#274956;color:#e9f1ed;cursor:pointer;
+  font:750 11px ui-monospace,monospace}
+.story-mission-goal-actions .story-mission-remove-goal{
+  border-color:#a58183;background:#443540}
+.story-mission-goal-actions button:focus-visible{outline:2px solid #f1d9a7;outline-offset:2px}
+.story-mission-caveat{margin-top:12px;padding:12px 14px;
+  border-left:3px solid #e0af86;background:#2c2836;border-radius:5px;
+  color:#e7d5ce;line-height:1.65}
+@media(max-width:760px){
+  .story-mission-physical{grid-template-columns:1fr}
+  .story-mission-create label,.story-mission-controls label,
+  .story-mission-goal-tools label{flex-basis:100%}
+  .story-mission-create button,.story-mission-controls button,
+  .story-mission-goal-tools button{width:100%}
+}
