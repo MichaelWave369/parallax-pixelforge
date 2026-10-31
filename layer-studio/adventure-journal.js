@@ -68,6 +68,7 @@ export function captureSave(rootScene,session,slot,now=Date.now()){
   return {
     schema:SAVE_SCHEMA,slot:n,fingerprint:worldFingerprint(rootScene),timestamp:date,
     roomId,worldTitle:String(rootScene.title||'Adventure').slice(0,80),
+    status:session.game.status==='won'?'won':'playing',
     health:clamp(session.game.health,3,1,3),deaths:clamp(session.game.deaths,0,0,100000),
     transitions:clamp(session.transitions,0,0,100000),
     visited,inventory:[...(session.inventory||[])].filter(k=>allowedRelics.has(k)),
@@ -102,6 +103,7 @@ export function restoreSave(rootScene,data){
   restoreRoom(session.game,safe[data.roomId]);
   session.game.health=clamp(data.health,3,1,3);
   session.game.deaths=clamp(data.deaths,0,0,100000);
+  session.game.status=!session.atlas&&data.status==='won'?'won':'playing';
   session.transitions=clamp(data.transitions,0,0,100000);
   session.visitedRooms.add(data.roomId);
   session.game.player.x=clamp(data.player?.x,session.game.puzzle.spawn.x,0,
