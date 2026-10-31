@@ -4,6 +4,7 @@ import {createWorldSession,availableRelicKeys,snapshotRoom,restoreRoom} from './
 import {knownWorldFlags,refreshQuestProgress} from './quest-world.js';
 import {initializeStoryRoom} from './living-story.js';
 import {initializeBossRoom,restoreBossProgress,normalizeBossProgress} from './boss-stage.js';
+import {initializeSequenceRoom} from './world-sequences.js';
 export const SAVE_SCHEMA='pixelforge.layer-save.v1';
 export const SLOT_COUNT=3;
 const clamp=(value,fallback,min,max)=>{
@@ -127,6 +128,7 @@ export function restoreSave(rootScene,data){
   initializeStoryRoom(session); // Reactivate only encounters earned in this room.
   initializeBossRoom(session);
   restoreBossProgress(session,safe[data.roomId]?.boss);
+  initializeSequenceRoom(session);
   session.game.health=clamp(data.health,3,1,3);
   session.game.deaths=clamp(data.deaths,0,0,100000);
   session.game.status=!session.atlas&&data.status==='won'?'won':'playing';
