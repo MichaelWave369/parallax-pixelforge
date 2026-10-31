@@ -434,6 +434,42 @@
         </div>
         <p class="small-note story-catalog-status" id="storyCatalogStatus" role="status" aria-live="polite">No scenarios saved. Each scenario checks against the current authored Room Atlas.</p>
         <div class="story-catalog-list" id="storyCatalogList" aria-label="Saved hypothetical regression scenarios"></div>
+        <div class="field-rule"><span>RUNG 18 / ROUTE COVERAGE MATRIX</span></div>
+        <div class="story-coverage-head">
+          <h3>What Have Our Scenarios Covered?</h3>
+          <p class="small-note">Map authored rooms, discoveries, individual choices, flags, portal passages, and event assumptions against saved scenarios. Green means a hypothetical route receipt verified against this world's story logic, NOT a real gameplay test.</p>
+        </div>
+        <p id="storyCoverageSummary" class="small-note story-coverage-summary" role="status" aria-live="polite">Save a playtest scenario to see hypothetical route coverage.</p>
+        <div class="story-coverage-breakdown" id="storyCoverageBreakdown" aria-label="Coverage totals by type"></div>
+        <div class="story-coverage-toolbar">
+          <label for="storyCoverageKind">SHOW TARGETS
+            <select id="storyCoverageKind">
+              <option value="all">All target types</option>
+              <option value="room">Rooms</option>
+              <option value="discovery">Discoveries</option>
+              <option value="choice">Choice outcomes</option>
+              <option value="flag">World flags</option>
+              <option value="portal">Portal passages</option>
+              <option value="source">Authored events</option>
+            </select>
+          </label>
+          <label for="storyCoverageStatus">COVERAGE STATE
+            <select id="storyCoverageStatus">
+              <option value="all">All states</option>
+              <option value="uncovered">Uncovered</option>
+              <option value="needs-review">Needs review</option>
+              <option value="verified">Verified hypothetical</option>
+            </select>
+          </label>
+          <button type="button" id="storyCoverageExport">Export Coverage JSON</button>
+        </div>
+        <div class="story-coverage-scroll" tabindex="0" aria-label="Scrollable scenario coverage comparison">
+          <table class="story-coverage-table" aria-describedby="storyCoverageSummary">
+            <thead id="storyCoverageHead"></thead>
+            <tbody id="storyCoverageBody"></tbody>
+          </table>
+        </div>
+        <p id="storyCoverageNote" class="small-note story-coverage-note">No routes are certified physically. Door, combat, NPC and inventory assumptions remain hypothetical.</p>
       </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
         <div class="puzzle-head">
