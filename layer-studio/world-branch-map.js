@@ -2,8 +2,7 @@
 // Pure, read-only analysis of authored Room Atlas dependencies. No mutation,
 // scripts, network, or scene re-normalization. Results are advisory reachability
 // checks, not a claim to solve physical navigation or every exclusive-choice run.
-const nodeId=(kind,...parts)=>kind+':'+parts.join(':');
-const same=(a,b)=>a===b;
+const nodeId=(kind,...parts)=>kind+':'+parts.map(x=>encodeURIComponent(String(x))).join(':');
 
 export function analyzeWorldBranches(atlas){
   const empty={nodes:[],edges:[],diagnostics:[],summary:{
@@ -12,7 +11,7 @@ export function analyzeWorldBranches(atlas){
   if(!atlas?.rooms?.length)return empty;
   const rooms=atlas.rooms,roomIds=new Set(rooms.map(r=>r.id));
   const nodes=new Map(),edges=[],edgeKeys=new Set();
-  const producers=new Map(),sequences=[],sourceFlags=[],portals=[];
+  const producers=new Map(),sequences=[],sourceFlags=[];
   const flagRefs=[];
   const pushNode=(entry)=>{if(!nodes.has(entry.id))nodes.set(entry.id,entry);return nodes.get(entry.id)};
   const addEdge=(from,to,kind,label='')=>{
@@ -45,7 +44,7 @@ export function analyzeWorldBranches(atlas){
       pushNode({id,kind:'source',label:trigger.id,
         detail:'World Director flag trigger',roomId:room.id});
       produced(trigger.flagId,id,'grant','world trigger',room.id);
-      sourceFlags.push({flag:trigger.flagId,roomId:room.id,required:''});
+      sourceFlags.push({flag:trigger.flagId,roomId:room.id,required:'',from:id});
     }
     for(const dialogue of room.story?.dialogues||[]){
       for(const choice of dialogue.choices||[]){
@@ -55,7 +54,7 @@ export function analyzeWorldBranches(atlas){
           detail:'Story dialogue choice',roomId:room.id});
         produced(choice.setFlag,id,'choice',dialogue.speaker||'dialogue',room.id,
           dialogue.requiresFlag||'');
-        sourceFlags.push({flag:choice.setFlag,roomId:room.id,
+        sourceFlags.push({flag:choice.setFlag,roomId:room.id,from:id,
           required:dialogue.requiresFlag||''});
         if(dialogue.requiresFlag)
           consumed(dialogue.requiresFlag,id,'requires','dialogue prerequisite',room.id);
@@ -66,7 +65,7 @@ export function analyzeWorldBranches(atlas){
       pushNode({id,kind:'source',label:room.boss.name||room.boss.id,
         detail:'Boss defeat',roomId:room.id});
       produced(room.boss.victoryFlag,id,'grant','boss defeated',room.id);
-      sourceFlags.push({flag:room.boss.victoryFlag,roomId:room.id,required:''});
+      sourceFlags.push({flag:room.boss.victoryFlag,roomId:room.id,required:'',from:id});
     }
     for(const track of room.sequences?.tracks||[]){
       const id=nodeId('track',room.id,track.id);
@@ -85,8 +84,6 @@ export function analyzeWorldBranches(atlas){
       const id=nodeId('gate',room.id,'portal',portal.id);
       pushNode({id,kind:'gate',label:portal.label||portal.id,
         detail:'Portal to '+(portal.targetRoom||'unlinked'),roomId:room.id});
-      portals.push({id,roomId:room.id,targetRoom:portal.targetRoom,
-        required:portal.requiresFlag});
       consumed(portal.requiresFlag,id,'requires','portal gate',room.id);
     }
   }
@@ -108,9 +105,14 @@ export function analyzeWorldBranches(atlas){
   };
   for(const ref of flagRefs){
     if(producers.has(ref.flag))continue;
-    warn('missing-producer','warning',ref.to,
-      'Flag "'+ref.flag+'" has no authored producer. '+ref.label+
-      ' may remain locked unless external state supplies it.');
+    if(ref.kind==='blocks'){
+      warn('never-blocking-guard','warning',ref.to,
+        'Exclusion flag "'+ref.flag+'" has no authored producer. This negative guard may never activate.');
+    }else{
+      warn('missing-producer','warning',ref.to,
+        'Flag "'+ref.flag+'" has no authored producer. '+ref.label+
+        ' may remain locked unless external state supplies it.');
+    }
   }
   for(const {id,track} of sequences){
     if(track.requiresFlag&&track.requiresFlag===track.unlessFlag){
@@ -211,7 +213,9 @@ export function analyzeWorldBranches(atlas){
   for(const node of nodes.values()){
     if(node.kind==='track')node.reachable=reachableTracks.has(node.id);
     else if(node.kind==='flag')node.reachable=reachableFlags.has(node.label);
-    else if(node.kind==='source')node.reachable=reachableRooms.has(node.roomId);
+    else if(node.kind==='source')node.reachable=sourceFlags.some(s=>
+      s.from===node.id&&reachableRooms.has(s.roomId)&&
+      (!s.required||reachableFlags.has(s.required)));
     else node.reachable=true;
   }
   diagnostics.sort((a,b)=>Number(b.severity==='error')-Number(a.severity==='error')||
