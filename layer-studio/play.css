@@ -7,3 +7,49 @@
   .touch-controls button{min-width:48px;padding:10px 6px;font-size:12px}
   .touch-controls .jump,.touch-controls .fire,.touch-controls .interact{min-width:58px;font-size:11px}
 }
+
+
+/* Rung 6 / World Map, Relic Inventory and save slots. */
+.actions{flex-wrap:wrap}
+.actions button{font-size:12px;padding:10px 13px}
+.journal-panel[hidden]{display:none}
+.journal-panel{position:fixed;z-index:25;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(92vw,790px);max-height:min(86vh,760px);overflow-y:auto;overscroll-behavior:contain;
+  background:linear-gradient(145deg,#152939,#091724 80%);
+  border:1px solid #8dbdae;border-radius:16px;box-shadow:0 0 0 200vmax #0009,0 30px 80px #000b;
+  padding:clamp(16px,3vw,28px);color:#e7f2ee}
+.journal-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:12px}
+.journal-heading h2{font-size:clamp(22px,3vw,32px);margin:8px 0 2px;letter-spacing:-.03em}
+.journal-content h3{font-size:15px;letter-spacing:.03em;margin:24px 0 12px;color:#f1c89c}
+.journal-note{font-size:12px;line-height:1.65;color:#a9c5c5}
+.journal-empty{font-size:13px;color:#a7bbc4;line-height:1.55;padding:18px 10px}
+.map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin:24px 0}
+.map-room{display:grid;align-content:start;gap:8px;min-height:115px;border:1px solid #526970;
+  padding:15px;border-radius:10px;background:#1b3540}
+.map-room.active{border-color:#f0c58b;background:#384137}
+.map-room.unknown{opacity:.72;border-style:dashed}
+.map-room strong{font-size:14px}
+.map-room small{color:#f0cb9b;font:750 10px ui-monospace,monospace;letter-spacing:1px}
+.map-room span{font-size:12px;color:#accdcc}
+.map-edge{color:#b8d4d4;font:12px ui-monospace,monospace;border-left:2px solid #7c9a97;
+  margin:8px 0;padding:4px 12px;line-height:1.5}
+.inventory-key{color:#f6d0a0;font:700 13px ui-monospace,monospace}
+.relic-card{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:center;
+  background:#182f37;border:1px solid #5b7b76;border-radius:9px;padding:15px;margin:10px 0}
+.relic-card strong{color:#f1c693}
+.relic-card small{color:#94bdba;font-size:10px}
+.save-row{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  border:1px solid #4b6670;background:#182c38;padding:15px;border-radius:10px;margin:12px 0}
+.save-info{display:grid;gap:6px;flex:1;min-width:200px}
+.save-info strong{font:800 14px ui-monospace,monospace;color:#f4d0a4}
+.save-info small{color:#a9c6c8;font-size:11px;line-height:1.5}
+.save-actions{display:flex;gap:7px;flex-wrap:wrap}
+.save-actions button{padding:9px 12px}
+.save-actions button.danger{background:#4b2d37;border-color:#a35f6d}
+.save-actions button:disabled{cursor:not-allowed;opacity:.3}
+.journal-error{color:#ffb0aa;padding:12px}
+@media(max-width:700px){.top .actions{width:100%;justify-content:center}.top .actions button{padding:8px 9px}
+  .journal-panel{width:96vw;max-height:90vh;border-radius:10px}
+  .save-row{display:grid}.save-actions{justify-content:start}
+  .map-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .map-room{min-height:120px;padding:11px}}
