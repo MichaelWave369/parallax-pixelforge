@@ -1,5 +1,6 @@
 // PixelForge Layer Studio Rung 2: tiny, deterministic, dependency-free 2.5D puzzle runtime.
 // All gameplay takes place in one world-space plane. Visual depth is rendered separately.
+import {normalizeTileWorld,normalizeActor,tileCellsNear,renderTileWorld,renderActor} from './studio-bridge.js';
 export const PUZZLE_SCHEMA = 'pixelforge.layer-puzzle.v1';
 const bound = (value, fallback, min, max) => {
   const n = Number(value);
@@ -27,7 +28,9 @@ export function createPuzzle() {
       {id:'hall-wraith',x:1018,y:448,w:36,h:52}
     ],
     key: {x:1150,y:455},
-    gate: {x:1515,y:424}
+    gate: {x:1515,y:424},
+    tileWorld:null,
+    actor:null
   };
 }
 
@@ -71,7 +74,9 @@ export function normalizePuzzle(input) {
     gate:{
       x:bound(s.gate?.x,d.gate.x,0,worldWidth),
       y:bound(s.gate?.y,d.gate.y,-200,800)
-    }
+    },
+    tileWorld:normalizeTileWorld(s.tileWorld),
+    actor:normalizeActor(s.actor)
   };
 }
 export function stonePlatform(enemy) {
@@ -130,19 +135,43 @@ export function stepPuzzle(state,input={},dt=1/60) {
   p.vx=move*265;
   if(input.jumpPressed&&p.grounded){p.vy=-535;p.grounded=false;}
   if(input.firePressed)shoot(state);
-  const previousBottom=p.y+p.h;
+  const previousBottom=p.y+p.h,previousTop=p.y;
+  const previousX=p.x;
   p.x=Math.max(0,Math.min(state.puzzle.worldWidth-p.w,p.x+p.vx*delta));
+  // The authoring grid is genuine full-block collision, unlike the one-way platforms.
+  const tileMap=state.puzzle.tileWorld;
+  if(tileMap&&p.vx!==0){
+    const occupied=tileCellsNear(tileMap,Math.min(previousX,p.x)-1,p.y,Math.abs(p.x-previousX)+p.w+2,p.h);
+    for(const cell of occupied){
+      if(!cell.solid||p.y+p.h<=cell.y+1||p.y>=cell.y+cell.h-1)continue;
+      if(p.vx>0&&previousX+p.w<=cell.x+1&&p.x+p.w>cell.x){p.x=Math.min(p.x,cell.x-p.w);p.vx=0;}
+      if(p.vx<0&&previousX>=cell.x+cell.w-1&&p.x<cell.x+cell.w){p.x=Math.max(p.x,cell.x+cell.w);p.vx=0;}
+    }
+  }
   p.vy=Math.min(950,p.vy+1420*delta);
   p.y+=p.vy*delta;
   p.grounded=false;
   if(p.vy>=0) {
     let landing=Infinity;
-    for(const platform of solidSurfaces(state)) {
+    const tileSolids=tileCellsNear(tileMap,p.x,p.y-8,p.w,p.h+16).filter(cell=>cell.solid);
+    for(const platform of [...solidSurfaces(state),...tileSolids]) {
       if(p.x+p.w>platform.x+2&&p.x<platform.x+platform.w-2 &&
          previousBottom<=platform.y+5 && p.y+p.h>=platform.y &&
          platform.y<landing)landing=platform.y;
     }
     if(landing!==Infinity){p.y=landing-p.h;p.vy=0;p.grounded=true;}
+  }else if(tileMap){
+    // Solid ceilings from Tile Studio; one-way authorable platforms remain jump-through.
+    const ceiling=tileCellsNear(tileMap,p.x,p.y,p.w,p.h).filter(cell=>cell.solid&&
+      previousTop>=cell.y+cell.h-1&&p.y<cell.y+cell.h&&
+      p.x+p.w>cell.x+1&&p.x<cell.x+cell.w-1);
+    if(ceiling.length){p.y=Math.max(...ceiling.map(cell=>cell.y+cell.h));p.vy=0;}
+  }
+  // Hazards have their own semantic tag, independent of solid collision flags.
+  if(tileMap&&p.invulnerable===0&&tileCellsNear(tileMap,p.x,p.y,p.w,p.h).some(cell=>cell.hazard)){
+    state.health--;
+    if(state.health<=0){state.health=3;respawn(state);}
+    else {p.invulnerable=1.2;p.vy=-180;}
   }
   for(const projectile of state.shots){
     projectile.x+=projectile.vx*delta;
@@ -225,6 +254,7 @@ export function renderPuzzle(ctx,state,options={}) {
   const w=options.width||960,h=options.height||540;
   const camera=Number.isFinite(options.cameraX)?options.cameraX:cameraFor(state,w);
   const t=options.reducedMotion?0:state.time;
+  renderTileWorld(ctx,state.puzzle.tileWorld,camera,w,h);
   ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();
   ctx.translate(-Math.round(camera),0);
   for(const platform of state.puzzle.platforms){
@@ -260,7 +290,7 @@ export function renderPuzzle(ctx,state,options={}) {
     ctx.strokeStyle='#b1f4e2';ctx.lineWidth=3;ctx.beginPath();
     ctx.arc(spark.x,spark.y,r,0,Math.PI*2);ctx.stroke();
   }
-  drawPlayer(ctx,state.player,t);
+  if(!renderActor(ctx,state.puzzle.actor,state.player,state.status,t))drawPlayer(ctx,state.player,t);
   ctx.restore();
   if(options.hud!==false)renderPuzzleHud(ctx,state,{width:w,height:h});
 }
