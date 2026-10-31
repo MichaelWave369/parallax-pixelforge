@@ -16,7 +16,13 @@ function validSlot(slot){
 }
 // Lightweight identity marker. Detects changed authoring data, NOT a security signature.
 export function worldFingerprint(rootScene){
-  const source=JSON.stringify(rootScene);
+  // Preserve Rung 6 save-slot fingerprints for pre-quest worlds. The new empty
+  // editor defaults are non-behavioral, so omit them from the canonical hash.
+  const source=JSON.stringify(rootScene,(key,value)=>{
+    if((key==='flagId'||key==='requiresFlag'||key==='requiresQuest')&&value==='')return undefined;
+    if(key==='quests'&&Array.isArray(value)&&value.length===0)return undefined;
+    return value;
+  });
   let hash=2166136261;
   for(let i=0;i<source.length;i++){
     hash^=source.charCodeAt(i);
