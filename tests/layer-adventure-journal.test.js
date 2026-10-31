@@ -115,6 +115,7 @@ test('manual save slot round trip restores active room, hero, health, relics and
   session.game.player.x=312;session.game.player.y=335;
   stepWorldSession(session);
   session.game.keyCollected=true;
+  session.game.checkpoint={id:'far-bank-beacon',x:930,y:458};
   session.game.enemies[0].stone=true;
   session.game.petrified=1;
   session.game.directorSeen.add('vault-whisper');
@@ -123,7 +124,6 @@ test('manual save slot round trip restores active room, hero, health, relics and
   session.game.player.x=1185;session.game.player.y=430;
   stepWorldSession(session);
   session.game.player.x=400;session.game.player.y=458;
-  session.game.checkpoint={id:'reliquary-whisper',x:350,y:458};
   session.game.deaths=2;
   const saved=writeSaveSlot(store,root,session,2);
   assert.equal(saved.schema,SAVE_SCHEMA);
@@ -141,9 +141,10 @@ test('manual save slot round trip restores active room, hero, health, relics and
   assert.equal(resumed.inventory.size,2);
   assert.equal(resumed.visitedRooms.size,2);
   assert.equal(resumed.transitions,1);
-  assert.equal(resumed.game.checkpoint?.x,350);
+  assert.equal(resumed.game.checkpoint,null);
   assert.equal(walkToPortal(resumed).travelled,true);
   assert.equal(resumed.game.keyCollected,true);
+  assert.equal(resumed.game.checkpoint?.x,930);
   assert.equal(resumed.game.enemies[0].stone,true);
   assert.equal(resumed.game.directorSeen.has('vault-whisper'),true);
 });
