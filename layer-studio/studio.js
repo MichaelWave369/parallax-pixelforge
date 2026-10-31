@@ -3,6 +3,7 @@ import {
   createScene, makeLayer, normalizeScene, normalizeLayer, renderScene, isSafeAsset
 } from './engine.js';
 import {normalizePuzzle,startPuzzle,renderPuzzle} from './puzzle.js';
+import {importTileStudio,importSpriteStudio,renderTileWorld,tileCellsNear} from './studio-bridge.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -129,6 +130,7 @@ function syncScene() {
   renderLayerList();
   syncInspector();
   syncPuzzleControls();
+  syncArtBridgeControls();
 }
 const bindings = [
   ['layerName','name',v => v.slice(0,80)],
@@ -221,6 +223,70 @@ canvas.addEventListener('pointermove',e=>{
 canvas.addEventListener('pointerup',()=>{drag=null;});
 canvas.addEventListener('pointercancel',()=>{drag=null;});
 
+function syncArtBridgeControls(){
+  const world=scene.playable.tileWorld,actor=scene.playable.actor;
+  $('tileScale').value=world?.scale??2;
+  $('tileOriginX').value=world?.originX??0;
+  $('tileOriginY').value=world?.originY??0;
+  for(const id of ['tileScale','tileOriginX','tileOriginY','removeTileWorld'])$(id).disabled=!world;
+  $('removeActor').disabled=!actor;
+  $('tileWorldStatus').textContent=world?
+    'Tile map: '+world.sceneId+' · '+world.width+'×'+world.height+' cells · '+world.tiles.length+' tiles · '+(world.tiles.some(t=>t.pixels.some(Boolean))?'painted pixels loaded':'metadata-only colors')+'.' :
+    'No imported map. Stonebridge platforms remain playable.';
+  $('actorStatus').textContent=actor?
+    'Sprite Studio hero: '+actor.width+'×'+actor.height+' · '+actor.frames.length+' labeled frames · '+actor.fps+' FPS.' :
+    'No Sprite Studio character. Built-in hero remains active.';
+}
+async function readBoundedFile(file){
+  if(!file||file.size>12_000_000)throw Error('Use a JSON file smaller than 12 MB.');
+  try{return JSON.parse(await file.text());}
+  catch{throw Error('Could not parse JSON from that file.');}
+}
+$('importTileWorld').onclick=()=>$('tileWorldFile').click();
+$('tileWorldFile').onchange=async e=>{
+  const file=e.target.files?.[0];e.target.value='';if(!file)return;
+  try{
+    const raw=await readBoundedFile(file);
+    // The adapter consumes the existing native Tile Studio state or exported map contract.
+    const world=importTileStudio(raw);
+    scene.playable.tileWorld=world;
+    scene.playable.worldWidth=Math.min(6000,Math.max(960,world.originX+world.width*world.tileSize*world.scale));
+    scene.playable=normalizePuzzle(scene.playable);
+    syncPuzzleControls();syncArtBridgeControls();
+    $('puzzlePreview').checked=true;
+    flash('PixelForge Tile Studio map imported. Solid cells now have collision.');
+  }catch(err){flash('Tile import rejected: '+err.message);}
+};
+$('importActor').onclick=()=>$('actorFile').click();
+$('actorFile').onchange=async e=>{
+  const file=e.target.files?.[0];e.target.value='';if(!file)return;
+  try{
+    const raw=await readBoundedFile(file);
+    scene.playable.actor=importSpriteStudio(raw);
+    scene.playable=normalizePuzzle(scene.playable);
+    syncPuzzleControls();syncArtBridgeControls();
+    $('puzzlePreview').checked=true;
+    flash('Labeled Sprite Studio frames imported for the playable hero.');
+  }catch(err){flash('Sprite import rejected: '+err.message);}
+};
+for(const [id,key] of [['tileScale','scale'],['tileOriginX','originX'],['tileOriginY','originY']]){
+  $(id).onchange=e=>{
+    const world=scene.playable.tileWorld;if(!world)return;
+    const proposed=Number(e.target.value);
+    if(!Number.isFinite(proposed)){syncArtBridgeControls();return;}
+    world[key]=proposed;
+    scene.playable=normalizePuzzle(scene.playable);
+    syncPuzzleControls();syncArtBridgeControls();
+  };
+}
+$('removeTileWorld').onclick=()=>{
+  scene.playable.tileWorld=null;syncPuzzleControls();syncArtBridgeControls();
+  flash('Tile map detached; original puzzle platforms restored.');
+};
+$('removeActor').onclick=()=>{
+  scene.playable.actor=null;syncPuzzleControls();syncArtBridgeControls();
+  flash('Built-in hero restored.');
+};
 function puzzleObjects(){
   return [
     {value:'spawn',label:'Player spawn'},
@@ -401,10 +467,35 @@ function tick(now) {
   if(playing&&!reducedMotion)elapsed+=dt;
   if(now-previousDraw>32){
     previousDraw=now;
-    renderScene(ctx,scene,elapsed,{solo:solo?selectedId:null,spread,reducedMotion});
-    if($('puzzlePreview').checked&&puzzlePreviewState){
-      puzzlePreviewState.time=elapsed;
-      renderPuzzle(ctx,puzzlePreviewState,{cameraX:scene.camera.x,width:scene.width,height:scene.height,hud:false,reducedMotion});
+    const tileWorld=scene.playable.tileWorld;
+    const visualOptions={solo:solo?selectedId:null,spread,reducedMotion};
+    if(tileWorld){
+      const split=scene.layers.length-1;
+      renderScene(ctx,scene,elapsed,{...visualOptions,endLayer:split});
+      renderTileWorld(ctx,tileWorld,scene.camera.x,scene.width,scene.height);
+      if($('puzzlePreview').checked&&puzzlePreviewState){
+        puzzlePreviewState.time=elapsed;
+        renderPuzzle(ctx,puzzlePreviewState,{cameraX:scene.camera.x,width:scene.width,height:scene.height,hud:false,reducedMotion,tiles:false});
+      }
+      renderScene(ctx,scene,elapsed,{...visualOptions,startLayer:split,clear:false});
+      if($('showTileCollision').checked){
+        const size=tileWorld.tileSize*tileWorld.scale;
+        ctx.save();ctx.strokeStyle='#ffd481a9';ctx.lineWidth=1.5;
+        for(let row=0;row<tileWorld.height;row++)for(let col=0;col<tileWorld.width;col++){
+          if(!tileWorld.layers.collision[row*tileWorld.width+col] &&
+             tileWorld.tiles[tileWorld.layers.ground[row*tileWorld.width+col]]?.walkable!==false)continue;
+          const x=tileWorld.originX+col*size-scene.camera.x,y=tileWorld.originY+row*size;
+          if(x+size<0||x>scene.width||y+size<0||y>scene.height)continue;
+          ctx.strokeRect(x+.5,y+.5,size-1,size-1);
+        }
+        ctx.restore();
+      }
+    }else{
+      renderScene(ctx,scene,elapsed,visualOptions);
+      if($('puzzlePreview').checked&&puzzlePreviewState){
+        puzzlePreviewState.time=elapsed;
+        renderPuzzle(ctx,puzzlePreviewState,{cameraX:scene.camera.x,width:scene.width,height:scene.height,hud:false,reducedMotion});
+      }
     }
   }
   requestAnimationFrame(tick);
