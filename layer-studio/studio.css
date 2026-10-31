@@ -285,3 +285,62 @@
   .story-catalog-toolbar,.story-catalog-import{align-items:stretch}
   .story-catalog-toolbar button,.story-catalog-import button{width:100%}
 }
+
+
+/* Rung 18 / Reproducible, read-only hypothetical route coverage matrix. */
+.story-coverage-head h3{margin:22px 0 6px;font:800 16px ui-monospace,monospace;
+  color:#f3dcb6}
+.story-coverage-head p{max-width:78ch;line-height:1.6}
+.story-coverage-summary{margin:12px 0;padding:12px 14px;border-left:3px solid #a8cfa7;
+  background:#183035;border-radius:6px;color:#e6f0e5;font:700 12px/1.65 ui-monospace,monospace}
+.story-coverage-breakdown{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));
+  gap:9px;margin:12px 0}
+.story-coverage-dimension{display:flex;flex-direction:column;gap:5px;
+  border:1px solid #435b73;background:#192738;border-radius:7px;padding:10px 12px;
+  font:11px/1.5 ui-monospace,monospace;color:#bdcdd9}
+.story-coverage-dimension strong{font:800 12px ui-monospace,monospace;color:#f3dcc2}
+.story-coverage-toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:10px 14px;margin:12px 0}
+.story-coverage-toolbar label{display:flex;flex-direction:column;gap:6px;
+  color:#d6cada;font:700 11px ui-monospace,monospace}
+.story-coverage-toolbar select{min-width:180px;max-width:270px}
+.story-coverage-toolbar button{min-height:38px}
+.story-coverage-scroll{max-width:100%;max-height:540px;overflow:auto;min-height:115px;
+  border:1px solid #4b6075;border-radius:10px;background:#132131;
+  scrollbar-color:#718396 #152434}
+.story-coverage-scroll:focus-visible{outline:2px solid #f2d5a6;outline-offset:3px}
+.story-coverage-table{border-collapse:separate;border-spacing:0;min-width:700px;
+  width:100%;font:11px/1.5 ui-monospace,monospace;color:#dce5eb}
+.story-coverage-table th,.story-coverage-table td{padding:10px 11px;
+  border-bottom:1px solid #32475f;border-right:1px solid #293d54;
+  vertical-align:middle}
+.story-coverage-table thead th{position:sticky;top:0;z-index:3;
+  background:#253b50;text-align:left;font-weight:800;color:#f3e7d5}
+.story-coverage-table thead th:first-child{left:0;z-index:5;min-width:210px}
+.story-coverage-table tbody th{position:sticky;left:0;z-index:2;
+  min-width:210px;max-width:290px;text-align:left;background:#192c40}
+.story-coverage-table tbody th strong{display:block;overflow-wrap:anywhere;
+  color:#e8e9e1}
+.story-coverage-table tbody th small{display:block;margin-top:4px;
+  color:#abc1ce;font-size:10px;font-weight:400;overflow-wrap:anywhere}
+.story-coverage-scenario-heading{max-width:150px;min-width:84px;
+  overflow-wrap:anywhere}
+.story-coverage-table .story-coverage-cell{text-align:center;white-space:nowrap;
+  min-width:70px;font-weight:750}
+.story-coverage-cell--verified{background:#1c423c;color:#c1efc5}
+.story-coverage-cell--needs-review{background:#453b30;color:#f1d7a4}
+.story-coverage-cell--uncovered{background:#27303d;color:#a3b4c3}
+.story-coverage-result{min-width:130px;white-space:normal}
+.story-coverage-result--verified{color:#c1efc5}
+.story-coverage-result--needs-review{color:#f1d7a4}
+.story-coverage-result--uncovered{color:#d0c8d0}
+.story-coverage-result button{display:block;margin-top:7px;
+  border:1px solid #9ab0bd;background:#284451;border-radius:4px;
+  font:700 10px ui-monospace,monospace;color:#f7eee2;padding:5px 9px;cursor:pointer}
+.story-coverage-result button:focus-visible{outline:2px solid #f7daa7;outline-offset:2px}
+.story-coverage-note{padding:8px 0;color:#c5cddb;font:11px/1.65 ui-monospace,monospace}
+@media(max-width:720px){
+  .story-coverage-toolbar{align-items:stretch}
+  .story-coverage-toolbar label,.story-coverage-toolbar select,.story-coverage-toolbar button{
+    width:100%;max-width:100%}
+  .story-coverage-scroll{max-height:390px}
+}
