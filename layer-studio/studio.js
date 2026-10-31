@@ -12,6 +12,7 @@ import {BOSS_SCHEMA,normalizeBoss,renderBossStage,bossTimelineBeats} from './bos
 import {WORLD_SEQUENCE_SCHEMA,normalizeWorldSequences,renderSequenceGuides} from './world-sequences.js';
 import {analyzeWorldBranches} from './world-branch-map.js';
 import {renderWorldBranchMap} from './world-branch-view.js';
+import {createStoryPathRun,advanceStoryPath,storyPathOptions,storyPathSummary} from './story-path-simulator.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -30,6 +31,7 @@ let selectedStoryDialogue=0,selectedStoryEncounter=0,selectedStoryVariant=0;
 let selectedSequenceIndex=0,selectedSequenceBeatIndex=0,selectedSequenceChoiceIndex=0;
 let branchMapSelected='';
 let branchMapReport=null;
+let storySimState=null,storySimFingerprint='';
 let previewStoryFlag='';
 let puzzlePreviewState=null;
 let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1049,8 +1051,123 @@ function branchMapAtlas(){
   return {...scene.atlas,rooms:scene.atlas.rooms.map(r=>
     r.id===activeRoomId?{...r,scene:stripAtlas(scene)}:r)};
 }
+function storySimSignature(atlas){
+  if(!atlas)return '';
+  // Fingerprint only what the simulator actually reads. Unrelated artwork
+  // editing must not wipe a writer's in-progress hypothetical path.
+  return JSON.stringify({startRoom:atlas.startRoom,rooms:atlas.rooms.map(r=>({
+    id:r.id,title:r.title,portals:r.portals,
+    tracks:r.sequences?.tracks,
+    sources:r.scene?.playable?.director?.triggers
+      ?.filter(t=>t.kind==='flag').map(t=>[t.id,t.kind,t.flagId,t.once]),
+    dialogues:r.story?.dialogues?.map(d=>[d.id,d.once,d.requiresFlag,d.speaker,d.choices]),
+    boss:r.boss?[r.boss.id,r.boss.name,r.boss.victoryFlag]:null
+  }))});
+}
+function ensureStorySimulator(atlas){
+  const signature=storySimSignature(atlas);
+  if(storySimState&&signature===storySimFingerprint)return;
+  storySimState=createStoryPathRun(atlas);
+  storySimFingerprint=signature;
+}
+function stepStorySimulator(action){
+  const atlas=branchMapAtlas();
+  ensureStorySimulator(atlas);
+  const out=advanceStoryPath(atlas,storySimState,action);
+  if(!out.ok){
+    flash(out.reason);
+    return;
+  }
+  storySimState=out.state;
+  syncBranchMap();
+}
+function simButton(container,label,action,ready=true,description=''){
+  const wrap=document.createElement('div');
+  wrap.className='story-sim-option'+(ready?'':' story-sim-option--blocked');
+  const button=document.createElement('button');
+  button.type='button';button.textContent=label;
+  button.disabled=!ready;
+  if(ready)button.onclick=()=>stepStorySimulator(action);
+  wrap.append(button);
+  if(description){
+    const note=document.createElement('p');
+    note.className='small-note';
+    note.textContent=description;wrap.append(note);
+  }
+  container.append(wrap);
+}
+function renderStorySimulator(atlas,options){
+  const s=storySimState,summary=storyPathSummary(atlas,s);
+  $('storySimReset').disabled=!atlas;
+  $('storySimUndo').disabled=!atlas||!s.history.length;
+  $('storySimAssumeGates').disabled=!atlas;
+  $('storySimAssumeGates').checked=s.assumeGates;
+  $('storySimStatus').textContent=atlas?
+    'HYPOTHETICAL ROOM: '+(summary.room?.title||'Unknown')+
+    ' · '+summary.flagCount+' flags earned · '+summary.completed+
+    '/'+summary.totalTracks+' once-only discoveries completed · '+
+    summary.historyLength+' steps':
+    'Create a Room Atlas to begin a story path simulation.';
+  const sources=$('storySimSources'),tracks=$('storySimTracks'),
+    portals=$('storySimPortals'),flags=$('storySimFlags'),history=$('storySimHistory');
+  for(const el of [sources,tracks,portals,flags,history])el.replaceChildren();
+  if(!atlas)return;
+  if(!options.sources.length)simMessage(sources,'No unused authored event or boss flag sources here.');
+  for(const event of options.sources){
+    simButton(sources,event.label,{type:'source',sourceId:event.id},event.ready,
+      event.ready?'Simulates an authored flag source; does not run combat or dialogue.':event.reason);
+  }
+  if(!options.tracks.length)simMessage(tracks,'No World Sequence Tracks in this room.');
+  for(const t of options.tracks){
+    const explanation=t.ready?(!t.choices.length?
+      'Ready · grants '+(t.completionFlag||'no completion flag'):
+      'Ready · choose exactly one authored answer'):t.reasons.join(' · ');
+    if(!t.ready){
+      simButton(tracks,t.title,{type:'discover',trackId:t.id},false,explanation);
+    }else if(!t.choices.length){
+      simButton(tracks,'Discover: '+t.title,{type:'discover',trackId:t.id},true,explanation);
+    }else{
+      const label=document.createElement('p');label.className='story-sim-track-heading';
+      label.textContent=t.title+' / CHOOSE AN OUTCOME';tracks.append(label);
+      for(const choice of t.choices){
+        simButton(tracks,choice.label+' → '+(choice.setFlag||'no choice flag'),
+          {type:'discover',trackId:t.id,choiceId:choice.id},true,
+          'One explicit answer per once-only discovery.');
+      }
+    }
+  }
+  if(!options.portals.length)simMessage(portals,'No linked doors in this room.');
+  for(const portal of options.portals){
+    const description=portal.ready?
+      (portal.unverified.length?'Allowed only because non-flag conditions are assumed.':
+        'No unresolved authored requirements'):
+      portal.reasons.join(' · ');
+    simButton(portals,portal.label+' → '+portal.destination,
+      {type:'travel',portalId:portal.id},portal.ready,description);
+  }
+  if(!s.flags.length)simMessage(flags,'No world flags earned in this hypothetical run.');
+  for(const flag of s.flags){
+    const item=document.createElement('span');item.className='story-sim-flag';
+    item.textContent=flag;flags.append(item);
+  }
+  if(!s.history.length)simMessage(history,'No simulated actions yet. Choose a discovery or event.');
+  for(const entry of s.history){
+    const li=document.createElement('li');li.textContent=entry.label;
+    history.append(li);
+  }
+}
+function simMessage(container,message){
+  const p=document.createElement(container.tagName==='OL'?'li':'p');
+  p.className='small-note';p.textContent=message;container.append(p);
+}
+$('storySimReset').onclick=()=>stepStorySimulator({type:'reset'});
+$('storySimUndo').onclick=()=>stepStorySimulator({type:'undo'});
+$('storySimAssumeGates').onchange=e=>
+  stepStorySimulator({type:'assumeGates',value:e.target.checked});
 function syncBranchMap(){
   const atlas=branchMapAtlas();
+  ensureStorySimulator(atlas);
+  const simOptions=storyPathOptions(atlas,storySimState);
   const select=$('branchMapScope'),oldScope=select.value||'all';
   select.replaceChildren();
   const all=document.createElement('option');all.value='all';all.textContent='All rooms';
@@ -1070,6 +1187,13 @@ function syncBranchMap(){
   const result=renderWorldBranchMap($('branchMapCanvas'),atlas,{
     graph:report,roomId:select.value==='all'?'':select.value,
     selectedId:branchMapSelected,
+    simulator:{
+      roomId:storySimState.roomId,flags:storySimState.flags,
+      readyTracks:simOptions.tracks.filter(t=>t.ready)
+        .map(t=>'track:'+encodeURIComponent(storySimState.roomId)+':'+encodeURIComponent(t.id)),
+      completedTracks:report.nodes.filter(n=>n.kind==='track'&&
+        storySimState.seen.includes(n.roomId+':'+n.trackId)).map(n=>n.id)
+    },
     onSelect:node=>{branchMapSelected=node.id;syncBranchMap()}
   });
   panel.scrollTop=scrollTop;panel.scrollLeft=scrollLeft;
@@ -1094,6 +1218,7 @@ function syncBranchMap(){
   if(!atlas){
     const li=document.createElement('li');li.textContent='No Room Atlas loaded.';
     warnings.append(li);
+    renderStorySimulator(atlas,simOptions);
     return;
   }
   if(!report.diagnostics.length){
@@ -1132,6 +1257,7 @@ function syncBranchMap(){
       ' diagnostics. Use a room filter for a smaller visual graph.';
     warnings.append(li);
   }
+  renderStorySimulator(atlas,simOptions);
 }
 $('branchMapScope').onchange=()=>{
   branchMapSelected='';

@@ -167,3 +167,52 @@
 @media(prefers-reduced-motion:reduce){
   .branch-map-node,.branch-map-edge{transition:none}
 }
+
+
+/* Rung 15 / Story Path Simulator: all state stays in an isolated editor preview. */
+.story-sim-intro h3{font:800 16px ui-monospace,monospace;color:#f4dbb9;margin:18px 0 5px}
+.story-sim-toolbar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:10px 0 8px}
+.story-sim-toolbar button{min-height:38px}
+.story-sim-assumption{display:flex;gap:8px;align-items:center;max-width:540px;
+  font:700 11px/1.5 ui-monospace,monospace;color:#e4cda9;cursor:pointer}
+.story-sim-assumption input{accent-color:#c8b3e3;width:17px;height:17px}
+.story-sim-caveat{padding:10px 12px;border-left:3px solid #dcbd93;
+  background:#2a2832;border-radius:4px;color:#dccdc4}
+.story-sim-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:15px;margin:12px 0}
+.story-sim-pane{padding:13px;min-width:0;border:1px solid #435675;
+  border-radius:10px;background:#122132}
+.story-sim-pane h4,.story-sim-history-wrap h4{margin:6px 0 10px;
+  font:800 12px ui-monospace,monospace;letter-spacing:.08em;color:#e5caaa}
+.story-sim-actions{display:grid;gap:8px;margin-bottom:16px}
+.story-sim-option{padding:8px 10px;border:1px solid #42605f;border-radius:7px;
+  background:#192c3c}
+.story-sim-option--blocked{border-color:#574c59;background:#242536}
+.story-sim-option button{width:100%;padding:10px 12px;text-align:left;
+  border:1px solid #8daab1;border-radius:6px;background:#254a52;
+  color:#f1f0e9;font:700 12px/1.4 ui-monospace,monospace;
+  overflow-wrap:anywhere;cursor:pointer}
+.story-sim-option button:hover:not(:disabled),
+.story-sim-option button:focus-visible{border-color:#f1d3aa;outline:2px solid #f1d3aa}
+.story-sim-option button:disabled{cursor:not-allowed;background:#363d4a;color:#b9b1b8;
+  border-color:#5b6068}
+.story-sim-option p{margin:6px 1px 0;overflow-wrap:anywhere}
+.story-sim-track-heading{margin:12px 0 4px;font:800 12px ui-monospace,monospace;
+  color:#d9bbec}
+.story-sim-flags{display:flex;flex-wrap:wrap;gap:7px;align-content:start}
+.story-sim-flag{display:inline-flex;max-width:100%;padding:7px 9px;
+  background:#205047;border:1px solid #7ab49d;border-radius:5px;
+  font:700 11px ui-monospace,monospace;color:#e5f8e9;overflow-wrap:anywhere}
+.story-sim-history-wrap{margin-top:12px;padding:10px 13px;
+  border:1px solid #3d4f65;border-radius:9px;background:#111d2b}
+.story-sim-history{padding-left:22px;max-height:250px;overflow-y:auto;
+  font:12px/1.7 ui-monospace,monospace;color:#d7d9e4}
+.story-sim-history li{padding:2px 0}
+.branch-map-node--sim-earned rect{fill:#245345;stroke:#b3f0ba;stroke-width:2.7}
+.branch-map-node--sim-ready rect{stroke:#c9d998;stroke-width:3}
+.branch-map-node--sim-finished rect{fill:#315d50;stroke:#c2e2b5;stroke-width:2.5}
+.branch-map-node--sim-current rect{stroke-width:2.5}
+@media(max-width:800px){.story-sim-columns{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){
+  .story-sim-option button{transition:none}
+}
