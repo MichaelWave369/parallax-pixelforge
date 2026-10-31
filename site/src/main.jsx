@@ -5,6 +5,7 @@ import './styles.css';
 const BASE = import.meta.env.BASE_URL;
 const studioModules = [
   {id:'studio',eyebrow:'01 / PIXEL & GAME DESIGN',title:'Creator Studio',description:'Sprite work, tile maps, runtime composition, project editing and cartridge export in the original PixelForge workbench.',path:'studio/',cta:'Launch Creator Studio',glyph:'▦',accent:'coral',tags:['2D','Sprite Studio','Tile Composer','Local saves']},
+  {id:'layers',eyebrow:'02 / DEPTH COMPOSITION',title:'Layer Studio',description:'Compose animated 2.5D worlds with seven independent depth planes, parallax camera movement, sprite sheets, and per-plane particle effects.',path:'layer-studio/',cta:'Open Layer Studio',glyph:'◫',accent:'mint',tags:['2.5D','Parallax','Animated layers','Sprite sheets']},
   {id:'vr',eyebrow:'02 / SPATIAL CREATION',title:'VR World Studio',description:'Build and edit a 3D scene with bounded objects, transform controls, scene export and experimental WebXR preview.',path:'vr-studio/',cta:'Enter VR Studio',glyph:'⬡',accent:'mint',tags:['WebGL2','WebXR preview','Scene graph','Experimental']},
   {id:'assets',eyebrow:'03 / ASSET PIPELINE',title:'3D Asset Inspector',description:'Inspect supported GLB meshes in the native WebGL2 viewport. Visual parity, rights and runtime compatibility are not automatically approved.',path:'external-preview/',cta:'Open GLB Inspector',glyph:'◇',accent:'violet',tags:['GLB','Unreal exports','Local file','Static preview']}
 ];
