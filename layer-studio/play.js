@@ -3,7 +3,8 @@ import {startPuzzle,stepPuzzle,renderPuzzle,renderPuzzleHud,cameraFor} from './p
 import {renderDirectorLighting} from './world-director.js';
 import {createWorldSession,stepWorldSession,renderPortals,renderPortalPrompt,renderRelics,atlasMapData} from './room-atlas.js';
 import {writeSaveSlot,readSaveSlot,inspectSaveSlot,deleteSaveSlot,SLOT_COUNT} from './adventure-journal.js';
-import {evaluateQuestLine} from './quest-world.js';
+import {evaluateQuestLine,refreshQuestProgress} from './quest-world.js';
+import {storyScene,chooseDialogue} from './living-story.js';
 
 const $=id=>document.getElementById(id);
 const SCENE_KEY='pixelforge.layer-studio.play-scene.v1';
@@ -113,6 +114,7 @@ function updateMessage(old){
   if(game.status==='won')setMessage('VAULT CLEARED! The stone bridge led you to the key and the exit.');
   else if(!old.keyCollected&&game.keyCollected)setMessage('KEY ACQUIRED. The cathedral gate is unlocked. Head right!');
   else if(old.petrified!==game.petrified)setMessage('PETRIFIED! The spirit is now a solid stone platform. Jump onto it.');
+  else if(old.storyVersion!==session.storyVersion)setMessage(session.notice);
   else if(old.questVersion!==session.questVersion)setMessage(session.notice);
   else if(old.flagVersion!==session.flagVersion)setMessage(session.notice);
   else if(old.inventoryCount!==session.inventory.size)setMessage(session.notice);
@@ -126,6 +128,7 @@ function clearMovement(){
   for(const button of document.querySelectorAll('.touch-controls button'))button.classList.remove('active');
 }
 function closePanel(){
+  if(activePanel==='story')session.dialogue=null;
   activePanel='';
   $('journalPanel').hidden=true;
   clearMovement();
@@ -133,6 +136,7 @@ function closePanel(){
 }
 function togglePanel(name){
   if(activePanel===name){closePanel();return;}
+  if(activePanel==='story')session.dialogue=null;
   activePanel=name;
   clearMovement();
   last=0;accumulator=0;
@@ -147,7 +151,29 @@ function element(tag,klass,label){
 function renderPanel(){
   const panel=$('journalPanel'),content=$('journalContent');
   panel.hidden=false;content.replaceChildren();
-  if(activePanel==='map'){
+  if(activePanel==='story'){
+    $('journalTitle').textContent='Living Story';
+    const room=session.atlas?.rooms.find(r=>r.id===session.roomId);
+    const dialogue=room?.story?.dialogues.find(d=>d.id===session.dialogue?.id);
+    if(!dialogue){content.append(element('p','journal-empty','The conversation ended.'));return;}
+    content.append(element('p','story-speaker',dialogue.speaker.toUpperCase()));
+    content.append(element('p','story-text',dialogue.text));
+    content.append(element('p','journal-note','Your response can change which story paths are open.'));
+    const choices=dialogue.choices.length?dialogue.choices:[{id:'continue',label:'Continue',setFlag:''}];
+    for(const choice of choices){
+      const button=element('button','story-choice',choice.label);
+      button.onclick=()=>{
+        try{
+          chooseDialogue(session,choice.id);
+          refreshQuestProgress(session);
+          const message=session.notice;
+          closePanel();
+          setMessage(message);
+        }catch(err){setMessage('DIALOGUE FAILED: '+err.message);}
+      };
+      content.append(button);
+    }
+  }else if(activePanel==='map'){ 
     $('journalTitle').textContent='World Map';
     if(!session.atlas){
       content.append(element('p','journal-empty','This is a single-room adventure. Add a Room Atlas in Layer Studio to reveal connected locations.'));
@@ -286,9 +312,15 @@ function frame(now) {
     let runs=0;
     while(accumulator>=STEP && runs<6){
       const before={health:game.health,deaths:game.deaths,petrified:game.petrified,keyCollected:game.keyCollected,eventVersion:game.eventVersion,inventoryCount:session.inventory.size,
-        questVersion:session.questVersion,flagVersion:session.flagVersion};
+        questVersion:session.questVersion,flagVersion:session.flagVersion,
+        storyVersion:session.storyVersion};
       const outcome=stepWorldSession(session,controls(pad),STEP);
       game=session.game;
+      if(outcome.storyOpen){
+        togglePanel('story');
+        edge.jump=false;edge.fire=false;edge.interact=false;accumulator=0;
+        break;
+      }
       if(outcome.travelled){scene=session.scene;fitCanvas();setMessage('ENTERED '+scene.title.toUpperCase()+'. EXPLORE THE NEW ROOM.');}
       else if(outcome.denied)setMessage(session.notice);
       edge.jump=false;edge.fire=false;edge.interact=false;
@@ -304,11 +336,12 @@ function frame(now) {
   if(ctx){
     const cam=cameraFor(game,scene.width);
     const split=scene.layers.length-1;
-    renderScene(ctx,scene,game.time,{cameraX:cam,endLayer:split,reducedMotion});
+    const visibleScene=storyScene(session);
+    renderScene(ctx,visibleScene,game.time,{cameraX:cam,endLayer:split,reducedMotion});
     renderPuzzle(ctx,game,{cameraX:cam,width:scene.width,height:scene.height,reducedMotion,hud:false});
     renderRelics(ctx,session,cam);
     renderPortals(ctx,session,cam);
-    renderScene(ctx,scene,game.time,{cameraX:cam,startLayer:split,clear:false,reducedMotion});
+    renderScene(ctx,visibleScene,game.time,{cameraX:cam,startLayer:split,clear:false,reducedMotion});
     renderDirectorLighting(ctx,game.puzzle.director,cam,scene.width,scene.height);
     renderPuzzleHud(ctx,game,{width:scene.width,height:scene.height});
     renderPortalPrompt(ctx,session,scene.width,scene.height);
