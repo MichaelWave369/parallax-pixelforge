@@ -237,6 +237,31 @@
           <label>PHASE 3 NAME<input id="bossPhase3Name" type="text" maxlength="72"></label>
           <label>PHASE 3 ATTACK SECONDS<input id="bossPhase3Interval" type="number" min=".45" max="6" step=".05"></label>
           <label>PHASE 3 ORB SPEED<input id="bossPhase3Speed" type="number" min="70" max="550" step="5"></label>
+          <label>PHASE 1 WARNING SECONDS<input id="bossPhase1Telegraph" type="number" min=".15" max="5.9" step=".05"></label>
+          <label>PHASE 1 WARNING TEXT<input id="bossPhase1Cue" type="text" maxlength="70"></label>
+          <label>PHASE 2 WARNING SECONDS<input id="bossPhase2Telegraph" type="number" min=".15" max="5.9" step=".05"></label>
+          <label>PHASE 2 WARNING TEXT<input id="bossPhase2Cue" type="text" maxlength="70"></label>
+          <label>PHASE 3 WARNING SECONDS<input id="bossPhase3Telegraph" type="number" min=".15" max="5.9" step=".05"></label>
+          <label>PHASE 3 WARNING TEXT<input id="bossPhase3Cue" type="text" maxlength="70"></label>
+        </div>
+        <div class="field-rule"><span>RUNG 10 / TELEGRAPH &amp; CINEMATIC TIMELINES</span></div>
+        <p class="small-note">Boss attacks lock their lane before firing. Each phase has its own warning duration and visible cue text. Intro and victory scenes play as timed story beats that can be skipped.</p>
+        <div class="puzzle-fields">
+          <label>INTRO BEAT 1 TITLE<input id="bossIntroBeat1Title" type="text" maxlength="70"></label>
+          <label>INTRO BEAT 1 WORDS<input id="bossIntroBeat1Text" type="text" maxlength="220"></label>
+          <label>INTRO BEAT 1 SECONDS<input id="bossIntroBeat1Seconds" type="number" min=".7" max="7" step=".1"></label>
+          <label>INTRO BEAT 2 TITLE<input id="bossIntroBeat2Title" type="text" maxlength="70"></label>
+          <label>INTRO BEAT 2 WORDS<input id="bossIntroBeat2Text" type="text" maxlength="220"></label>
+          <label>INTRO BEAT 2 SECONDS<input id="bossIntroBeat2Seconds" type="number" min=".7" max="7" step=".1"></label>
+          <label>INTRO BEAT 3 TITLE<input id="bossIntroBeat3Title" type="text" maxlength="70"></label>
+          <label>INTRO BEAT 3 WORDS<input id="bossIntroBeat3Text" type="text" maxlength="220"></label>
+          <label>INTRO BEAT 3 SECONDS<input id="bossIntroBeat3Seconds" type="number" min=".7" max="7" step=".1"></label>
+          <label>VICTORY BEAT 1 TITLE<input id="bossVictoryBeat1Title" type="text" maxlength="70"></label>
+          <label>VICTORY BEAT 1 WORDS<input id="bossVictoryBeat1Text" type="text" maxlength="220"></label>
+          <label>VICTORY BEAT 1 SECONDS<input id="bossVictoryBeat1Seconds" type="number" min=".7" max="7" step=".1"></label>
+          <label>VICTORY BEAT 2 TITLE<input id="bossVictoryBeat2Title" type="text" maxlength="70"></label>
+          <label>VICTORY BEAT 2 WORDS<input id="bossVictoryBeat2Text" type="text" maxlength="220"></label>
+          <label>VICTORY BEAT 2 SECONDS<input id="bossVictoryBeat2Seconds" type="number" min=".7" max="7" step=".1"></label>
         </div>
         <p id="bossStatus" class="small-note">Boss stages are optional and never alter older single-room scenes.</p>
         <p id="atlasStatus" class="small-note">Single-room mode. Your existing scene remains fully playable.</p>
