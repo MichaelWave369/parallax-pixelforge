@@ -4,6 +4,7 @@ import {
 } from './engine.js';
 import {normalizePuzzle,startPuzzle,renderPuzzle} from './puzzle.js';
 import {importTileStudio,importSpriteStudio,renderTileWorld,tileCellsNear} from './studio-bridge.js';
+import {normalizeDirector,renderDirectorLighting,renderDirectorGuides} from './world-director.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -12,6 +13,7 @@ const KEY = 'pixelforge.layer-scene.v1.local';
 let scene = createScene();
 let selectedId = scene.layers[3].id;
 let selectedPuzzle='enemy:0';
+let selectedDirector='trigger:0';
 let puzzlePreviewState=null;
 let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 let solo = false;
@@ -131,6 +133,7 @@ function syncScene() {
   syncInspector();
   syncPuzzleControls();
   syncArtBridgeControls();
+  syncDirectorControls();
 }
 const bindings = [
   ['layerName','name',v => v.slice(0,80)],
@@ -306,6 +309,117 @@ $('removeTileWorld').onclick=()=>{
 $('removeActor').onclick=()=>{
   scene.playable.actor=null;syncPuzzleControls();syncArtBridgeControls();
   flash('Built-in hero restored.');
+};
+function directorChoices(){
+  const d=scene.playable.director;
+  return [
+    ...d.triggers.map((x,i)=>({value:'trigger:'+i,label:(x.kind==='checkpoint'?'Checkpoint: ':'Message: ')+x.id})),
+    ...d.cameras.map((x,i)=>({value:'camera:'+i,label:'Camera: '+x.id})),
+    ...d.lights.map((x,i)=>({value:'light:'+i,label:'Light: '+x.id}))
+  ];
+}
+function activeDirector(){
+  const [kind,index]=selectedDirector.split(':');
+  const d=scene.playable.director;
+  const collection=kind==='trigger'?d.triggers:kind==='camera'?d.cameras:kind==='light'?d.lights:[];
+  return {kind,collection,item:collection[Number(index)]||null};
+}
+function syncDirectorControls(){
+  scene.playable.director=normalizeDirector(scene.playable.director);
+  const d=scene.playable.director;
+  const choices=directorChoices(),select=$('directorObject');
+  if(!choices.some(x=>x.value===selectedDirector))selectedDirector=choices[0]?.value||'';
+  select.replaceChildren();
+  if(!choices.length){
+    const option=document.createElement('option');option.textContent='No objects';option.value='';
+    select.append(option);
+  }else for(const choice of choices){
+    const option=document.createElement('option');option.textContent=choice.label;option.value=choice.value;
+    select.append(option);
+  }
+  select.value=selectedDirector;
+  const {kind,item}=activeDirector();
+  const isTrigger=kind==='trigger'&&Boolean(item);
+  const isCamera=kind==='camera'&&Boolean(item);
+  const isLight=kind==='light'&&Boolean(item);
+  const fields={
+    directorX:[item?.x??0,Boolean(item)],
+    directorY:[item?.y??0,isTrigger||isLight],
+    directorW:[item?.w??0,isTrigger||isCamera],
+    directorH:[item?.h??0,isTrigger],
+    directorKind:[item?.kind??'message',isTrigger],
+    directorMessage:[item?.message??'',isTrigger],
+    directorFocus:[item?.focus??.38,isCamera],
+    directorRadius:[item?.radius??240,isLight],
+    directorIntensity:[item?.intensity??1,isLight],
+    directorColor:[item?.color??'#ffcf93',isLight]
+  };
+  for(const [id,[value,enabled]] of Object.entries(fields)){
+    $(id).value=value;$(id).disabled=!enabled;
+  }
+  $('directorAmbient').value=d.ambient;
+  $('removeDirector').disabled=!item;
+  $('addMessage').disabled=d.triggers.length>=32;
+  $('addCheckpoint').disabled=d.triggers.length>=32;
+  $('addCamera').disabled=d.cameras.length>=16;
+  $('addLight').disabled=d.lights.length>=24;
+  $('directorStatus').textContent=d.triggers.length+' event zones · '+d.cameras.length+
+    ' camera regions · '+d.lights.length+' light pools · '+Math.round(d.ambient*100)+'% ambient darkness.';
+  puzzlePreviewState=startPuzzle(scene);
+}
+$('directorObject').onchange=e=>{selectedDirector=e.target.value;syncDirectorControls();};
+const directorBindings={
+  directorX:'x',directorY:'y',directorW:'w',directorH:'h',
+  directorKind:'kind',directorMessage:'message',directorFocus:'focus',
+  directorRadius:'radius',directorIntensity:'intensity',directorColor:'color'
+};
+for(const [id,key] of Object.entries(directorBindings)){
+  $(id).onchange=e=>{
+    const {item}=activeDirector();if(!item||!(key in item))return;
+    const value=['kind','message','color'].includes(key)?e.target.value:Number(e.target.value);
+    if(typeof value==='number'&&!Number.isFinite(value)){syncDirectorControls();return;}
+    item[key]=value;
+    syncDirectorControls();
+  };
+}
+$('directorAmbient').oninput=e=>{
+  scene.playable.director.ambient=Number(e.target.value);
+  $('directorStatus').textContent='Ambient darkness: '+Math.round(scene.playable.director.ambient*100)+'%';
+};
+$('directorAmbient').onchange=syncDirectorControls;
+function directorNextId(prefix){
+  const all=[...scene.playable.director.triggers,...scene.playable.director.cameras,...scene.playable.director.lights];
+  const taken=new Set(all.map(x=>x.id));let i=1;while(taken.has(prefix+'-'+i))i++;
+  return prefix+'-'+i;
+}
+function addWorldObject(kind){
+  const d=scene.playable.director,baseX=Math.max(0,Math.min(5900,scene.camera.x+330));
+  let index;
+  if(kind==='message'||kind==='checkpoint'){
+    if(d.triggers.length>=32)return;
+    d.triggers.push({id:directorNextId(kind),kind,x:baseX,y:385,w:130,h:115,
+      message:kind==='checkpoint'?'BEACON ACTIVATED':'A NEW PASSAGE OPENS.',once:true});
+    index='trigger:'+(d.triggers.length-1);
+  }else if(kind==='camera'){
+    if(d.cameras.length>=16)return;
+    d.cameras.push({id:directorNextId(kind),x:baseX,w:420,focus:.55});
+    index='camera:'+(d.cameras.length-1);
+  }else{
+    if(d.lights.length>=24)return;
+    d.lights.push({id:directorNextId('light'),x:baseX,y:310,radius:220,
+      intensity:.9,color:'#ffcf93'});
+    index='light:'+(d.lights.length-1);
+  }
+  selectedDirector=index;syncDirectorControls();flash('World object added. Position it in world coordinates.');
+}
+$('addMessage').onclick=()=>addWorldObject('message');
+$('addCheckpoint').onclick=()=>addWorldObject('checkpoint');
+$('addCamera').onclick=()=>addWorldObject('camera');
+$('addLight').onclick=()=>addWorldObject('light');
+$('removeDirector').onclick=()=>{
+  const {collection,item}=activeDirector();if(!item)return;
+  collection.splice(collection.indexOf(item),1);
+  selectedDirector='';syncDirectorControls();flash('World object removed.');
 };
 function puzzleObjects(){
   return [
@@ -517,6 +631,11 @@ function tick(now) {
         renderPuzzle(ctx,puzzlePreviewState,{cameraX:scene.camera.x,width:scene.width,height:scene.height,hud:false,reducedMotion});
       }
     }
+    const director=scene.playable.director;
+    if($('previewLighting').checked)
+      renderDirectorLighting(ctx,director,scene.camera.x,scene.width,scene.height);
+    if($('directorPreview').checked)
+      renderDirectorGuides(ctx,director,scene.camera.x,scene.width,scene.height);
   }
   requestAnimationFrame(tick);
 }
