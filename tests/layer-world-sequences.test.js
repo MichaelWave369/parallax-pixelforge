@@ -35,7 +35,7 @@ test('starter Stone Archive is authored in Lantern Vault and contributes a quest
   assert.equal(room.sequences.tracks[0].id,'the-stone-archive');
   assert.equal(room.sequences.tracks[0].beats.length,3);
   assert.equal(room.sequences.tracks[0].beats[1].focusX,1320);
-  assert.deepEqual(worldSequenceFlags(root.atlas),['archive-revealed']);
+  assert.deepEqual(worldSequenceFlags(root.atlas),['archive-revealed','fork-decided','echo-honored','echo-silenced','promise-kept','chamber-hushed']);
   assert.equal(knownWorldFlags(root.atlas).includes('archive-revealed'),true);
   assert.deepEqual(normalizeScene(JSON.parse(JSON.stringify(root))).atlas,root.atlas);
 });

@@ -92,3 +92,10 @@
 .atlas-builder #sequenceStatus{color:#c9b4ed;font:650 11px/1.55 ui-monospace,monospace}
 .atlas-builder input[id^="sequence"],.atlas-builder select[id^="sequence"]{min-width:0}
 .atlas-builder #sequenceCompletionFlag,.atlas-builder #sequenceBeatCue{font-family:ui-monospace,monospace;font-size:11px}
+
+
+/* Rung 13: fit choice labels and conditional flags in the Room Atlas inspector. */
+.atlas-builder #sequenceChoiceFlag,.atlas-builder #sequenceUnlessFlag{
+  font-family:ui-monospace,monospace;font-size:11px
+}
+.atlas-builder #sequenceChoiceLabel,.atlas-builder #sequenceChoiceSelect{min-width:0}

@@ -37,7 +37,7 @@ function awaken(session){
 }
 test('starter quest requires a relic, visiting Reliquary and a real World Director flag',()=>{
   const root=world(),session=createWorldSession(root);
-  assert.deepEqual(knownWorldFlags(root.atlas),['reliquary-awakened','reliquary-lit','reliquary-silent','ash-warden-fallen','archive-revealed']);
+  assert.deepEqual(knownWorldFlags(root.atlas),['reliquary-awakened','reliquary-lit','reliquary-silent','ash-warden-fallen','archive-revealed','fork-decided','echo-honored','echo-silenced','promise-kept','chamber-hushed']);
   assert.equal(root.atlas.quests.length,1);
   assert.equal(root.atlas.quests[0].objectives.length,3);
   assert.deepEqual(root.atlas.quests[0].objectives.map(o=>o.kind),['relic','visit','flag']);

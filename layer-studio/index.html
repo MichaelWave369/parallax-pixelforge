@@ -290,6 +290,7 @@
           <label>ACTIVATION WIDTH<input id="sequenceW" type="number" min="16" max="800"></label>
           <label>ACTIVATION HEIGHT<input id="sequenceH" type="number" min="16" max="800"></label>
           <label>NEEDS WORLD FLAG<select id="sequenceRequiresFlag"></select></label>
+          <label>LOCK IF WORLD FLAG EXISTS<select id="sequenceUnlessFlag"></select></label>
           <label>COMPLETION FLAG<input id="sequenceCompletionFlag" type="text" maxlength="64" placeholder="archive-revealed"></label>
           <label class="atlas-checkbox">ONCE ONLY<input id="sequenceOnce" type="checkbox" checked></label>
           <label class="atlas-checkbox">PREVIEW SEQUENCE ZONES<input id="sequenceGuides" type="checkbox" checked></label>
@@ -312,6 +313,18 @@
           <button id="addSequenceBeat" type="button">+ Story beat</button>
           <button id="removeSequenceBeat" type="button">Remove beat</button>
         </div>
+        <div class="field-rule"><span>RUNG 13 / BRANCHING DISCOVERIES</span></div>
+        <p class="small-note">Add up to three choices to a discovery. Completing it requires an explicit answer. Each answer can set a different persistent world flag, unlocking or blocking a follow-up track.</p>
+        <div class="puzzle-fields">
+          <label>PLAYER CHOICE<select id="sequenceChoiceSelect"></select></label>
+          <label>CHOICE LABEL<input id="sequenceChoiceLabel" type="text" maxlength="90" placeholder="Carry the promise"></label>
+          <label>CHOICE WORLD FLAG<input id="sequenceChoiceFlag" type="text" maxlength="64" placeholder="echo-honored"></label>
+        </div>
+        <div class="puzzle-buttons">
+          <button id="addSequenceChoice" type="button">+ Choice</button>
+          <button id="removeSequenceChoice" type="button">Remove choice</button>
+        </div>
+        <p class="small-note">Use Requires Flag and Lock If Flag Exists to build follow-up branches. Once-only discoveries prevent choosing both outcomes in one adventure.</p>
         <p id="sequenceStatus" class="small-note">Create a Room Atlas to author discoveries.</p>
         <p id="atlasStatus" class="small-note">Single-room mode. Your existing scene remains fully playable.</p>
       </section>

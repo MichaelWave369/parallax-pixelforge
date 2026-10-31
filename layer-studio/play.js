@@ -7,7 +7,7 @@ import {evaluateQuestLine,refreshQuestProgress} from './quest-world.js';
 import {storyScene,chooseDialogue} from './living-story.js';
 import {currentBoss,beginBossBattle,renderBossStage,renderBossHud,createBossTimeline,stepBossTimeline} from './boss-stage.js';
 import {createCinematicDirector,stepCinematicDirector,cinematicView} from './cinematic-director.js';
-import {createWorldTimeline,activeWorldTrack,completeWorldSequence,cancelWorldSequence} from './world-sequences.js';
+import {createWorldTimeline,activeWorldTrack,worldSequenceChoices,completeWorldSequence,cancelWorldSequence} from './world-sequences.js';
 
 const $=id=>document.getElementById(id);
 const SCENE_KEY='pixelforge.layer-studio.play-scene.v1';
@@ -29,6 +29,7 @@ let scene=session.scene,game=session.game,paused=false;
 let activePanel='';
 let bossTimeline=null;
 let cinematicDirector=null;
+let selectedSequenceChoiceIndex=0;
 function fitCanvas(){
   canvas.width=scene.width;canvas.height=scene.height;
   canvas.style.aspectRatio=scene.width+' / '+scene.height;
@@ -59,9 +60,26 @@ window.addEventListener('keydown',e=>{
   if(controlKeys.has(e.code))e.preventDefault();
   if(e.repeat)return;
   if(e.code==='Escape'&&activePanel){closePanel();return;}
-  if(activePanel==='world-sequence'&&['KeyE','Enter','Space'].includes(e.code)){
-    const earned=completeWorldSequence(session);refreshQuestProgress(session);
-    closePanel();setMessage(earned?'DISCOVERED: '+earned.id:session.notice);return;
+  if(activePanel==='world-sequence'){
+    const choices=worldSequenceChoices(session);
+    if(choices.length&&bossTimeline?.finished){
+      if(['ArrowUp','ArrowDown'].includes(e.code)){
+        selectedSequenceChoiceIndex=(selectedSequenceChoiceIndex+
+          (e.code==='ArrowDown'?1:choices.length-1))%choices.length;
+        renderPanel();return;
+      }
+      if(/^Digit[1-3]$/.test(e.code)){
+        const choice=choices[Number(e.code.slice(5))-1];
+        if(choice)finishWorldSequence(choice.id);
+        return;
+      }
+    }
+    if(['KeyE','Enter','Space'].includes(e.code)){
+      if(choices.length&&!bossTimeline?.finished)skipToWorldChoices();
+      else finishWorldSequence(choices.length?
+        choices[selectedSequenceChoiceIndex]?.id:null);
+      return;
+    }
   }
   if(activePanel==='boss-victory'&&['KeyE','Enter','Space'].includes(e.code)){
     closePanel();setMessage(session.notice);return;
@@ -150,6 +168,7 @@ function closePanel(){
   activePanel='';
   bossTimeline=null;
   cinematicDirector=null;
+  selectedSequenceChoiceIndex=0;
   $('journalPanel').hidden=true;
   clearMovement();
   last=0;accumulator=0;
@@ -160,6 +179,7 @@ function togglePanel(name){
   if(activePanel==='world-sequence')cancelWorldSequence(session);
   if(activePanel==='boss-intro')beginBossBattle(session);
   activePanel=name;
+  selectedSequenceChoiceIndex=0;
   bossTimeline=name==='world-sequence'?createWorldTimeline(session):
     ['boss-intro','boss-victory'].includes(name)?
     createBossTimeline(currentBoss(session),name==='boss-intro'?'intro':'victory'):null;
@@ -175,6 +195,21 @@ function element(tag,klass,label){
   if(label!=null)node.textContent=String(label);
   return node;
 }
+function finishWorldSequence(choiceId=null){
+  const earned=completeWorldSequence(session,choiceId);
+  if(!earned)return false; // Never dismiss or reward an unchosen branch.
+  refreshQuestProgress(session);
+  closePanel();
+  setMessage('DISCOVERED: '+earned.id.toUpperCase());
+  return true;
+}
+function skipToWorldChoices(){
+  if(!bossTimeline)return;
+  bossTimeline.index=bossTimeline.beats.length-1;
+  bossTimeline.elapsed=bossTimeline.beats[bossTimeline.index].seconds;
+  bossTimeline.finished=true;
+  renderPanel();
+}
 function renderPanel(){
   const panel=$('journalPanel'),content=$('journalContent');
   panel.hidden=false;content.replaceChildren();
@@ -188,8 +223,10 @@ function renderPanel(){
     content.append(element('h3','boss-timeline-title',beat?.title||'THE DISCOVERY'));
     content.append(element('p','boss-cinematic-intro',beat?.text||'A secret is revealed.'));
     if(beat?.cue)content.append(element('p','boss-director-caption',beat.cue));
-    content.append(element('p','journal-note',
-      'Finish the sequence to record this discovery. Closing with Escape cancels it.'));
+    const choices=worldSequenceChoices(session);
+    content.append(element('p','journal-note',choices.length?
+      'Your decision changes the world. Follow-up discoveries respond to the path you choose.':
+      'Finish this sequence to record your discovery. Escape cancels without rewards.'));
     if(timeline&&!timeline.finished){
       const next=element('button','boss-timeline-next','NEXT BEAT');
       next.onclick=()=>{
@@ -200,15 +237,30 @@ function renderPanel(){
       };
       content.append(next);
     }
-    const finish=element('button','story-choice boss-start',
-      timeline?.finished?'COMPLETE DISCOVERY':'SKIP & COMPLETE DISCOVERY');
-    finish.onclick=()=>{
-      const earned=completeWorldSequence(session);
-      refreshQuestProgress(session);
-      closePanel();
-      if(earned)setMessage('DISCOVERED: '+earned.id.toUpperCase());
-    };
-    content.append(finish);
+    if(choices.length){
+      if(!timeline?.finished){
+        const skip=element('button','story-choice boss-start','SKIP TO THE DECISION');
+        skip.onclick=skipToWorldChoices;
+        content.append(skip);
+      }else{
+        content.append(element('p','sequence-decision-heading','YOUR DECISION'));
+        for(const [i,choice] of choices.entries()){
+          const button=element('button','story-choice sequence-choice'+
+            (i===selectedSequenceChoiceIndex?' sequence-choice-selected':''),
+            (i+1)+'. '+choice.label);
+          button.setAttribute('aria-pressed',String(i===selectedSequenceChoiceIndex));
+          button.onclick=()=>finishWorldSequence(choice.id);
+          content.append(button);
+        }
+        content.append(element('p','journal-note',
+          'Choose with click/tap, 1–3, or ↑↓ then Enter / Xbox X.'));
+      }
+    }else{
+      const finish=element('button','story-choice boss-start',
+        timeline?.finished?'COMPLETE DISCOVERY':'SKIP & COMPLETE DISCOVERY');
+      finish.onclick=()=>finishWorldSequence();
+      content.append(finish);
+    }
   }else if(activePanel==='boss-intro'||activePanel==='boss-victory'){
     const boss=currentBoss(session),victory=activePanel==='boss-victory';
     $('journalTitle').textContent=victory?'Victory · '+(boss?.name||'Guardian'):
@@ -400,9 +452,10 @@ function frame(now) {
   const pad=pollPad();
   if(['boss-intro','boss-victory','world-sequence'].includes(activePanel)&&edge.interact){
     if(activePanel==='world-sequence'){
-      const earned=completeWorldSequence(session);
-      refreshQuestProgress(session);
-      closePanel();setMessage(earned?'DISCOVERED: '+earned.id.toUpperCase():session.notice);
+      const choices=worldSequenceChoices(session);
+      if(choices.length&&!bossTimeline?.finished)skipToWorldChoices();
+      else finishWorldSequence(choices.length?
+        choices[selectedSequenceChoiceIndex]?.id:null);
     }else{closePanel();setMessage(session.notice);}
   }
   if(bossTimeline&&['boss-intro','boss-victory','world-sequence'].includes(activePanel)&&!paused){
