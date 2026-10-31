@@ -157,6 +157,7 @@ test('forged save flags are removed and cannot fabricate quest completion',()=>{
 test('legacy worlds retain their original Rung 6 save fingerprint when new defaults are empty',()=>{
   const old=world();
   delete old.atlas.quests;
+  for(const trigger of old.playable.director.triggers)delete trigger.flagId;
   // Strip the Rung 7-only authoring fields as they did not exist in prior files.
   for(const room of old.atlas.rooms){
     for(const portal of room.portals){delete portal.requiresFlag;delete portal.requiresQuest;}
