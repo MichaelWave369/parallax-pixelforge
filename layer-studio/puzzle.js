@@ -187,7 +187,7 @@ export function stepPuzzle(state,input={},dt=1/60) {
     projectile.x+=projectile.vx*delta;
     projectile.ttl-=delta;
     for(const enemy of state.enemies){
-      if(enemy.stone||projectile.ttl<0)continue;
+      if(enemy.stone||enemy.dormant||projectile.ttl<0)continue;
       if(rectOverlap(projectile,enemy)){
         enemy.stone=true;
         state.petrified++;
@@ -201,7 +201,7 @@ export function stepPuzzle(state,input={},dt=1/60) {
   state.effects=state.effects.filter(e=>(e.ttl-=delta)>0);
   if(p.y>750)respawn(state);
   for(const enemy of state.enemies){
-    if(!enemy.stone&&p.invulnerable===0&&rectOverlap(p,enemy)){
+    if(!enemy.stone&&!enemy.dormant&&p.invulnerable===0&&rectOverlap(p,enemy)){
       state.health--;
       if(state.health<=0){state.health=3;respawn(state);}
       else {
@@ -291,7 +291,7 @@ export function renderPuzzle(ctx,state,options={}) {
     ctx.moveTo(16,-3);ctx.lineTo(16,6);ctx.moveTo(22,-3);ctx.lineTo(22,3);
     ctx.stroke();ctx.restore();
   }
-  for(const enemy of state.enemies){if(enemy.stone)drawStone(ctx,enemy);else drawWraith(ctx,enemy,t);}
+  for(const enemy of state.enemies){if(enemy.dormant)continue;if(enemy.stone)drawStone(ctx,enemy);else drawWraith(ctx,enemy,t);}
   for(const shot of state.shots){
     ctx.fillStyle='#8fe5e4';ctx.fillRect(shot.x-6,shot.y-4,shot.w+12,shot.h+8);
     ctx.fillStyle='#fff8d1';ctx.fillRect(shot.x,shot.y,shot.w,shot.h);
