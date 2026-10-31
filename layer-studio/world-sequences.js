@@ -6,7 +6,8 @@ import {normalizeCinematicCue} from './cinematic-director.js';
 export const WORLD_SEQUENCE_SCHEMA='pixelforge.layer-world-sequences.v1';
 const finite=(n,f,min,max)=>Number.isFinite(Number(n))?Math.max(min,Math.min(max,Number(n))):f;
 const text=(v,f,max)=>typeof v==='string'?v.slice(0,max):f;
-const id=(v,f)=>typeof v==='string'&&/^[a-z0-9][a-z0-9:_-]{0,63}$/.test(v)?v:f;
+const id=(v,f)=>typeof v==='string'&&/^[a-z0-9][a-z0-9:_-]{0,63}$/.test(v)&&
+  !/^(?:javascript|vbscript|data|file|https?):/i.test(v)?v:f;
 const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 export function normalizeWorldSequences(value){
   if(value==null)return null; // Additive opt-in, old rooms stay byte-identical.
