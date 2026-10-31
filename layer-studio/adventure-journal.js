@@ -2,6 +2,7 @@
 // Explicit save/load only. No background persistence, network calls or executable data.
 import {createWorldSession,availableRelicKeys,snapshotRoom,restoreRoom} from './room-atlas.js';
 import {knownWorldFlags,refreshQuestProgress} from './quest-world.js';
+import {initializeStoryRoom} from './living-story.js';
 export const SAVE_SCHEMA='pixelforge.layer-save.v1';
 export const SLOT_COUNT=3;
 const clamp=(value,fallback,min,max)=>{
@@ -116,6 +117,7 @@ export function restoreSave(rootScene,data){
   session.game=createWorldSession(session.scene).game;
   session.game.worldTravel=Boolean(session.atlas);
   restoreRoom(session.game,safe[data.roomId]);
+  initializeStoryRoom(session); // Reactivate only encounters earned in this room.
   session.game.health=clamp(data.health,3,1,3);
   session.game.deaths=clamp(data.deaths,0,0,100000);
   session.game.status=!session.atlas&&data.status==='won'?'won':'playing';
