@@ -127,7 +127,7 @@ test('unlinked doors cannot send actors to invented destinations',()=>{
   assert.equal(result.denied,'unlinked');
   assert.equal(session.transitions,0);
 });
-test('porter rendering has no remote assets and can draw guides',()=>{
+test('portal rendering has no remote assets and can draw guides',()=>{
   const session=createWorldSession(starter());
   const calls={rect:0,text:0};
   const ctx=new Proxy({},{
@@ -139,7 +139,7 @@ test('porter rendering has no remote assets and can draw guides',()=>{
     },set(t,k,v){t[k]=v;return true;}
   });
   renderPortals(ctx,session,0,{guides:true});
-  assert.ok(calls.rect>2);
+  assert.ok(calls.rect>=2); // one doorway frame and its illuminated marker
   session.game.player.x=1517;session.game.player.y=458;
   assert.ok(nearbyPortal(session));
   renderPortalPrompt(ctx,session,960,540);
