@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Stonebridge Challenge | PixelForge Layer Studio</title>
+  <link rel="stylesheet" href="./play.css">
+</head>
+<body>
+<header class="top">
+  <a href="./" class="back">← Layer Studio</a>
+  <div class="heading"><small>PIXELFORGE / 2.5D PLAY LAB</small><strong>STONEBRIDGE CHALLENGE</strong></div>
+  <div class="actions"><button type="button" id="pause">Pause</button><button type="button" id="restart">Restart ↻</button></div>
+</header>
+<main>
+  <div class="intro">
+    <div><span class="eyebrow">RUNG 02 / PETRIFICATION PHYSICS</span>
+      <h1>Make your enemies <em>your bridge.</em></h1>
+      <p>Turn the spirit over the chasm into stone. Jump onto your new platform, retrieve the golden key, and reach the cathedral exit.</p></div>
+    <div class="legend"><b>OBJECTIVE</b><span>STATUE → BRIDGE → KEY → GATE</span></div>
+  </div>
+  <div class="canvas-shell">
+    <canvas id="game" width="960" height="540" aria-label="PixelForge playable stone bridge platformer demonstration"></canvas>
+    <div class="corner-mark">Φ369 · LAYER RUNTIME</div>
+  </div>
+  <div class="bottom">
+    <div id="message" class="message" role="status" aria-live="polite">Aim across the chasm. A stone spirit can carry your weight.</div>
+    <div class="keys"><span>A / D or ← / → MOVE</span><span>W / SPACE JUMP</span><span>F / ENTER STONE RAY</span><span>R RESTART</span></div>
+  </div>
+  <div class="touch-controls" aria-label="Touch game controls">
+    <div class="group"><button id="touchLeft" aria-label="Move left">◀</button><button id="touchRight" aria-label="Move right">▶</button></div>
+    <div class="group"><button id="touchJump" class="jump">JUMP</button><button id="touchFire" class="fire">STONE RAY</button></div>
+  </div>
+  <p class="scope">Local-only browser prototype. Your composed planes are loaded from the editor when possible; this challenge has simple one-way platforms and a deterministic game loop. No network services or copyrighted game assets.</p>
+</main>
+<script type="module" src="./play.js"></script>
+</body>
+</html>
