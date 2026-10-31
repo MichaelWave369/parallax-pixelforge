@@ -53,3 +53,18 @@
   .save-row{display:grid}.save-actions{justify-content:start}
   .map-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .map-room{min-height:120px;padding:11px}}
+
+
+/* Rung 07 / Quest Journal: compact readable objective progression. */
+.quest-card{display:grid;gap:9px;padding:17px;margin:14px 0;border:1px solid #5a737c;
+  border-radius:11px;background:#18313d}
+.quest-card.complete{border-color:#8ad1b0;background:#1b3b36}
+.quest-card>strong{font-size:17px;color:#ffe1ae}
+.quest-card.complete>strong{color:#b4efd0}
+.quest-card .quest-count{font:800 10px ui-monospace,monospace;letter-spacing:1.1px;color:#a4cbc8}
+.quest-card p{margin:0 0 4px;color:#bdd4d3;line-height:1.6;font-size:13px}
+.quest-objective{border-left:2px solid #6d8391;padding:8px 12px;background:#142733;
+  font-size:12px;line-height:1.5;color:#b8c7d1}
+.quest-objective.done{border-color:#a0e7bf;color:#c7f5d9}
+.world-flag{padding:10px 14px;border:1px solid #6a8b84;border-radius:8px;
+  margin:8px 0;background:#213e40;color:#b7eddf;font:12px ui-monospace,monospace}
