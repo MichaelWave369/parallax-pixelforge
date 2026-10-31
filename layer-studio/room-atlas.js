@@ -1,6 +1,7 @@
 // PixelForge Rung 05 / Room Atlas. Bounded multi-room scene data and local-only travel.
 // Rooms reuse Layer Scene v1; links are declarative, never scriptable.
 import {startPuzzle,stepPuzzle} from './puzzle.js';
+import {normalizeQuestLine,consumeWorldEvents,refreshQuestProgress} from './quest-world.js';
 
 export const ATLAS_SCHEMA='pixelforge.layer-atlas.v1';
 const bounded=(v,fallback,low,high)=>Number.isFinite(Number(v))?Math.max(low,Math.min(high,Number(v))):fallback;
@@ -21,6 +22,8 @@ function sanitizePortal(p,i){
     arrivalY:bounded(p?.arrivalY,458,-200,750),
     requiresKey:p?.requiresKey===true,
     requiresRelic:text(p?.requiresRelic,'',130),
+    requiresFlag:text(p?.requiresFlag,'',64),
+    requiresQuest:text(p?.requiresQuest,'',64),
     label:text(p?.label,'PASSAGE',60)
   };
 }
@@ -75,7 +78,8 @@ export function normalizeAtlas(source,normalizeRoom){
   }
   // Dangling relic requirements remain visibly locked, never silently become open doors.
   const startRoom=ids.has(source.startRoom)?source.startRoom:rooms[0].id;
-  return {schema:ATLAS_SCHEMA,startRoom,rooms};
+  return {schema:ATLAS_SCHEMA,startRoom,rooms,
+    quests:normalizeQuestLine(source.quests)};
 }
 export function makeStarterAtlas(scene,normalizeRoom){
   const first=stripAtlas(normalizeRoom(stripAtlas(scene)));
@@ -92,11 +96,18 @@ export function makeStarterAtlas(scene,normalizeRoom){
   second.playable.key={x:1180,y:455};
   second.playable.gate={x:1500,y:424};
   second.playable.director={schema:'pixelforge.layer-director.v1',ambient:.5,triggers:[
-    {id:'reliquary-whisper',kind:'message',x:230,y:355,w:125,h:145,
-      message:'THE RELIQUARY STILL REMEMBERS.',once:true}
+    {id:'reliquary-whisper',kind:'flag',flagId:'reliquary-awakened',x:230,y:355,w:125,h:145,
+      message:'THE RELIQUARY AWAKENS. A NEW PATH MAY BE OPEN.',once:true}
   ],cameras:[],lights:[{id:'relic-lamp',x:315,y:320,radius:350,intensity:1,color:'#a3d9e9'}]};
   return normalizeAtlas({
     schema:ATLAS_SCHEMA,startRoom:'lantern-vault',
+    quests:[{id:'oath-of-the-reliquary',title:'The Reliquary Oath',
+      description:'Carry a light beyond the vault and awaken what sleeps beneath.',
+      objectives:[
+        {id:'carry-light',kind:'relic',target:'lantern-vault:lantern-shard',label:'Recover the Lantern Shard'},
+        {id:'cross-threshold',kind:'visit',target:'reliquary',label:'Enter the Forgotten Reliquary'},
+        {id:'wake-relic',kind:'flag',target:'reliquary-awakened',label:'Awaken the ancient chamber'}
+      ]}],
     rooms:[
       {id:'lantern-vault',title:first.title,scene:first,relics:[
         {id:'lantern-shard',name:'Lantern Shard',x:320,y:360}
@@ -121,8 +132,11 @@ export function createWorldSession(rootScene){
   const scene=room?room.scene:rootScene;
   const game=startPuzzle(scene);
   game.worldTravel=Boolean(atlas);
-  return {atlas,roomId,scene,game,snapshots:{},inventory:new Set(),
-    visitedRooms:new Set(atlas?[roomId]:[]),transitions:0,notice:'',noticeLeft:0};
+  const session={atlas,roomId,scene,game,snapshots:{},inventory:new Set(),
+    visitedRooms:new Set(atlas?[roomId]:[]),worldFlags:new Set(),completedQuests:new Set(),
+    flagVersion:0,questVersion:0,transitions:0,notice:'',noticeLeft:0};
+  refreshQuestProgress(session,{silent:true});
+  return session;
 }
 export function nearbyPortal(session){
   if(!session.atlas)return null;
@@ -149,6 +163,7 @@ export function restoreRoom(game,progress){
 export function stepWorldSession(session,input={},dt=1/60){
   const game=session.game;
   stepPuzzle(game,input,dt);
+  consumeWorldEvents(session);
   if(session.atlas&&game.status==='playing'){
     const room=session.atlas.rooms.find(r=>r.id===session.roomId);
     for(const relic of room?.relics||[]){
@@ -162,6 +177,7 @@ export function stepWorldSession(session,input={},dt=1/60){
       }
     }
   }
+  refreshQuestProgress(session);
   session.noticeLeft=Math.max(0,session.noticeLeft-dt);
   if(!session.noticeLeft)session.notice='';
   if(!session.atlas||!input.interactPressed||game.status!=='playing')return {travelled:false};
@@ -172,6 +188,16 @@ export function stepWorldSession(session,input={},dt=1/60){
     session.notice='THIS DOOR LEADS NOWHERE.';
     session.noticeLeft=3;
     return {travelled:false,denied:'unlinked'};
+  }
+  if(door.requiresFlag&&!session.worldFlags.has(door.requiresFlag)){
+    session.notice='THE WORLD HAS NOT CHANGED ENOUGH FOR THIS PASSAGE.';
+    session.noticeLeft=3;
+    return {travelled:false,denied:'flag'};
+  }
+  if(door.requiresQuest&&!session.completedQuests.has(door.requiresQuest)){
+    session.notice='COMPLETE THE REQUIRED QUEST TO OPEN THIS PASSAGE.';
+    session.noticeLeft=3;
+    return {travelled:false,denied:'quest'};
   }
   if(door.requiresRelic&&!session.inventory.has(door.requiresRelic)){
     session.notice='A RELIC IS REQUIRED TO OPEN THIS DOOR.';
@@ -199,6 +225,7 @@ export function stepWorldSession(session,input={},dt=1/60){
   session.roomId=target.id;
   session.game=next;
   session.visitedRooms.add(target.id);
+  refreshQuestProgress(session);
   session.transitions++;
   session.notice='ENTERED '+target.title.toUpperCase();
   session.noticeLeft=3.5;
@@ -212,7 +239,9 @@ export function renderPortals(ctx,session,cameraX=0,{guides=false}={}){
   ctx.translate(-Math.round(cameraX),0);
   for(const portal of room.portals){
     const open=(!portal.requiresKey||session.game.keyCollected) &&
-      (!portal.requiresRelic||session.inventory?.has(portal.requiresRelic)) && portal.targetRoom;
+      (!portal.requiresRelic||session.inventory?.has(portal.requiresRelic)) &&
+      (!portal.requiresFlag||session.worldFlags?.has(portal.requiresFlag)) &&
+      (!portal.requiresQuest||session.completedQuests?.has(portal.requiresQuest)) && portal.targetRoom;
     const x=portal.x,y=portal.y,w=portal.w,h=portal.h;
     ctx.fillStyle=open?'#165956b8':'#3a3448c9';
     ctx.fillRect(x,y,w,h);
@@ -234,7 +263,9 @@ export function renderPortalPrompt(ctx,session,viewWidth=960,viewHeight=540){
   const message=session.noticeLeft>0?session.notice:door?
     !door.targetRoom?'UNLINKED PASSAGE':door.requiresKey&&!session.game.keyCollected?
     'FIND THE KEY TO OPEN THIS DOOR':door.requiresRelic&&!session.inventory.has(door.requiresRelic)?
-    'FIND THE REQUIRED RELIC':'PRESS E / X TO ENTER '+door.label:'';
+    'FIND THE REQUIRED RELIC':door.requiresFlag&&!session.worldFlags?.has(door.requiresFlag)?
+    'ACTIVATE THE WORLD FLAG FIRST':door.requiresQuest&&!session.completedQuests?.has(door.requiresQuest)?
+    'COMPLETE THE REQUIRED QUEST':'PRESS E / X TO ENTER '+door.label:'';
   if(!message)return;
   ctx.save();ctx.fillStyle='#061624de';ctx.fillRect(18,viewHeight-75,Math.max(100,viewWidth-36),45);
   ctx.fillStyle='#fff0c3';ctx.font='bold 13px ui-monospace,monospace';
@@ -268,7 +299,7 @@ export function atlasMapData(session){
   const edges=session.atlas.rooms.flatMap(room=>room.portals
     .filter(p=>p.targetRoom).map(p=>({
       from:room.id,to:p.targetRoom,label:p.label,requiresKey:p.requiresKey,
-      requiresRelic:p.requiresRelic||''
+      requiresRelic:p.requiresRelic||'',requiresFlag:p.requiresFlag||'',requiresQuest:p.requiresQuest||''
     })));
   return {rooms,edges};
 }

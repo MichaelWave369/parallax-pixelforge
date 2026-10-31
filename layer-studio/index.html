@@ -119,6 +119,8 @@
           <label>DESTINATION Y<input id="portalArrivalY" type="number" min="-200" max="750" step="1"></label>
           <label class="atlas-checkbox">REQUIRES THIS ROOM'S KEY <input id="portalRequiresKey" type="checkbox"></label>
           <label>REQUIRED RELIC<select id="portalRequiresRelic"></select></label>
+          <label>REQUIRED WORLD FLAG<select id="portalRequiresFlag"></select></label>
+          <label>REQUIRED QUEST<select id="portalRequiresQuest"></select></label>
         </div>
         <div class="puzzle-buttons">
           <button id="addPortal" type="button">+ Linked doorway</button>
@@ -136,6 +138,28 @@
           <button id="addRelic" type="button">+ Collectible relic</button>
           <button id="removeRelic" type="button">Remove relic</button>
         </div>
+        <div class="field-rule"><span>RUNG 07 / QUESTS &amp; WORLD STATE</span></div>
+        <p class="small-note">Quests track collected relics, visited chambers, and world flags. Completed quests can unlock passages without scripts.</p>
+        <div class="puzzle-fields">
+          <label>QUEST<select id="questSelect"></select></label>
+          <label>QUEST TITLE<input id="questTitle" type="text" maxlength="80"></label>
+          <label>QUEST DESCRIPTION<input id="questDescription" type="text" maxlength="220"></label>
+          <label>OBJECTIVE<select id="objectiveSelect"></select></label>
+          <label>OBJECTIVE TYPE<select id="objectiveKind">
+            <option value="relic">Collect relic</option>
+            <option value="visit">Visit room</option>
+            <option value="flag">Activate world flag</option>
+          </select></label>
+          <label>OBJECTIVE TARGET<select id="objectiveTarget"></select></label>
+          <label>OBJECTIVE LABEL<input id="objectiveLabel" type="text" maxlength="100"></label>
+        </div>
+        <div class="puzzle-buttons">
+          <button id="addQuest" type="button">+ Quest</button>
+          <button id="removeQuest" type="button">Remove quest</button>
+          <button id="addObjective" type="button">+ Objective</button>
+          <button id="removeObjective" type="button">Remove objective</button>
+        </div>
+        <p id="questStatus" class="small-note">Create an adventure to author multi-room quests.</p>
         <p id="atlasStatus" class="small-note">Single-room mode. Your existing scene remains fully playable.</p>
       </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
@@ -147,7 +171,8 @@
         </div>
         <div class="puzzle-fields">
           <label>SELECT WORLD OBJECT<select id="directorObject"></select></label>
-          <label>TRIGGER ACTION<select id="directorKind"><option value="message">Message</option><option value="checkpoint">Checkpoint</option></select></label>
+          <label>TRIGGER ACTION<select id="directorKind"><option value="message">Message</option><option value="checkpoint">Checkpoint</option><option value="flag">World flag</option></select></label>
+          <label>WORLD FLAG ID<input id="directorFlagId" type="text" maxlength="64" pattern="[a-z0-9][a-z0-9:_-]*" placeholder="ancient-door-awakened"></label>
           <label>WORLD X<input id="directorX" type="number" step="1"></label>
           <label>WORLD Y<input id="directorY" type="number" step="1"></label>
           <label>ZONE WIDTH<input id="directorW" type="number" min="8" max="2400"></label>
@@ -162,6 +187,7 @@
         <div class="puzzle-buttons">
           <button id="addMessage" type="button">+ Message zone</button>
           <button id="addCheckpoint" type="button">+ Checkpoint</button>
+          <button id="addFlag" type="button">+ World flag zone</button>
           <button id="addCamera" type="button">+ Camera region</button>
           <button id="addLight" type="button">+ Light pool</button>
           <button id="removeDirector" type="button">Delete selected</button>

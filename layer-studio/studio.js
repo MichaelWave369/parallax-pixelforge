@@ -6,6 +6,7 @@ import {normalizePuzzle,startPuzzle,renderPuzzle} from './puzzle.js';
 import {importTileStudio,importSpriteStudio,renderTileWorld,tileCellsNear} from './studio-bridge.js';
 import {normalizeDirector,renderDirectorLighting,renderDirectorGuides} from './world-director.js';
 import {makeStarterAtlas,stripAtlas,renderPortals,renderRelics} from './room-atlas.js';
+import {knownWorldFlags,normalizeQuestLine} from './quest-world.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('sceneCanvas');
@@ -18,6 +19,8 @@ let selectedDirector='trigger:0';
 let activeRoomId=null;
 let selectedPortalIndex=0;
 let selectedRelicIndex=0;
+let selectedQuestIndex=0;
+let selectedObjectiveIndex=0;
 let puzzlePreviewState=null;
 let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 let solo = false;
@@ -337,7 +340,8 @@ function adoptActiveRoom(){
 function loadActiveRoom(){
   adoptActiveRoom();
   selectedId=scene.layers[0].id;
-  selectedPuzzle='spawn';selectedDirector='';selectedPortalIndex=0;selectedRelicIndex=0;elapsed=0;
+  selectedPuzzle='spawn';selectedDirector='';selectedPortalIndex=0;selectedRelicIndex=0;
+  selectedQuestIndex=0;selectedObjectiveIndex=0;elapsed=0;
   syncScene();
 }
 function currentPortal(){
@@ -371,6 +375,20 @@ function syncAtlasControls(){
   for(const [id,label] of [['','Unlinked passage'],...rooms.map(r=>[r.id,r.title])]){
     const option=document.createElement('option');option.value=id;option.textContent=label;target.append(option);
   }
+  const authoredRooms=rooms.map(r=>r.id===activeRoomId?{...r,scene:stripAtlas(scene)}:r);
+  const flagChoices=knownWorldFlags({rooms:authoredRooms});
+  const requiredFlags=$('portalRequiresFlag');requiredFlags.replaceChildren();
+  for(const flag of ['',...flagChoices]){
+    const option=document.createElement('option');option.value=flag;
+    option.textContent=flag||'No flag required';requiredFlags.append(option);
+  }
+  requiredFlags.value=p?.requiresFlag||'';
+  const requiredQuests=$('portalRequiresQuest');requiredQuests.replaceChildren();
+  for(const choice of [{id:'',title:'No quest required'},...(atlas?.quests||[])]){
+    const option=document.createElement('option');option.value=choice.id;
+    option.textContent=choice.title;requiredQuests.append(option);
+  }
+  requiredQuests.value=p?.requiresQuest||'';
   const relicChoices=rooms.flatMap(r=>(r.relics||[]).map(relic=>({
     key:r.id+':'+relic.id,label:r.title+' / '+relic.name
   })));
@@ -414,12 +432,14 @@ function syncAtlasControls(){
   $('removePortal').disabled=!p;
   for(const id of ['atlasRoom','atlasRoomTitle','atlasPortal'])$(id).disabled=!room;
   for(const id of ['portalLabel','portalTarget','portalX','portalY','portalW','portalH',
-    'portalArrivalX','portalArrivalY','portalRequiresKey','portalRequiresRelic'])$(id).disabled=!p;
+    'portalArrivalX','portalArrivalY','portalRequiresKey','portalRequiresRelic',
+    'portalRequiresFlag','portalRequiresQuest'])$(id).disabled=!p;
   $('atlasStatus').textContent=atlas?
     rooms.length+' linked rooms · '+rooms.reduce((n,r)=>n+r.portals.length,0)+
     ' doors · current: '+room?.title+' · starts: '+rooms.find(r=>r.id===atlas.startRoom)?.title+
     '. Export JSON preserves every room.':
     'Single-room mode. Create a two-room adventure to author doors and connected worlds.';
+  syncQuestControls();
 }
 $('makeAtlas').onclick=()=>{
   if(scene.atlas)return;
@@ -502,6 +522,11 @@ $('portalRequiresKey').onchange=e=>{
 $('portalRequiresRelic').onchange=e=>{
   const p=currentPortal();if(!p)return;p.requiresRelic=e.target.value;syncAtlasControls();
 };
+for(const [control,key] of [['portalRequiresFlag','requiresFlag'],['portalRequiresQuest','requiresQuest']]){
+  $(control).onchange=e=>{
+    const p=currentPortal();if(!p)return;p[key]=e.target.value;syncAtlasControls();
+  };
+}
 $('atlasRelic').onchange=e=>{
   selectedRelicIndex=Number(e.target.value)||0;syncAtlasControls();
 };
@@ -548,10 +573,138 @@ $('removePortal').onclick=()=>{
   room.portals.splice(selectedPortalIndex,1);
   selectedPortalIndex=0;syncAtlasControls();flash('Door removed.');
 };
+function selectedQuest(){
+  return scene.atlas?.quests?.[selectedQuestIndex]||null;
+}
+function selectedObjective(){
+  return selectedQuest()?.objectives?.[selectedObjectiveIndex]||null;
+}
+function questTargetChoices(kind){
+  const atlas=scene.atlas;
+  if(!atlas)return [];
+  if(kind==='visit')return atlas.rooms.map(r=>({value:r.id,label:'Visit: '+r.title}));
+  if(kind==='relic')return atlas.rooms.flatMap(r=>(r.relics||[])
+    .map(relic=>({value:r.id+':'+relic.id,label:r.title+' / '+relic.name})));
+  if(kind==='flag'){
+    const rooms=atlas.rooms.map(r=>r.id===activeRoomId?{...r,scene:stripAtlas(scene)}:r);
+    return knownWorldFlags({rooms}).map(value=>({value,label:'Activate: '+value}));
+  }
+  return [];
+}
+function syncQuestControls(){
+  const atlas=scene.atlas;
+  const quests=atlas?.quests||[];
+  if(selectedQuestIndex>=quests.length)selectedQuestIndex=0;
+  const quest=selectedQuest(),select=$('questSelect');
+  select.replaceChildren();
+  for(const [i,q] of quests.entries()){
+    const option=document.createElement('option');option.value=String(i);
+    option.textContent=q.title;select.append(option);
+  }
+  if(quest)select.value=String(selectedQuestIndex);
+  if(selectedObjectiveIndex>=(quest?.objectives.length||0))selectedObjectiveIndex=0;
+  const objective=selectedObjective(),objectives=$('objectiveSelect');
+  objectives.replaceChildren();
+  for(const [i,o] of (quest?.objectives||[]).entries()){
+    const option=document.createElement('option');option.value=String(i);
+    option.textContent=o.label;objectives.append(option);
+  }
+  if(objective)objectives.value=String(selectedObjectiveIndex);
+  $('questTitle').value=quest?.title||'';
+  $('questDescription').value=quest?.description||'';
+  $('objectiveLabel').value=objective?.label||'';
+  $('objectiveKind').value=objective?.kind==='invalid'?'relic':objective?.kind||'visit';
+  const targets=$('objectiveTarget');targets.replaceChildren();
+  const choices=questTargetChoices(objective?.kind);
+  for(const choice of choices){
+    const option=document.createElement('option');
+    option.value=choice.value;option.textContent=choice.label;targets.append(option);
+  }
+  if(objective&&!choices.some(choice=>choice.value===objective.target)){
+    const option=document.createElement('option');option.value=objective.target;
+    option.textContent=objective.target?'Missing target: '+objective.target:'Select a valid target';
+    targets.append(option);
+  }
+  if(objective)targets.value=objective.target;
+  for(const id of ['questSelect','questTitle','questDescription'])$(id).disabled=!quest;
+  for(const id of ['objectiveSelect','objectiveLabel','objectiveKind','objectiveTarget'])
+    $(id).disabled=!objective;
+  $('addQuest').disabled=!atlas||quests.length>=12;
+  $('removeQuest').disabled=!quest;
+  $('addObjective').disabled=!quest||quest.objectives.length>=6;
+  $('removeObjective').disabled=!objective;
+  $('questStatus').textContent=atlas?
+    quests.length+' quests · '+quests.reduce((n,q)=>n+q.objectives.length,0)+
+    ' objectives · Complete objectives to unlock quest-gated doors.':
+    'Create a multi-room adventure to author quests.';
+}
+$('questSelect').onchange=e=>{
+  selectedQuestIndex=Number(e.target.value)||0;selectedObjectiveIndex=0;syncQuestControls();
+};
+$('objectiveSelect').onchange=e=>{
+  selectedObjectiveIndex=Number(e.target.value)||0;syncQuestControls();
+};
+for(const [control,key] of [['questTitle','title'],['questDescription','description']]){
+  $(control).onchange=e=>{
+    const quest=selectedQuest();if(!quest)return;
+    quest[key]=e.target.value.slice(0,key==='title'?80:220);
+    scene.atlas.quests=normalizeQuestLine(scene.atlas.quests);
+    syncAtlasControls();
+  };
+}
+$('objectiveKind').onchange=e=>{
+  const obj=selectedObjective();if(!obj)return;
+  obj.kind=e.target.value;
+  obj.target=questTargetChoices(obj.kind)[0]?.value||'';
+  syncQuestControls();
+};
+$('objectiveTarget').onchange=e=>{
+  const obj=selectedObjective();if(!obj)return;obj.target=e.target.value;
+  syncQuestControls();
+};
+$('objectiveLabel').onchange=e=>{
+  const obj=selectedObjective();if(!obj)return;
+  obj.label=e.target.value.slice(0,100);
+  syncQuestControls();
+};
+function nextQuestId(){
+  const ids=new Set((scene.atlas.quests||[]).map(q=>q.id));
+  let i=1;while(ids.has('quest-'+i))i++;
+  return 'quest-'+i;
+}
+$('addQuest').onclick=()=>{
+  const atlas=scene.atlas;if(!atlas||atlas.quests.length>=12)return;
+  atlas.quests.push({id:nextQuestId(),title:'New quest',description:'Write this quest\'s story here.',
+    objectives:[]});
+  selectedQuestIndex=atlas.quests.length-1;selectedObjectiveIndex=0;
+  syncAtlasControls();flash('Quest added. Add a room, relic or world-flag objective.');
+};
+$('removeQuest').onclick=()=>{
+  const atlas=scene.atlas,quest=selectedQuest();if(!atlas||!quest)return;
+  atlas.quests.splice(selectedQuestIndex,1);
+  for(const room of atlas.rooms)for(const portal of room.portals)
+    if(portal.requiresQuest===quest.id)portal.requiresQuest='';
+  selectedQuestIndex=0;selectedObjectiveIndex=0;syncAtlasControls();
+  flash('Quest removed. Its linked door requirements were cleared.');
+};
+$('addObjective').onclick=()=>{
+  const quest=selectedQuest();if(!quest||quest.objectives.length>=6)return;
+  let i=1;const used=new Set(quest.objectives.map(o=>o.id));
+  while(used.has('objective-'+i))i++;
+  const kind='visit',target=questTargetChoices(kind).at(-1)?.value||'';
+  quest.objectives.push({id:'objective-'+i,kind,target,label:'Visit the chamber'});
+  selectedObjectiveIndex=quest.objectives.length-1;
+  syncQuestControls();flash('Objective added. Select its condition and destination.');
+};
+$('removeObjective').onclick=()=>{
+  const quest=selectedQuest(),objective=selectedObjective();if(!quest||!objective)return;
+  quest.objectives.splice(selectedObjectiveIndex,1);
+  selectedObjectiveIndex=0;syncQuestControls();
+};
 function directorChoices(){
   const d=scene.playable.director;
   return [
-    ...d.triggers.map((x,i)=>({value:'trigger:'+i,label:(x.kind==='checkpoint'?'Checkpoint: ':'Message: ')+x.id})),
+    ...d.triggers.map((x,i)=>({value:'trigger:'+i,label:(x.kind==='checkpoint'?'Checkpoint: ':x.kind==='flag'?'World flag: ':'Message: ')+x.id})),
     ...d.cameras.map((x,i)=>({value:'camera:'+i,label:'Camera: '+x.id})),
     ...d.lights.map((x,i)=>({value:'light:'+i,label:'Light: '+x.id}))
   ];
@@ -587,6 +740,7 @@ function syncDirectorControls(){
     directorH:[item?.h??0,isTrigger],
     directorKind:[item?.kind??'message',isTrigger],
     directorMessage:[item?.message??'',isTrigger],
+    directorFlagId:[item?.flagId??'',isTrigger&&item?.kind==='flag'], 
     directorFocus:[item?.focus??.38,isCamera],
     directorRadius:[item?.radius??240,isLight],
     directorIntensity:[item?.intensity??1,isLight],
@@ -599,6 +753,7 @@ function syncDirectorControls(){
   $('removeDirector').disabled=!item;
   $('addMessage').disabled=d.triggers.length>=32;
   $('addCheckpoint').disabled=d.triggers.length>=32;
+  $('addFlag').disabled=d.triggers.length>=32;
   $('addCamera').disabled=d.cameras.length>=16;
   $('addLight').disabled=d.lights.length>=24;
   $('directorStatus').textContent=d.triggers.length+' event zones · '+d.cameras.length+
@@ -608,16 +763,17 @@ function syncDirectorControls(){
 $('directorObject').onchange=e=>{selectedDirector=e.target.value;syncDirectorControls();};
 const directorBindings={
   directorX:'x',directorY:'y',directorW:'w',directorH:'h',
-  directorKind:'kind',directorMessage:'message',directorFocus:'focus',
+  directorKind:'kind',directorMessage:'message',directorFlagId:'flagId',directorFocus:'focus',
   directorRadius:'radius',directorIntensity:'intensity',directorColor:'color'
 };
 for(const [id,key] of Object.entries(directorBindings)){
   $(id).onchange=e=>{
     const {item}=activeDirector();if(!item||!(key in item))return;
-    const value=['kind','message','color'].includes(key)?e.target.value:Number(e.target.value);
+    const value=['kind','message','color','flagId'].includes(key)?e.target.value:Number(e.target.value);
     if(typeof value==='number'&&!Number.isFinite(value)){syncDirectorControls();return;}
     item[key]=value;
     syncDirectorControls();
+    if(key==='flagId'||key==='kind')syncAtlasControls();
   };
 }
 $('directorAmbient').oninput=e=>{
@@ -633,10 +789,11 @@ function directorNextId(prefix){
 function addWorldObject(kind){
   const d=scene.playable.director,baseX=Math.max(0,Math.min(5900,scene.camera.x+330));
   let index;
-  if(kind==='message'||kind==='checkpoint'){
+  if(kind==='message'||kind==='checkpoint'||kind==='flag'){ 
     if(d.triggers.length>=32)return;
-    d.triggers.push({id:directorNextId(kind),kind,x:baseX,y:385,w:130,h:115,
-      message:kind==='checkpoint'?'BEACON ACTIVATED':'A NEW PASSAGE OPENS.',once:true});
+    const triggerId=directorNextId(kind);
+    d.triggers.push({id:triggerId,kind,flagId:kind==='flag'?triggerId:'',x:baseX,y:385,w:130,h:115,
+      message:kind==='checkpoint'?'BEACON ACTIVATED':kind==='flag'?'WORLD STATE CHANGED':'A NEW PASSAGE OPENS.',once:true});
     index='trigger:'+(d.triggers.length-1);
   }else if(kind==='camera'){
     if(d.cameras.length>=16)return;
@@ -652,6 +809,7 @@ function addWorldObject(kind){
 }
 $('addMessage').onclick=()=>addWorldObject('message');
 $('addCheckpoint').onclick=()=>addWorldObject('checkpoint');
+$('addFlag').onclick=()=>{addWorldObject('flag');syncAtlasControls();};
 $('addCamera').onclick=()=>addWorldObject('camera');
 $('addLight').onclick=()=>addWorldObject('light');
 $('removeDirector').onclick=()=>{

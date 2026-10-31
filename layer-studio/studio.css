@@ -45,3 +45,12 @@
 .atlas-builder .puzzle-buttons .small-note{flex:1;min-width:180px;color:#94bcb8;font-size:11px}
 @media(max-width:850px){.atlas-builder .puzzle-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.atlas-builder .puzzle-fields{grid-template-columns:1fr}}
+
+
+/* Rung 07: visually group quest authoring without changing the shared inspector grammar. */
+.atlas-builder .field-rule{margin-top:18px}
+.atlas-builder #questDescription,.atlas-builder #objectiveLabel{width:100%}
+.atlas-builder #portalRequiresFlag,.atlas-builder #portalRequiresQuest{min-width:0}
+.atlas-builder #questStatus{color:#9ad8c1;font:600 11px/1.55 ui-monospace,monospace}
+.director-builder #directorFlagId{font-family:ui-monospace,monospace;letter-spacing:.02em}
+.director-builder #directorFlagId:disabled{opacity:.4}

@@ -3,6 +3,7 @@ import {startPuzzle,stepPuzzle,renderPuzzle,renderPuzzleHud,cameraFor} from './p
 import {renderDirectorLighting} from './world-director.js';
 import {createWorldSession,stepWorldSession,renderPortals,renderPortalPrompt,renderRelics,atlasMapData} from './room-atlas.js';
 import {writeSaveSlot,readSaveSlot,inspectSaveSlot,deleteSaveSlot,SLOT_COUNT} from './adventure-journal.js';
+import {evaluateQuestLine} from './quest-world.js';
 
 const $=id=>document.getElementById(id);
 const SCENE_KEY='pixelforge.layer-studio.play-scene.v1';
@@ -30,7 +31,7 @@ function fitCanvas(){
 fitCanvas();
 const keys=new Set(),touch=new Set(),edge={jump:false,fire:false,interact:false};
 let lastJumpPad=false,lastFirePad=false,lastInteractPad=false;
-const controlKeys=new Set(['ArrowLeft','ArrowRight','ArrowUp','KeyA','KeyD','KeyW','Space','Enter','KeyF','KeyK','KeyR','KeyP','KeyE','KeyM','KeyI','KeyJ','Escape']);
+const controlKeys=new Set(['ArrowLeft','ArrowRight','ArrowUp','KeyA','KeyD','KeyW','Space','Enter','KeyF','KeyK','KeyR','KeyP','KeyE','KeyM','KeyI','KeyJ','KeyQ','Escape']);
 function setMessage(s){if($('message').textContent!==s)$('message').textContent=s;}
 function reset(){
   session=createWorldSession(rootScene);
@@ -55,6 +56,7 @@ window.addEventListener('keydown',e=>{
   if(e.code==='KeyM'){togglePanel('map');return;}
   if(e.code==='KeyI'){togglePanel('inventory');return;}
   if(e.code==='KeyJ'){togglePanel('saves');return;}
+  if(e.code==='KeyQ'){togglePanel('quests');return;}
   if(activePanel)return;
   keys.add(e.code);
   if(['ArrowUp','KeyW','Space'].includes(e.code))edge.jump=true;
@@ -111,6 +113,8 @@ function updateMessage(old){
   if(game.status==='won')setMessage('VAULT CLEARED! The stone bridge led you to the key and the exit.');
   else if(!old.keyCollected&&game.keyCollected)setMessage('KEY ACQUIRED. The cathedral gate is unlocked. Head right!');
   else if(old.petrified!==game.petrified)setMessage('PETRIFIED! The spirit is now a solid stone platform. Jump onto it.');
+  else if(old.questVersion!==session.questVersion)setMessage(session.notice);
+  else if(old.flagVersion!==session.flagVersion)setMessage(session.notice);
   else if(old.inventoryCount!==session.inventory.size)setMessage(session.notice);
   else if(old.deaths!==game.deaths)setMessage(game.checkpoint?'Returned to the activated beacon.':'Back to the courtyard. The statues and key remain until restart.');
   else if(old.health!==game.health)setMessage('A spirit struck you! Keep some distance and fire your stone ray.');
@@ -169,9 +173,36 @@ function renderPanel(){
       content.append(element('p','map-edge',current?.title+' → '+
         (destination?.visited?destination.title:'Unexplored chamber')+
         (edge.requiresKey?' · room key':'')+
-        (edge.requiresRelic?' · relic gate':'')));
+        (edge.requiresRelic?' · relic gate':'')+
+        (edge.requiresFlag?' · world-state gate':'')+
+        (edge.requiresQuest?' · quest gate':'')));
     }
-  }else if(activePanel==='inventory'){
+  }else if(activePanel==='quests'){
+    $('journalTitle').textContent='Quest Journal';
+    if(!session.atlas){
+      content.append(element('p','journal-empty','This single-room challenge has no Room Atlas quest line. Create an adventure in Layer Studio to author objectives.'));
+      return;
+    }
+    const quests=evaluateQuestLine(session.atlas,session);
+    content.append(element('p','journal-note','Progress is earned from relics, explored rooms and world-state events. Completed quests can unlock sealed doors.'));
+    if(!quests.length)content.append(element('p','journal-empty','No quests have been authored for this adventure.'));
+    for(const quest of quests){
+      const card=element('section','quest-card'+(quest.done?' complete':''));
+      card.append(element('strong',null,(quest.done?'✓ ':'◇ ')+quest.title));
+      card.append(element('small','quest-count',quest.done?'COMPLETE':quest.completed+' / '+quest.total+' OBJECTIVES'));
+      card.append(element('p',null,quest.description));
+      for(const objective of quest.objectives){
+        card.append(element('div','quest-objective'+(objective.done?' done':''),
+          (objective.done?'✓ ':'○ ')+objective.label));
+      }
+      if(!quest.total)card.append(element('p','journal-empty','This quest has no authored objectives yet.'));
+      content.append(card);
+    }
+    const flags=[...(session.worldFlags||[])];
+    content.append(element('h3',null,'World State'));
+    if(!flags.length)content.append(element('p','journal-empty','No world-state flags have been activated yet.'));
+    for(const flag of flags)content.append(element('div','world-flag','✦ '+flag.replace(/[-_:]/g,' ')));
+  }else if(activePanel==='inventory'){ 
     $('journalTitle').textContent='Inventory';
     if(!session.atlas){
       content.append(element('p','journal-empty','The single-room challenge has its usual local gate key. Create a Room Atlas to collect persistent relics.'));
@@ -241,6 +272,7 @@ function renderPanel(){
 }
 $('mapButton').onclick=()=>togglePanel('map');
 $('inventoryButton').onclick=()=>togglePanel('inventory');
+$('questButton').onclick=()=>togglePanel('quests');
 $('journalButton').onclick=()=>togglePanel('saves');
 $('closeJournal').onclick=closePanel;
 let last=0,accumulator=0;
@@ -253,7 +285,8 @@ function frame(now) {
     accumulator+=dt;
     let runs=0;
     while(accumulator>=STEP && runs<6){
-      const before={health:game.health,deaths:game.deaths,petrified:game.petrified,keyCollected:game.keyCollected,eventVersion:game.eventVersion,inventoryCount:session.inventory.size};
+      const before={health:game.health,deaths:game.deaths,petrified:game.petrified,keyCollected:game.keyCollected,eventVersion:game.eventVersion,inventoryCount:session.inventory.size,
+        questVersion:session.questVersion,flagVersion:session.flagVersion};
       const outcome=stepWorldSession(session,controls(pad),STEP);
       game=session.game;
       if(outcome.travelled){scene=session.scene;fitCanvas();setMessage('ENTERED '+scene.title.toUpperCase()+'. EXPLORE THE NEW ROOM.');}
