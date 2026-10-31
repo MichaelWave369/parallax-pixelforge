@@ -113,7 +113,8 @@ export function makeStarterAtlas(scene,normalizeRoom){
     variants:[{id:'lit-arches',layerId:second.layers.find(l=>l.kind==='arches')?.id||'',
       whenFlag:'reliquary-lit',mode:'reveal'}],
     encounters:[{id:'hall-guardian',x:920,y:392,w:120,h:108,
-      enemyId:'hall-wraith',message:'THE HALL GUARDIAN STIRS.'}]
+      enemyId:'hall-wraith',requiresFlag:'reliquary-lit',
+      message:'THE REKINDLED LIGHT HAS AWAKENED THE HALL GUARDIAN.'}]
   });
   return normalizeAtlas({
     schema:ATLAS_SCHEMA,startRoom:'lantern-vault',
