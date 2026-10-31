@@ -707,6 +707,198 @@ $('removeObjective').onclick=()=>{
   quest.objectives.splice(selectedObjectiveIndex,1);
   selectedObjectiveIndex=0;syncQuestControls();
 };
+function emptyStory(){
+  return {schema:STORY_SCHEMA,dialogues:[],encounters:[],variants:[]};
+}
+function editStory(){
+  const room=currentRoom();if(!room)return null;
+  if(!room.story)room.story=emptyStory();
+  return room.story;
+}
+function storyList(){
+  return currentRoom()?.story||null;
+}
+function storySelected(kind){
+  const story=storyList();
+  const idx=kind==='dialogues'?selectedStoryDialogue:
+    kind==='encounters'?selectedStoryEncounter:selectedStoryVariant;
+  return story?.[kind]?.[idx]||null;
+}
+function fillStorySelect(id,items,index,label){
+  const select=$(id);select.replaceChildren();
+  for(const [i,item] of (items||[]).entries()){
+    const option=document.createElement('option');
+    option.value=String(i);option.textContent=label(item);
+    select.append(option);
+  }
+  if((items||[]).length)select.value=String(index);
+  select.disabled=!(items||[]).length;
+}
+function fillStoryOptions(id,choices,selected){
+  const select=$(id);select.replaceChildren();
+  for(const [value,title] of choices){
+    const option=document.createElement('option');
+    option.value=value;option.textContent=title;
+    select.append(option);
+  }
+  if(selected&&!choices.some(([v])=>v===selected)){
+    const option=document.createElement('option');
+    option.value=selected;option.textContent='Missing: '+selected;
+    select.append(option);
+  }
+  select.value=selected||'';
+}
+function syncStoryControls(){
+  const room=currentRoom(),story=storyList();
+  const dialogues=story?.dialogues||[],encounters=story?.encounters||[],
+    variants=story?.variants||[];
+  if(selectedStoryDialogue>=dialogues.length)selectedStoryDialogue=0;
+  if(selectedStoryEncounter>=encounters.length)selectedStoryEncounter=0;
+  if(selectedStoryVariant>=variants.length)selectedStoryVariant=0;
+  fillStorySelect('storyDialogue',dialogues,selectedStoryDialogue,d=>d.speaker+' / '+d.id);
+  fillStorySelect('storyEncounter',encounters,selectedStoryEncounter,e=>e.id+' / '+e.enemyId);
+  fillStorySelect('storyVariant',variants,selectedStoryVariant,v=>v.id+' / '+v.layerId);
+  const d=storySelected('dialogues'),e=storySelected('encounters'),v=storySelected('variants');
+  const dFields={
+    storySpeaker:d?.speaker??'',storyText:d?.text??'',
+    storyX:d?.x??0,storyY:d?.y??0,storyW:d?.w??110,storyH:d?.h??120,
+    storyChoiceA:d?.choices?.[0]?.label??'',
+    storyChoiceAFlag:d?.choices?.[0]?.setFlag??'',
+    storyChoiceB:d?.choices?.[1]?.label??'',
+    storyChoiceBFlag:d?.choices?.[1]?.setFlag??''
+  };
+  for(const [id,value] of Object.entries(dFields)){
+    $(id).value=value;$(id).disabled=!d;
+  }
+  $('storyOnce').checked=d?.once??true;$('storyOnce').disabled=!d;
+  const roomFlags=scene.atlas?knownWorldFlags({rooms:scene.atlas.rooms
+    .map(r=>r.id===activeRoomId?{...r,scene:stripAtlas(scene)}:r)}):[];
+  const flagOpts=[['','No flag required'],...roomFlags.map(v=>[v,v])];
+  fillStoryOptions('storyRequiresFlag',flagOpts,d?.requiresFlag||'');
+  $('storyRequiresFlag').disabled=!d;
+  fillStoryOptions('storyEncounterFlag',flagOpts,e?.requiresFlag||'');
+  $('storyEncounterFlag').disabled=!e;
+  const eFields={
+    storyEncounterMessage:e?.message??'',
+    storyEncounterX:e?.x??0,storyEncounterY:e?.y??0,
+    storyEncounterW:e?.w??110,storyEncounterH:e?.h??120
+  };
+  for(const [id,value] of Object.entries(eFields)){$(id).value=value;$(id).disabled=!e;}
+  fillStoryOptions('storyEncounterEnemy',scene.playable.enemies.map(enemy=>[enemy.id,enemy.id]),e?.enemyId||'');
+  $('storyEncounterEnemy').disabled=!e;
+  fillStoryOptions('storyVariantLayer',scene.layers.map(l=>[l.id,l.name]),v?.layerId||'');
+  $('storyVariantLayer').disabled=!v;
+  fillStoryOptions('storyVariantFlag',flagOpts,v?.whenFlag||'');
+  $('storyVariantFlag').disabled=!v;
+  $('storyVariantMode').value=v?.mode??'reveal';
+  $('storyVariantMode').disabled=!v;
+  fillStoryOptions('storyPreviewFlag',[['','Before story choices'],...roomFlags.map(f=>[f,'After: '+f])],previewStoryFlag);
+  $('storyPreviewFlag').disabled=!room;
+  $('addStoryDialogue').disabled=!room||dialogues.length>=12;
+  $('removeStoryDialogue').disabled=!d;
+  $('addStoryEncounter').disabled=!room||encounters.length>=12;
+  $('removeStoryEncounter').disabled=!e;
+  $('addStoryVariant').disabled=!room||variants.length>=24;
+  $('removeStoryVariant').disabled=!v;
+  $('storyStatus').textContent=room?
+    dialogues.length+' conversations · '+encounters.length+' guardian zones · '+
+    variants.length+' scenery rules · These events travel with '+room.title+'.':
+    'Create a Room Atlas to author dialogue and living story events.';
+}
+function storyId(items,prefix){
+  const seen=new Set(items.map(x=>x.id));let i=1;
+  while(seen.has(prefix+'-'+i))i++;
+  return prefix+'-'+i;
+}
+$('storyDialogue').onchange=value=>{selectedStoryDialogue=Number(value.target.value)||0;syncStoryControls();};
+$('storyEncounter').onchange=value=>{selectedStoryEncounter=Number(value.target.value)||0;syncStoryControls();};
+$('storyVariant').onchange=value=>{selectedStoryVariant=Number(value.target.value)||0;syncStoryControls();};
+$('storyPreviewFlag').onchange=e=>{previewStoryFlag=e.target.value;syncStoryControls();};
+function updateStoryField(kind,key,value){
+  const item=storySelected(kind);if(!item)return;
+  item[key]=value;
+  if(key==='requiresFlag'||key==='whenFlag'||key==='setFlag')
+    syncAtlasControls();
+  else syncStoryControls();
+}
+for(const [elementId,kind,key] of [
+  ['storySpeaker','dialogues','speaker'],['storyText','dialogues','text'],
+  ['storyRequiresFlag','dialogues','requiresFlag'],
+  ['storyX','dialogues','x'],['storyY','dialogues','y'],
+  ['storyW','dialogues','w'],['storyH','dialogues','h'],
+  ['storyEncounterMessage','encounters','message'],
+  ['storyEncounterEnemy','encounters','enemyId'],
+  ['storyEncounterFlag','encounters','requiresFlag'],
+  ['storyEncounterX','encounters','x'],['storyEncounterY','encounters','y'],
+  ['storyEncounterW','encounters','w'],['storyEncounterH','encounters','h'],
+  ['storyVariantLayer','variants','layerId'],
+  ['storyVariantFlag','variants','whenFlag'],['storyVariantMode','variants','mode']
+]){
+  $(elementId).onchange=e=>{
+    const value=['x','y','w','h'].includes(key)?Number(e.target.value):e.target.value;
+    if(typeof value==='number'&&!Number.isFinite(value)){syncStoryControls();return;}
+    updateStoryField(kind,key,value);
+  };
+}
+$('storyOnce').onchange=e=>updateStoryField('dialogues','once',e.target.checked);
+for(const [elementId,index,key] of [
+  ['storyChoiceA',0,'label'],['storyChoiceAFlag',0,'setFlag'],
+  ['storyChoiceB',1,'label'],['storyChoiceBFlag',1,'setFlag']
+]){
+  $(elementId).onchange=e=>{
+    const d=storySelected('dialogues');if(!d)return;
+    while(d.choices.length<=index){
+      const i=d.choices.length;
+      d.choices.push({id:'choice-'+(i+1),label:'Continue',setFlag:''});
+    }
+    d.choices[index][key]=e.target.value;
+    syncAtlasControls();
+  };
+}
+$('addStoryDialogue').onclick=()=>{
+  const s=editStory();if(!s||s.dialogues.length>=12)return;
+  s.dialogues.push({id:storyId(s.dialogues,'dialogue'),
+    x:Math.min(5900,Math.max(0,scene.camera.x+300)),y:385,w:145,h:115,
+    speaker:'ECHO KEEPER',text:'A story begins here.',requiresFlag:'',once:true,
+    choices:[
+      {id:'answer-1',label:'Restore the light',setFlag:'story-light'},
+      {id:'answer-2',label:'Preserve the silence',setFlag:'story-silence'}
+    ]});
+  selectedStoryDialogue=s.dialogues.length-1;syncAtlasControls();
+  flash('Conversation added. Set the speaker, choices, and world flags.');
+};
+$('removeStoryDialogue').onclick=()=>{
+  const s=storyList();if(!s||!storySelected('dialogues'))return;
+  s.dialogues.splice(selectedStoryDialogue,1);selectedStoryDialogue=0;
+  syncAtlasControls();flash('Dialogue removed.');
+};
+$('addStoryEncounter').onclick=()=>{
+  const s=editStory();if(!s||s.encounters.length>=12)return;
+  const first=scene.playable.enemies[0];
+  s.encounters.push({id:storyId(s.encounters,'guardian'),x:Math.max(0,scene.camera.x+380),
+    y:390,w:120,h:110,enemyId:first?.id||'',requiresFlag:'',
+    message:'A guardian has awakened.'});
+  selectedStoryEncounter=s.encounters.length-1;syncAtlasControls();
+  flash('Guardian zone added. Link an existing puzzle enemy.');
+};
+$('removeStoryEncounter').onclick=()=>{
+  const s=storyList();if(!s||!storySelected('encounters'))return;
+  s.encounters.splice(selectedStoryEncounter,1);selectedStoryEncounter=0;
+  syncAtlasControls();flash('Guardian encounter removed.');
+};
+$('addStoryVariant').onclick=()=>{
+  const s=editStory();if(!s||s.variants.length>=24)return;
+  const flags=scene.atlas?knownWorldFlags(scene.atlas):[];
+  s.variants.push({id:storyId(s.variants,'scenery'),layerId:scene.layers[0]?.id||'',
+    whenFlag:flags[0]||'',mode:'reveal'});
+  selectedStoryVariant=s.variants.length-1;syncAtlasControls();
+  flash('Scenery rule added. Choose its layer and the flag that changes it.');
+};
+$('removeStoryVariant').onclick=()=>{
+  const s=storyList();if(!s||!storySelected('variants'))return;
+  s.variants.splice(selectedStoryVariant,1);selectedStoryVariant=0;
+  syncAtlasControls();flash('Scenery rule removed.');
+};
 function directorChoices(){
   const d=scene.playable.director;
   return [
