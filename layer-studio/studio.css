@@ -65,3 +65,10 @@
 }
 .atlas-builder #storyPreviewFlag{border-color:#b3a070}
 .atlas-builder #storyShowGuides{accent-color:#ddc699}
+
+
+/* Rung 09 / Native Boss Stage authoring. */
+.atlas-builder #bossIntro{min-width:0}
+.atlas-builder #bossStatus{color:#d6b7ad;font:650 11px/1.6 ui-monospace,monospace}
+.atlas-builder #bossVictoryFlag{font-family:ui-monospace,monospace;font-size:11px}
+.atlas-builder #bossShowGuides{accent-color:#edae97}
