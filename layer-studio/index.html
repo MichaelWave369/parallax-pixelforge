@@ -359,6 +359,39 @@
           <p class="small-note">Advisory analysis of authored dependencies. It cannot verify every physical route or every mutually exclusive decision combination.</p>
         </div>
         <ul class="branch-map-diagnostics" id="branchMapDiagnostics" aria-label="Potential story branch problems"></ul>
+        <div class="field-rule"><span>RUNG 15 / STORY PATH SIMULATOR</span></div>
+        <div class="story-sim-intro">
+          <h3>Playtest a Choice Path</h3>
+          <p class="small-note">A separate, reversible thought experiment. Try the choices in one specific playthrough, watch which discoveries unlock, and undo or reset. Does not start the game, write a save, or edit your world.</p>
+        </div>
+        <div class="story-sim-toolbar">
+          <button type="button" id="storySimReset">Reset Simulation</button>
+          <button type="button" id="storySimUndo">Undo Last Step</button>
+          <label class="story-sim-assumption">
+            <input type="checkbox" id="storySimAssumeGates">
+            Assume key, relic &amp; quest portal checks passed
+          </label>
+        </div>
+        <p class="small-note story-sim-caveat">Only authored world flags, choice outcomes, sequence completion, and linked room travel are simulated. Combat, platforming, key collection, inventory and quest completion are NOT verified. Enable the travel assumption only to explore what happens beyond those gates.</p>
+        <p id="storySimStatus" class="small-note" role="status" aria-live="polite">Create a Room Atlas to begin a story path simulation.</p>
+        <div class="story-sim-columns">
+          <section class="story-sim-pane" aria-label="Available simulated actions">
+            <h4>Current Room &amp; Authored Events</h4>
+            <div id="storySimSources" class="story-sim-actions"></div>
+            <h4>Discoveries &amp; Decisions</h4>
+            <div id="storySimTracks" class="story-sim-actions"></div>
+          </section>
+          <section class="story-sim-pane" aria-label="Travel and hypothetical progress">
+            <h4>Room Travel</h4>
+            <div id="storySimPortals" class="story-sim-actions"></div>
+            <h4>Earned Simulated World Flags</h4>
+            <div id="storySimFlags" class="story-sim-flags"></div>
+          </section>
+        </div>
+        <div class="story-sim-history-wrap">
+          <h4>Decision History</h4>
+          <ol id="storySimHistory" class="story-sim-history"></ol>
+        </div>
       </section>
       <section class="puzzle-builder director-builder" aria-label="World Director editor">
         <div class="puzzle-head">
