@@ -83,8 +83,9 @@ test('world-state scenic changes do not mutate authored layer data or gameplay c
   assert.equal(original.layers.find(l=>l.id===variant.id).opacity,variant.opacity);
   assert.strictEqual(storyScene(session).playable,original.playable);
 });
-test('encounter guardian sleeps until the authored zone is entered, then fights normally',()=>{
+test('encounter guardian sleeps until the authored choice and zone awaken it',()=>{
   const session=enterReliquary();
+  session.worldFlags.add('reliquary-lit');
   const guardian=session.game.enemies.find(e=>e.id==='hall-wraith');
   assert.equal(guardian.dormant,true);
   // While dormant, direct overlap with its hitbox cannot damage the hero.
@@ -175,6 +176,7 @@ test('missing story or unlinked enemy cannot falsely trigger a story event',()=>
   root.atlas.rooms[1].story.encounters[0].enemyId='unregistered';
   const session=createWorldSession(root);
   session.game.keyCollected=true;assert.equal(moveToDoor(session).travelled,true);
+  session.worldFlags.add('reliquary-lit');
   session.game.player.x=950;session.game.player.y=458;
   stepWorldSession(session);
   assert.equal(session.game.storySeen.has('hall-guardian'),false);
