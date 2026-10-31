@@ -93,6 +93,37 @@
         <p id="tileWorldStatus" class="small-note">No Tile Studio map. Stonebridge platforms are still playable.</p>
         <p id="actorStatus" class="small-note">No Sprite Studio character. Built-in hero is active.</p>
       </section>
+      <section class="puzzle-builder director-builder" aria-label="World Director editor">
+        <div class="puzzle-head">
+          <div><span class="micro">RUNG 04 / EVENTS &amp; ATMOSPHERE</span>
+            <h2>World Director</h2>
+            <p>Give authored worlds a pulse. Add message and checkpoint zones, camera reveals and warm or cold light pools. No scripting or server required.</p></div>
+          <label class="toggle"><input type="checkbox" id="directorPreview" checked> Show zones</label>
+        </div>
+        <div class="puzzle-fields">
+          <label>SELECT WORLD OBJECT<select id="directorObject"></select></label>
+          <label>TRIGGER ACTION<select id="directorKind"><option value="message">Message</option><option value="checkpoint">Checkpoint</option></select></label>
+          <label>WORLD X<input id="directorX" type="number" step="1"></label>
+          <label>WORLD Y<input id="directorY" type="number" step="1"></label>
+          <label>ZONE WIDTH<input id="directorW" type="number" min="8" max="2400"></label>
+          <label>ZONE HEIGHT<input id="directorH" type="number" min="8" max="1200"></label>
+          <label>CAMERA FOCUS (0.15–0.85)<input id="directorFocus" type="number" min=".15" max=".85" step=".01"></label>
+          <label>LIGHT RADIUS<input id="directorRadius" type="number" min="24" max="1200" step="1"></label>
+          <label>LIGHT INTENSITY<input id="directorIntensity" type="number" min="0" max="1" step=".05"></label>
+          <label>LIGHT COLOR<input id="directorColor" type="color" value="#ffcf93"></label>
+          <label>AMBIENT DARKNESS<input id="directorAmbient" type="range" min="0" max=".8" step=".02" value=".32"></label>
+          <label>ZONE MESSAGE<input id="directorMessage" type="text" maxlength="180" placeholder="A message when this zone is entered"></label>
+        </div>
+        <div class="puzzle-buttons">
+          <button id="addMessage" type="button">+ Message zone</button>
+          <button id="addCheckpoint" type="button">+ Checkpoint</button>
+          <button id="addCamera" type="button">+ Camera region</button>
+          <button id="addLight" type="button">+ Light pool</button>
+          <button id="removeDirector" type="button">Delete selected</button>
+          <label class="toggle"><input type="checkbox" id="previewLighting" checked> Lighting preview</label>
+        </div>
+        <p id="directorStatus" class="small-note">World events are data-only and stay inside the exported Layer Scene JSON.</p>
+      </section>
       <section class="puzzle-builder" aria-label="Stonebridge puzzle editor">
         <div class="puzzle-head">
           <div><span class="micro">RUNG 02 / GAMEPLAY PLANE</span><h2>Stonebridge Puzzle Builder</h2><p>Place platforms, stone-ray targets, the golden key, and the exit in world coordinates. Play the puzzle with your current animated scenery.</p></div>
