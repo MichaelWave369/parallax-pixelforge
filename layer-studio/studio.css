@@ -344,3 +344,44 @@
     width:100%;max-width:100%}
   .story-coverage-scroll{max-height:390px}
 }
+
+
+/* Rung 19 / Coverage-Guided Scenario Builder. Bounded, explicit simulator steps. */
+.story-guide-head h3{margin:20px 0 6px;color:#efdcc0;
+  font:800 16px ui-monospace,monospace}
+.story-guide-head p{max-width:80ch;line-height:1.6}
+.story-guide-toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:10px 12px;
+  margin:14px 0}
+.story-guide-toolbar label{display:flex;flex-direction:column;gap:7px;flex:1 1 350px;
+  min-width:180px;color:#d8d1df;font:750 11px ui-monospace,monospace;
+  letter-spacing:.05em}
+.story-guide-toolbar select{min-height:40px;width:100%;max-width:100%;
+  color:#f1eee8;background:#192a3e;border:1px solid #778a9c;
+  border-radius:7px;padding:8px 12px;text-overflow:ellipsis}
+.story-guide-toolbar button{min-height:40px}
+.story-guide-toolbar button:focus-visible{outline:2px solid #f7dfac;outline-offset:2px}
+.story-guide-toolbar button:disabled{opacity:.55;cursor:not-allowed}
+.story-guide-status{margin:9px 0;padding:12px 14px;border-left:3px solid #b1b0e3;
+  background:#222d46;border-radius:6px;color:#e4dff5;
+  font:700 12px/1.7 ui-monospace,monospace}
+.story-guide-steps{display:grid;gap:9px;padding:0;list-style:none;
+  counter-reset:guidedsteps;margin:12px 0}
+.story-guide-step{counter-increment:guidedsteps;
+  display:flex;flex-direction:column;gap:6px;padding:11px 13px;
+  border:1px solid #4a627b;border-radius:8px;background:#1b293c;
+  font:12px/1.5 ui-monospace,monospace}
+.story-guide-step::before{content:counter(guidedsteps) '. NEXT ACTION';
+  font:700 10px ui-monospace,monospace;letter-spacing:.09em;color:#c7adcb}
+.story-guide-step:not(.story-guide-step--next)::before{content:counter(guidedsteps) '. PLANNED ACTION'}
+.story-guide-step--next{border-color:#c8c38c;background:#27343f}
+.story-guide-step strong{color:#f7e9c9;font:750 12px ui-monospace,monospace;overflow-wrap:anywhere}
+.story-guide-step span{color:#becfe0;font:11px/1.5 ui-monospace,monospace;overflow-wrap:anywhere}
+.story-guide-caveat{padding:10px 12px;border-left:3px solid #d4b084;
+  background:#292938;border-radius:5px;color:#d9d0cb;line-height:1.65}
+@media(max-width:780px){
+  .story-guide-toolbar{align-items:stretch}
+  .story-guide-toolbar label,.story-guide-toolbar button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  .story-guide-step,.story-guide-toolbar button{transition:none}
+}
