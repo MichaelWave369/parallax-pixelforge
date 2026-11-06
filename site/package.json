@@ -7,11 +7,13 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build && node scripts/assemble.mjs && node scripts/verify.mjs",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --test scripts/assemble.test.mjs"
+    "test": "node --test scripts/assemble.test.mjs scripts/forge-world.test.mjs"
   },
   "dependencies": {
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "three": "0.180.0",
+    "@dimforge/rapier3d-compat": "0.20.0"
   },
   "devDependencies": {
     "vite": "7.2.2"
