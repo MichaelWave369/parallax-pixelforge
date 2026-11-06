@@ -47,7 +47,9 @@ test('private asset proxies are visual placeholders and cannot receive colliders
   const desc=toPhysicsDescriptors(world,profile,sha).find(o=>o.id===proxy.id);
   assert.equal(desc.body,'none');
   assert.equal(desc.proxy,true);
-  assert.equal(JSON.stringify(desc).includes('Asset.glb'),false);
+  assert.equal(Object.hasOwn(desc,'asset'),false);
+  assert.equal(Object.hasOwn(desc,'byte_length'),false);
+  assert.equal(Object.hasOwn(desc,'sha256'),false);
   assert.throws(()=>validatePhysicsProfile({...profile,objects:[...profile.objects,{id:proxy.id,body:'fixed',position:proxy.position,scale:proxy.scale,yaw:proxy.yaw,friction:0,restitution:0}]},world,sha),/count mismatch/);
 });
 test('duplicate object config rejected and bounded transforms required',async()=>{
