@@ -60,6 +60,13 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
       gizmo.showX=options.gizmoMode!=='rotate';
       gizmo.showY=true;
       gizmo.showZ=options.gizmoMode!=='rotate';
+      // VR World v1 is strictly yaw-only. Disable screen/free rotation
+      // and all plane handles, not merely the X/Z axis rings.
+      gizmo.showE=false;gizmo.showXYZE=false;
+      gizmo.showXY=false;gizmo.showYZ=false;gizmo.showXZ=false;
+      gizmo.minX=-100;gizmo.maxX=100;
+      gizmo.minY=-100;gizmo.maxY=100;
+      gizmo.minZ=-100;gizmo.maxZ=100;
       gizmo.setTranslationSnap(options.gizmoSnap?.translation||null);
       gizmo.setRotationSnap(options.gizmoSnap?.rotation?THREE.MathUtils.degToRad(options.gizmoSnap.rotation):null);
       gizmo.setScaleSnap(options.gizmoSnap?.scale||null);
