@@ -2,6 +2,7 @@ import React,{Suspense,lazy,useCallback,useEffect,useMemo,useRef,useState} from 
 import {WIDTH,HEIGHT,TILE_TYPES,STORAGE_KEY,createSeedWorld,validateDemoWorld,paintTile,movePlayer,downloadJson} from './forge-world.js';
 import {VR_SCENE_STORAGE_KEY,MAX_SCENE_BYTES,MAX_PROFILE_BYTES,sampleVrWorld,parseVrScene,
   fingerprintVrWorld,newPhysicsProfile,validatePhysicsProfile,editPhysicsObject,toPhysicsDescriptors} from './vr-physics-bridge.js';
+import {applyGizmoTransform,DEFAULT_GIZMO_SNAP,GIZMO_SNAPS} from './vr-gizmo-contract.js';
 import './forge.css';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
 const BASE=import.meta.env.BASE_URL;
@@ -56,6 +57,9 @@ export default function ForgeV6(){
   const [vrPhysicsProfile,setVrPhysicsProfile]=useState(null);
   const [vrSelected,setVrSelected]=useState(null);
   const [walkMode,setWalkMode]=useState(false);
+  const [gizmoMode,setGizmoMode]=useState('translate');
+  const [gizmoSnap,setGizmoSnap]=useState({...DEFAULT_GIZMO_SNAP});
+  const [profileHistory,setProfileHistory]=useState({past:[],future:[]});
   const physicsRef=useRef(null);
   const fileRef=useRef(null);
   const vrFileRef=useRef(null);
@@ -120,7 +124,8 @@ export default function ForgeV6(){
     const draft=newPhysicsProfile(source,hash);
     setVrScene(source);setVrHash(hash);setVrPhysicsProfile(draft);
     setVrSelected(draft.objects[0]?.id||source.objects[0]?.id||null);
-    setWalkMode(false);setPaused(false);
+    setWalkMode(false);setPaused(true);
+    setGizmoMode('translate');setProfileHistory({past:[],future:[]});
     setMessage('VR scene '+source.title+' loaded into sandbox only. Original VR Studio scene remains unchanged.');
   }
   async function useVrLocalSave(){
@@ -143,16 +148,76 @@ export default function ForgeV6(){
     try{
       if(file.size>MAX_PROFILE_BYTES)throw Error('Physics profile exceeds 100 KB.');
       const loaded=validatePhysicsProfile(JSON.parse(await file.text()),vrScene,vrHash);
-      setVrPhysicsProfile(loaded);setWalkMode(false);
+      setVrPhysicsProfile(loaded);setWalkMode(false);setPaused(true);
+      setProfileHistory({past:[],future:[]});
       setMessage('Scene-bound physics profile loaded. The source scene was not changed.');
     }catch(e){setMessage('Physics profile import rejected: '+e.message);}
   }
-  function editPhysics(patch){
-    if(!selectedPhysics||!vrScene)return;
-    try{
-      setVrPhysicsProfile(current=>editPhysicsObject(current,vrScene,vrHash,selectedPhysics.id,patch));
-    }catch(e){setMessage('Physics edit rejected: '+e.message);}
+  function commitProfile(next){
+    if(!vrPhysicsProfile)return false;
+    if(JSON.stringify(next)===JSON.stringify(vrPhysicsProfile))return true;
+    setProfileHistory(h=>({past:[...h.past.slice(-39),vrPhysicsProfile],future:[]}));
+    setVrPhysicsProfile(next);
+    return true;
   }
+  function editPhysics(patch){
+    if(!selectedPhysics||!vrScene)return false;
+    try {
+      const next=editPhysicsObject(vrPhysicsProfile,vrScene,vrHash,selectedPhysics.id,patch);
+      return commitProfile(next);
+    }catch(e){setMessage('Physics edit rejected: '+e.message);return false;}
+  }
+  function acceptGizmoTransform(id,tool,transform){
+    if(!vrScene||!vrPhysicsProfile||walkMode||!paused)return false;
+    try {
+      const next=applyGizmoTransform(vrPhysicsProfile,vrScene,vrHash,id,tool,transform,gizmoSnap);
+      const changed=JSON.stringify(next)!==JSON.stringify(vrPhysicsProfile);
+      const accepted=commitProfile(next);
+      if(changed)setMessage('Committed one '+tool+' edit for '+id+' to the sandbox sidecar. Source scene unchanged.');
+      return accepted;
+    }catch(e){setMessage('Gizmo edit rejected: '+e.message);return false;}
+  }
+  function selectVrObject(id){
+    setVrSelected(id);
+    if(!walkMode&&gizmoMode!=='inspect'&&!paused){
+      setPaused(true);
+      physicsRef.current?.reset();
+    }
+  }
+  function chooseGizmoMode(next){
+    if(walkMode)return;
+    if(!paused){setPaused(true);physicsRef.current?.reset();}
+    setGizmoMode(next);
+  }
+  function undoPhysics(){
+    if(!profileHistory.past.length)return;
+    setVrPhysicsProfile(profileHistory.past[profileHistory.past.length-1]);
+    setProfileHistory(h=>({past:h.past.slice(0,-1),future:[vrPhysicsProfile,...h.future].slice(0,40)}));
+    setMessage('Undid one sandbox physics edit. Source world unchanged.');
+  }
+  function redoPhysics(){
+    if(!profileHistory.future.length)return;
+    setVrPhysicsProfile(profileHistory.future[0]);
+    setProfileHistory(h=>({past:[...h.past,vrPhysicsProfile].slice(-40),future:h.future.slice(1)}));
+    setMessage('Redid one sandbox physics edit. Source world unchanged.');
+  }
+  function toggleWalkTest(){
+    if(!vrScene)return;
+    const next=!walkMode;
+    setWalkMode(next);setPaused(!next);
+    setMessage(next?'Walk test active. WASD/arrow keys move the Rapier capsule.':'Walk test ended. Editor paused, source transforms restored.');
+  }
+  useEffect(()=>{
+    if(workspace!=='Physics'||!vrScene||walkMode)return;
+    const key=e=>{
+      if(e.ctrlKey||e.altKey||e.metaKey||/^(input|textarea|select)$/i.test(e.target?.tagName||''))return;
+      const tool={w:'translate',e:'rotate',r:'scale'}[e.key.toLowerCase()];
+      if(!tool)return;
+      e.preventDefault();chooseGizmoMode(tool);
+    };
+    window.addEventListener('keydown',key);
+    return()=>window.removeEventListener('keydown',key);
+  },[workspace,vrScene,walkMode,paused,gizmoMode]);
   function editVector(field,axis,value){
     if(!selectedPhysics)return;
     const num=Number(value);
@@ -163,6 +228,7 @@ export default function ForgeV6(){
   function leaveVrScene(){
     setVrScene(null);setVrHash('');setVrPhysicsProfile(null);
     setVrSelected(null);setWalkMode(false);setPaused(false);
+    setProfileHistory({past:[],future:[]});setGizmoMode('translate');
     setMessage('Returned to the standard Physics Lab. No VR Studio files were changed.');
   }
   const exportDemo=()=>downloadJson(doc,'pixelforge-v6-demo-world.json');
@@ -223,9 +289,28 @@ export default function ForgeV6(){
         </section>}
         {physics&&<section className="forgePhysicsArea forgePanel">
           <div className="forgeViewportTitle"><div><span className="forgeEyebrow">PHYSICS LAB / WORKING PROTOTYPE</span><h2>Three.js + Rapier rigid-body playground</h2></div><span className="forgePill">{physicsStatus==='ready'?'● SIMULATION READY':physicsStatus==='error'?'UNAVAILABLE':'INITIALIZING'}</span></div>
+          {vrScene&&<div className="forgeGizmoToolbar" role="group" aria-label="3D transform tools">
+            <span>3D EDITOR</span>
+            {[['inspect','Inspect','⌖'],['translate','Move (W)','✥'],['rotate','Rotate Y (E)','⟳'],['scale','Scale (R)','⇲']].map(([tool,label,icon])=>
+              <button key={tool} type="button" aria-pressed={gizmoMode===tool} className={gizmoMode===tool?'active':''} disabled={walkMode}
+                onClick={()=>chooseGizmoMode(tool)}>{icon} {label}</button>)}
+            <label>Snap
+              <select aria-label="Transform snap increment" disabled={walkMode||gizmoMode==='inspect'}
+                value={gizmoMode==='translate'?gizmoSnap.translation:gizmoMode==='rotate'?gizmoSnap.rotation:gizmoSnap.scale}
+                onChange={e=>setGizmoSnap(old=>({...old,[gizmoMode==='translate'?'translation':gizmoMode==='rotate'?'rotation':'scale']:Number(e.target.value)}))}>
+                {GIZMO_SNAPS[gizmoMode==='translate'?'translation':gizmoMode==='rotate'?'rotation':'scale'].map(x=>
+                  <option value={x} key={x}>{x===0?'Off':x+(gizmoMode==='rotate'?'°':gizmoMode==='translate'?' m':' units')}</option>)}
+              </select>
+            </label>
+            <button type="button" disabled={!profileHistory.past.length||walkMode} onClick={undoPhysics}>↶ Undo</button>
+            <button type="button" disabled={!profileHistory.future.length||walkMode} onClick={redoPhysics}>↷ Redo</button>
+            <small>{walkMode?'WALK TEST':paused?'EDIT PAUSED':'SIMULATING · PAUSE TO EDIT'}</small>
+          </div>}
           <Suspense fallback={<div className="forgeLoading">Loading 3D physics bundle…</div>}>
             <PhysicsStage ref={physicsRef} paused={paused} gravity={gravity} onStatus={setPhysicsStatus} onStats={setPhysicsStats}
-              sceneObjects={physicsDescriptors} onObjectClick={setVrSelected} walkMode={walkMode}/>
+              sceneObjects={physicsDescriptors} onObjectClick={selectVrObject} walkMode={walkMode}
+              sceneKey={vrHash||null} selectedObjectId={vrSelected} gizmoMode={gizmoMode} gizmoSnap={gizmoSnap}
+              onTransformCommit={acceptGizmoTransform}/>
           </Suspense>
           <div className="forgePhysicsControls"><button type="button" onClick={()=>physicsRef.current?.spawn('box')} disabled={physicsStatus!=='ready'}>+ Drop Box</button><button type="button" onClick={()=>physicsRef.current?.spawn('ball')} disabled={physicsStatus!=='ready'}>+ Drop Ball</button><button type="button" onClick={()=>physicsRef.current?.reset()} disabled={physicsStatus!=='ready'}>↻ Reset Scene</button><label>Gravity: {gravity.toFixed(1)} m/s²<input type="range" min="-20" max="0" step=".5" value={gravity} onChange={e=>setGravity(Number(e.target.value))}/></label></div>
           <section className="forgeVrBridge" aria-label="VR Studio scene physics bridge">
@@ -242,7 +327,7 @@ export default function ForgeV6(){
             {vrScene&&<div className="forgeVrEditor">
               <div className="forgeVrSceneInfo"><strong>{vrScene.title}</strong><span>{vrScene.objects.length} scene objects · Source SHA-256: {vrHash.slice(0,12)}…</span></div>
               <div className="forgeVrEditorGrid">
-                <div className="forgeVrObjectList" aria-label="VR scene objects">{vrScene.objects.map(o=><button type="button" key={o.id} className={vrSelected===o.id?'active':''} onClick={()=>setVrSelected(o.id)}>
+                <div className="forgeVrObjectList" aria-label="VR scene objects">{vrScene.objects.map(o=><button type="button" key={o.id} className={vrSelected===o.id?'active':''} onClick={()=>selectVrObject(o.id)}>
                   <strong>{o.name}</strong><small>{o.id} · {o.kind}{o.kind==='asset-proxy'?' · proxy only':''}</small></button>)}</div>
                 <div className="forgeVrInspector">
                   {selectedVr&&<><h4>{selectedVr.name}</h4><p>{selectedVr.kind==='asset-proxy'?'Asset proxy: no mesh bytes or inferred GLB collider are imported.': 'Select the object in the scene or here. Edits rebuild the simulation preview.'}</p>
@@ -252,19 +337,19 @@ export default function ForgeV6(){
                     </select></label>
                     <div className="forgeVrSliders"><label>Friction {selectedPhysics.friction.toFixed(2)}<input type="range" min="0" max="1" step=".05" value={selectedPhysics.friction} onChange={e=>editPhysics({friction:Number(e.target.value)})}/></label>
                     <label>Bounce {selectedPhysics.restitution.toFixed(2)}<input type="range" min="0" max="1" step=".05" value={selectedPhysics.restitution} onChange={e=>editPhysics({restitution:Number(e.target.value)})}/></label></div>
-                    <h4>Draft position (meters)</h4><div className="forgeVrAxes">{['X','Y','Z'].map((label,axis)=><label key={label}>{label}<input type="number" step=".25" min="-100" max="100" defaultValue={selectedPhysics.position[axis]} onBlur={e=>editVector('position',axis,e.target.value)}/></label>)}</div>
-                    <h4>Draft scale</h4><div className="forgeVrAxes">{['X','Y','Z'].map((label,axis)=><label key={label}>{label}<input type="number" step=".1" min=".05" max="50" defaultValue={selectedPhysics.scale[axis]} onBlur={e=>editVector('scale',axis,e.target.value)}/></label>)}</div>
-                    <label>Yaw in degrees<input type="number" min="-360" max="360" step="5" defaultValue={selectedPhysics.yaw} onBlur={e=>{if(e.target.value.trim()!=='')editPhysics({yaw:Number(e.target.value)});}}/></label>
+                    <h4>Draft position (meters)</h4><div className="forgeVrAxes">{['X','Y','Z'].map((label,axis)=><label key={label}>{label}<input type="number" step=".25" min="-100" max="100" key={selectedPhysics.id+'-position-'+axis+'-'+selectedPhysics.position[axis]} defaultValue={selectedPhysics.position[axis]} onBlur={e=>editVector('position',axis,e.target.value)}/></label>)}</div>
+                    <h4>Draft scale</h4><div className="forgeVrAxes">{['X','Y','Z'].map((label,axis)=><label key={label}>{label}<input type="number" step=".1" min=".05" max="50" key={selectedPhysics.id+'-scale-'+axis+'-'+selectedPhysics.scale[axis]} defaultValue={selectedPhysics.scale[axis]} onBlur={e=>editVector('scale',axis,e.target.value)}/></label>)}</div>
+                    <label>Yaw in degrees<input type="number" min="-360" max="360" step="5" key={selectedPhysics.id+'-yaw-'+selectedPhysics.yaw} defaultValue={selectedPhysics.yaw} onBlur={e=>{if(e.target.value.trim()!=='')editPhysics({yaw:Number(e.target.value)});}}/></label>
                   </div>:<p>External asset geometry stays private. Proxy collision is intentionally unavailable.</p>}</>}
                 </div>
               </div>
               <div className="forgeVrButtons">
-                <button type="button" className={walkMode?'forgeVrActive':''} onClick={()=>setWalkMode(v=>!v)}>{walkMode?'■ End walk test':'▶ Walk test (WASD)'}</button>
+                <button type="button" className={walkMode?'forgeVrActive':''} onClick={toggleWalkTest}>{walkMode?'■ End walk test':'▶ Walk test (WASD)'}</button>
                 <button type="button" onClick={exportPhysicsProfile}>⇩ Export physics sidecar</button>
                 <button type="button" onClick={()=>profileFileRef.current?.click()}>⇧ Import matching sidecar</button>
               </div>
               <input hidden ref={profileFileRef} type="file" accept=".json,application/json" onChange={importPhysicsFile}/>
-              <p className="forgeVrNotice">Collisions use cuboid proxies, not real GLB mesh triangles. Walk mode uses a Rapier capsule. This is a sandbox proof, not a runtime capability change, game-cartridge export, or validated Quest 3 behavior.</p>
+              <p className="forgeVrNotice">Rung 3: click an eligible object, pause simulation, then drag X/Y/Z move or scale handles, or the Y rotation ring. W/E/R select tools; Esc cancels an active drag. One drag commits one bounded sidecar edit with Undo/Redo. Collisions use cuboid proxies, not real GLB mesh triangles. Walk mode uses a Rapier capsule. This is a sandbox proof, not a runtime capability change, game-cartridge export, or validated Quest 3 behavior.</p>
             </div>}
           </section>
         </section>}
