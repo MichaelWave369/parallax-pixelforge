@@ -3,6 +3,7 @@
 // It is not a JavaScript cartridge, an authority token, or a trusted signature.
 import {validateWorld} from '../../vr-studio/world.js';
 import {toPhysicsDescriptors,validatePhysicsProfile} from './vr-physics-bridge.js';
+import {validateGameplayRules} from './gameplay-rules.js';
 
 export const PLAYABLE_FORMAT='pixelforge.playable-world.v1';
 export const PLAYABLE_MAX_BYTES=160000;
@@ -34,7 +35,7 @@ function checkDescriptor(item,seen){
     position:[...item.position],scale:[...item.scale],yaw:item.yaw};
 }
 export function validatePlayableWorld(input){
-  fields(input,['format','title','source','capabilities','gravity','spawn','objects']);
+  fields(input,['format','title','source','capabilities','gravity','spawn','objects','gameplay']);
   if(input.format!==PLAYABLE_FORMAT)throw Error('Unsupported playable world version.');
   if(typeof input.title!=='string'||!input.title.trim()||input.title.length>100)
     throw Error('Playable world requires a bounded title.');
@@ -51,16 +52,19 @@ export function validatePlayableWorld(input){
   const seen=new Set(),objects=input.objects.map(item=>checkDescriptor(item,seen));
   if(!objects.some(o=>o.kind==='floor'&&o.body==='fixed'))
     throw Error('A walkable world needs a fixed floor.');
+  const gameplay=input.gameplay===undefined?null:
+    validateGameplayRules(input.gameplay,input.source.sha256);
   return {format:PLAYABLE_FORMAT,title:input.title,
     source:{format:input.source.format,sha256:input.source.sha256},
-    capabilities:{...CAPABILITIES},gravity:input.gravity,spawn:[...input.spawn],objects};
+    capabilities:{...CAPABILITIES},gravity:input.gravity,spawn:[...input.spawn],objects,
+    ...(gameplay?{gameplay}:{})};
 }
 export function parsePlayableWorld(raw){
   if(typeof raw!=='string'||new TextEncoder().encode(raw).byteLength>PLAYABLE_MAX_BYTES)
     throw Error('Playable file must be 160 KB or smaller.');
   return validatePlayableWorld(JSON.parse(raw));
 }
-export function buildPlayableWorld(sourceWorld,profile,sourceHash,gravity=-9.81){
+export function buildPlayableWorld(sourceWorld,profile,sourceHash,gravity=-9.81,gameplay=null){
   validateWorld(sourceWorld);
   validatePhysicsProfile(profile,sourceWorld,sourceHash);
   const items=toPhysicsDescriptors(sourceWorld,profile,sourceHash)
@@ -76,7 +80,8 @@ export function buildPlayableWorld(sourceWorld,profile,sourceHash,gravity=-9.81)
   const spawn=[floor.position[0],Math.min(100,floor.position[1]+floor.scale[1]/2+2.2),floor.position[2]];
   return validatePlayableWorld({format:PLAYABLE_FORMAT,title:sourceWorld.title,
     source:{format:sourceWorld.format,sha256:sourceHash},
-    capabilities:{...CAPABILITIES},gravity,spawn,objects:items});
+    capabilities:{...CAPABILITIES},gravity,spawn,objects:items,
+    ...(gameplay?{gameplay:validateGameplayRules(gameplay,sourceHash)}:{})});
 }
 export function createSamplePlayableWorld(){
   // A public demo never asserts a source scene was actually hash-verified.
@@ -84,6 +89,15 @@ export function createSamplePlayableWorld(){
     format:PLAYABLE_FORMAT,title:'The Living World · Starter Course',
     source:{format:'pixelforge.vr-world.v1',sha256:'0'.repeat(64)},
     capabilities:{...CAPABILITIES},gravity:-9.81,spawn:[0,2.2,0],
+    gameplay:{
+      format:'pixelforge.gameplay.v1',source_sha256:'0'.repeat(64),
+      collectibles:[
+        {id:'pickup-1',name:'Forge Spark',position:[-3,1.2,-1],radius:1.55,color:'#ffe49a'},
+        {id:'pickup-2',name:'Parallax Crystal',position:[3,2.6,0],radius:1.55,color:'#c4a2ff'}
+      ],
+      triggers:[{id:'trigger-1',name:'Gateway',position:[1,2.1,-4],radius:2,message:'The old path is open. Find the final gateway!'}],
+      goal:{id:'goal-1',name:'Finish Line',position:[6,1.4,-6],radius:1.8,message:'WORLD COMPLETE! You restored the Forge frequency.'}
+    },
     objects:[
       {id:'obj-1',name:'Training Floor',kind:'floor',color:'#314f68',body:'fixed',friction:.85,restitution:.1,position:[0,-.15,0],scale:[18,.3,18],yaw:0},
       {id:'placed-1',name:'First Step',kind:'platform',color:'#56c7d6',body:'fixed',friction:.8,restitution:.2,position:[-3,.4,-1],scale:[2,.8,3],yaw:0},
