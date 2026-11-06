@@ -124,3 +124,51 @@
 .forgeRuleNotice{color:#8ff2d3}
 @media(max-width:1050px){.forgeRuleWorkspace{grid-template-columns:1fr}}
 @media(max-width:600px){.forgeRuleEditor{padding:10px}.forgeRuleCoords{flex:1 1 100%}.forgeRuleRow>button{margin-left:auto}}
+
+/* Rung 7 · visual, strictly declarative event dependency graph */
+.forgeGraphBoard{grid-column:1/-1;padding:16px;border:1px solid #5577a7;border-radius:12px;
+ background:linear-gradient(125deg,#131e3b,#171b36);min-width:0}
+.forgeGraphIntro{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.forgeGraphIntro h3{font-size:20px;color:#fff0ce;margin:5px 0}
+.forgeGraphIntro p{font-size:11px;line-height:1.65;max-width:740px;color:#a4cbdf}
+.forgeGraphCreate{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:12px 0 16px}
+.forgeGraphCreate>button,.forgeGraphDoorCreator button,.forgeGoalCard button:not(.forgeGraphCardHead button){background:#214a5b;border:1px solid #79c4b6;
+ color:#e5fcf7;border-radius:8px;font-size:11px;font-weight:900;padding:10px 12px}
+.forgeGraphCreate button:hover:not(:disabled),.forgeGoalCard button:hover:not(:disabled){background:#386c68}
+.forgeGraphCreate button:disabled,.forgeGoalCard button:disabled{opacity:.4;cursor:not-allowed}
+.forgeGraphDoorCreator{display:flex;align-items:end;gap:7px;flex-wrap:wrap;min-width:0}
+.forgeGraphDoorCreator label{display:grid;gap:5px;color:#bce1f4;font-size:10px;font-weight:850}
+.forgeGraphDoorCreator select{background:#17294b;color:#f2f6ff;border:1px solid #55749c;border-radius:7px;
+ padding:9px;max-width:220px;min-width:125px;font-size:11px}
+.forgeGraphCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:10px}
+.forgeGraphCard{border-radius:11px;padding:13px;border:1px solid #475f99;background:linear-gradient(155deg,#202b50,#171e3b);
+ display:grid;align-content:start;gap:10px;min-width:0}
+.forgeDoorCard{border-color:#a5804f;background:linear-gradient(155deg,#3b2e46,#211c36)}
+.forgeGoalCard{border-color:#558d6b;background:linear-gradient(155deg,#1d4046,#1c2941)}
+.forgeGraphCardHead{display:flex;justify-content:space-between;align-items:start;gap:8px}
+.forgeGraphCardHead h4{font-size:15px;margin:4px 0;color:#f9e6ae}
+.forgeGraphCardHead small{font-size:9px;color:#90dfd0;font-weight:850;overflow-wrap:anywhere}
+.forgeGraphCardHead button{background:#4a2d45;color:#ffd1dc;border:1px solid #c07b8c;
+ font-size:10px;padding:7px 9px;border-radius:7px;cursor:pointer}
+.forgeGraphSequence{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.forgeGraphSequence span,.forgeGraphSequence strong{border-radius:6px;padding:7px;background:#132541;color:#aad7e3;font-size:9px;letter-spacing:.04em}
+.forgeGraphSequence strong{background:#2f4c4b;color:#a9ffe7}
+.forgeGraphSequence b{color:#ffcc84}
+.forgeGraphConditions{display:grid;gap:8px}
+.forgeGraphConditions>label,.forgeGraphCard>label{display:grid;gap:5px;color:#bfdbed;font-size:10px;font-weight:850}
+.forgeGraphConditions select,.forgeGraphCard input[type="text"],.forgeGraphCard>label input{background:#162440;border:1px solid #5573a2;
+ padding:8px;color:#fff;border-radius:7px;width:100%;min-width:0;font:11px ui-sans-serif,system-ui}
+.forgeGraphChips{display:flex;flex-wrap:wrap;gap:6px;max-height:145px;overflow-y:auto}
+.forgeGraphChips label{display:flex;align-items:center;gap:5px;padding:6px 8px;background:#273c59;
+ border:1px solid #4c6885;border-radius:7px;color:#e1f3ed;font-size:10px;cursor:pointer}
+.forgeGraphChips input[type="checkbox"]{accent-color:#77e3bf}
+.forgeGraphChips span{font-size:10px;color:#8fa4c5}
+.forgeGraphCoords{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.forgeGraphCoords label{display:grid;gap:4px;font-size:9px;color:#8ee3d8}
+.forgeGraphCoords input{min-width:0;width:100%;padding:7px 4px;border-radius:6px;
+ background:#142544;color:white;border:1px solid #5275a1;font-size:10px}
+.forgeGoalCard>p{color:#b7d7d5;font-size:11px;line-height:1.5}
+.forgeGraphFoot{color:#9bbbd1;font-size:10px;line-height:1.6;margin:10px 0 0}
+@media(max-width:660px){.forgeGraphBoard{padding:10px}.forgeGraphDoorCreator{width:100%}
+ .forgeGraphDoorCreator label{flex:1 1 125px}.forgeGraphDoorCreator select{width:100%;max-width:none}
+ .forgeGraphDoorCreator button{width:100%}}
