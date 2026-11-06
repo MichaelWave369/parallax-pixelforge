@@ -10,3 +10,18 @@
 .pixWorldStatus{font:12px ui-monospace,monospace;color:#fed296;padding:14px 16px;border:1px solid #4e4b76;border-radius:9px;background:#1a1d38;margin:13px 0}.pixWorldFooter{border-top:1px solid #36456f;padding:23px 18px;color:#8ea3c5;text-align:center;font:850 10px ui-monospace,monospace;letter-spacing:.12em}
 @media(max-width:1040px){.pixWorldLayout{grid-template-columns:1fr}.pixWorldInspector{grid-template-columns:repeat(2,minmax(0,1fr))}.pixWorldInspector>section:last-child{grid-column:1/-1}.pixWorldScreen .forgePhysicsCanvas{height:510px}}
 @media(max-width:670px){.pixWorldTop,.pixWorldOverview{flex-wrap:wrap}.pixWorldCounts{width:100%;justify-content:space-between}.pixWorldCounts>div{flex:1}.pixWorldInspector{grid-template-columns:1fr}.pixWorldInspector>section:last-child{grid-column:1}.pixWorldScreen .forgePhysicsCanvas{height:440px}.pixWorldScreenHeader span{font-size:9px}}
+
+/* Rung 6: deterministic quest progress and victory feedback. */
+.pixWorldQuest{border-color:#719867!important;background:linear-gradient(140deg,#183543,#251b43)!important}
+.pixWorldProgress{display:flex;justify-content:space-between;align-items:center;margin:9px 0;font-size:11px;color:#bfe9e0}
+.pixWorldProgress strong{font-size:14px;color:#ffda92}
+.pixWorldQuest progress{display:block;width:100%;height:12px;accent-color:#6fe5c6}
+.pixWorldObjectiveList{display:grid;gap:5px;margin:14px 0}
+.pixWorldObjectiveList div{font-size:11px;display:flex;align-items:center;gap:9px;padding:8px;border-radius:7px;border:1px solid #385a75;background:#1b2b45;color:#c6d4e4}
+.pixWorldObjectiveList div span{font-size:16px;color:#eabf83}
+.pixWorldObjectiveList div.done{border-color:#398b72;background:#1b4b44;color:#c9ffdb}
+.pixWorldObjectiveList div.done span{color:#74f6c2}
+.pixWorldVictory{font-size:12px;font-weight:900;line-height:1.5;text-align:center;padding:13px;border:1px solid #e5c172;background:#51422d;color:#ffe9ad;border-radius:9px;box-shadow:0 0 18px #c3a76355}
+.pixWorldActivity{margin:15px 0;padding:15px;border:1px solid #3d6680;border-radius:10px;background:#121c3c}
+.pixWorldActivity h3{font-size:12px;color:#98f4d9;letter-spacing:.1em;margin:0 0 10px}
+.pixWorldActivity p{font:11px ui-monospace,monospace;color:#ebd1a1;margin:4px 0;padding:7px;border-bottom:1px solid #304163}

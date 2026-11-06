@@ -5,6 +5,8 @@ import {VR_SCENE_STORAGE_KEY,MAX_SCENE_BYTES,MAX_PROFILE_BYTES,sampleVrWorld,par
   placeOnSurface,removePlacedObject,PLACEMENT_TEMPLATES,MAX_PLACED_OBJECTS} from './vr-physics-bridge.js';
 import {applyGizmoTransform,DEFAULT_GIZMO_SNAP,GIZMO_SNAPS} from './vr-gizmo-contract.js';
 import {buildPlayableWorld} from './playable-world.js';
+import {MAX_PICKUPS,MAX_TRIGGERS,newGameplayRules,validateGameplayRules,
+  addGameplayMarker,removeGameplayMarker,editGameplayMarker,markerPositionForObject} from './gameplay-rules.js';
 import './forge.css';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
 const WorldPlayer=lazy(()=>import('./WorldPlayer.jsx'));
@@ -65,10 +67,16 @@ export default function ForgeV6(){
   const [profileHistory,setProfileHistory]=useState({past:[],future:[]});
   const [placementKind,setPlacementKind]=useState(null);
   const [playablePreview,setPlayablePreview]=useState(null);
+  const [gameplayRules,setGameplayRules]=useState(null);
+  const [gameRuleHistory,setGameRuleHistory]=useState({past:[],future:[]});
+  const [ruleAnchor,setRuleAnchor]=useState('');
+  const [ruleName,setRuleName]=useState('');
+  const [ruleMessage,setRuleMessage]=useState('Checkpoint reached.');
   const physicsRef=useRef(null);
   const fileRef=useRef(null);
   const vrFileRef=useRef(null);
   const profileFileRef=useRef(null);
+  const gameplayFileRef=useRef(null);
   const physicsDescriptors=useMemo(()=>vrScene&&vrPhysicsProfile
     ?toPhysicsDescriptors(vrScene,vrPhysicsProfile,vrHash):null,[vrScene,vrPhysicsProfile,vrHash]);
   const selectedVr=vrScene?.objects.find(o=>o.id===vrSelected)
@@ -130,6 +138,8 @@ export default function ForgeV6(){
     const hash=await fingerprintVrWorld(source);
     const draft=newPhysicsProfile(source,hash);
     setVrScene(source);setVrHash(hash);setVrPhysicsProfile(draft);
+    setGameplayRules(newGameplayRules(hash));setGameRuleHistory({past:[],future:[]});
+    setRuleAnchor(draft.objects[0]?.id||'');
     setVrSelected(draft.objects[0]?.id||source.objects[0]?.id||null);
     setWalkMode(false);setPaused(true);
     setGizmoMode('translate');setPlacementKind(null);setProfileHistory({past:[],future:[]});
@@ -264,17 +274,75 @@ export default function ForgeV6(){
   }
   function leaveVrScene(){
     setVrScene(null);setVrHash('');setVrPhysicsProfile(null);
+    setGameplayRules(null);setGameRuleHistory({past:[],future:[]});
+    setRuleAnchor('');
     setVrSelected(null);setWalkMode(false);setPaused(false);
     setProfileHistory({past:[],future:[]});setGizmoMode('translate');setPlacementKind(null);
     setMessage('Returned to the standard Physics Lab. No VR Studio files were changed.');
   }
+  function commitGameplay(next){
+    if(!gameplayRules||JSON.stringify(gameplayRules)===JSON.stringify(next))return;
+    setGameRuleHistory(h=>({past:[...h.past.slice(-29),gameplayRules],future:[]}));
+    setGameplayRules(next);
+  }
+  function createRule(kind){
+    if(!vrScene||!gameplayRules)return;
+    try{
+      const anchor=physicsDescriptors?.find(o=>o.id===ruleAnchor&&!o.proxy);
+      if(!anchor)throw Error('Select a source or placed primitive, not a private asset proxy.');
+      const labels={collectible:'New Spark',trigger:'New Checkpoint',goal:'Finish Line'};
+      const next=addGameplayMarker(gameplayRules,vrHash,kind,markerPositionForObject(anchor),
+        ruleName.trim()||labels[kind],ruleMessage.trim()||'Checkpoint reached.');
+      commitGameplay(next);setRuleName('');
+      setMessage('Added '+kind+' marker near '+anchor.name+'. Export to test it in World Player.');
+    }catch(e){setMessage('Game rule rejected: '+e.message);}
+  }
+  function removeRule(id){
+    try{commitGameplay(removeGameplayMarker(gameplayRules,vrHash,id));
+      setMessage('Removed gameplay marker '+id+'.');}
+    catch(e){setMessage('Gameplay removal rejected: '+e.message);}
+  }
+  function editRuleNumber(id,field,axis,input){
+    if(!gameplayRules||input.trim()==='')return;
+    const value=Number(input);
+    if(!Number.isFinite(value)){setMessage('Marker position/radius must be finite.');return;}
+    const all=[...gameplayRules.collectibles,...gameplayRules.triggers,...(gameplayRules.goal?[gameplayRules.goal]:[])];
+    const marker=all.find(o=>o.id===id);if(!marker)return;
+    const next=field==='position'?{position:marker.position.map((n,i)=>i===axis?value:n)}:{radius:value};
+    try{commitGameplay(editGameplayMarker(gameplayRules,vrHash,id,next));}
+    catch(e){setMessage('Gameplay edit rejected: '+e.message);}
+  }
+  function undoGameRules(){
+    if(!gameRuleHistory.past.length)return;
+    setGameplayRules(gameRuleHistory.past.at(-1));
+    setGameRuleHistory(h=>({past:h.past.slice(0,-1),future:[gameplayRules,...h.future].slice(0,30)}));
+  }
+  function redoGameRules(){
+    if(!gameRuleHistory.future.length)return;
+    setGameplayRules(gameRuleHistory.future[0]);
+    setGameRuleHistory(h=>({past:[...h.past,gameplayRules].slice(-30),future:h.future.slice(1)}));
+  }
+  function exportRules(){
+    if(gameplayRules)downloadJson(validateGameplayRules(gameplayRules,vrHash),'pixelforge-gameplay.v1.json');
+  }
+  async function importRules(event){
+    const file=event.target.files?.[0];event.target.value='';if(!file||!vrScene)return;
+    try{
+      if(file.size>20000)throw Error('Game rule file must be under 20 KB.');
+      const validated=validateGameplayRules(JSON.parse(await file.text()),vrHash);
+      commitGameplay(validated);
+      setMessage('Loaded matching source-bound gameplay rule file.');
+    }catch(e){setMessage('Gameplay import rejected: '+e.message);}
+  }
+  const gameplayForExport=gameplayRules&&
+    (gameplayRules.collectibles.length||gameplayRules.triggers.length||gameplayRules.goal)?gameplayRules:null;
   const exportDemo=()=>downloadJson(doc,'pixelforge-v6-demo-world.json');
   const exportPhysicsProfile=()=>{if(vrScene&&vrPhysicsProfile)
     downloadJson(validatePhysicsProfile(vrPhysicsProfile,vrScene,vrHash),'pixelforge-physics-sandbox.v1.json');};
   function exportPlayable(){
     if(!vrScene||!vrPhysicsProfile)return;
     try{
-      const world=buildPlayableWorld(vrScene,vrPhysicsProfile,vrHash,gravity);
+      const world=buildPlayableWorld(vrScene,vrPhysicsProfile,vrHash,gravity,gameplayForExport);
       downloadJson(world,'pixelforge-playable-world.v1.json');
       setMessage('Exported playable-world.v1 JSON, ready for the standalone World Player.');
     }catch(e){setMessage('World export rejected: '+e.message);}
@@ -417,7 +485,8 @@ export default function ForgeV6(){
               </div>
               <div className="forgePlayableBridge" aria-label="Playable World export">
                 <div><span className="forgeEyebrow">RUNG 5 / WORLD PLAYER</span><h4>Build a playable world</h4>
-                  <p>Freeze your scene and collider layout into a portable, validated JSON world. Private asset proxies and scripts are excluded.</p></div>
+                  <p>Export geometry, colliders and optional gameplay objectives as portable JSON. Add collectibles and victory goals in Game Logic first. Private asset proxies and scripts remain excluded.</p></div>
+                <button type="button" onClick={()=>setSection('Game Logic')}>⌘ Author Game Rules</button>
                 <button type="button" onClick={previewPlayable}>▶ Play This World</button>
                 <button type="button" onClick={exportPlayable}>⇩ Export Playable World</button>
                 <a href={BASE+'?play=1'}>Standalone World Player ↗</a>
@@ -427,7 +496,69 @@ export default function ForgeV6(){
             </div>}
           </section>
         </section>}
-        {!showMap&&!physics&&<section className="forgeBridge forgePanel"><span className="forgeEyebrow">BRIDGED WORKSPACE / GRADUAL MIGRATION</span><h2>{LINK_PANELS[workspace]?.title||workspace}</h2><p>{LINK_PANELS[workspace]?.text||'This workflow remains in the existing PixelForge toolchain.'}</p><div className="forgeBridgeLinks">{(LINK_PANELS[workspace]?.links||[]).map(([label,path])=><ActionLink key={label} path={path}>{label}</ActionLink>)}</div>{workspace==='Build & Export'&&<button onClick={exportDemo} type="button" className="forgePrimary">⇩ Export current demo world JSON</button>}</section>}
+        {workspace==='Game Logic'&&<section className="forgeRuleEditor forgePanel">
+          <div className="forgeRuleHead"><div><span className="forgeEyebrow">RUNG 6 / DECLARATIVE GAMEPLAY</span>
+            <h2>Quest & Trigger Builder</h2>
+            <p>Add collectibles, checkpoints and a finish marker to your 3D world. No scripts or network actions. All objectives are required before victory.</p></div>
+            <a className="forgeActionLink" href={BASE+'studio/'}>Original Logic Composer ↗</a>
+          </div>
+          {!vrScene?<div className="forgeRuleEmpty"><p>Start with the official VR World sample, or import your own world through Physics first.</p>
+            <button type="button" onClick={()=>{void adoptVrScene(sampleVrWorld()).catch(e=>setMessage(e.message));}}>◎ Load VR world sample</button>
+            <button type="button" onClick={()=>setSection('Physics')}>Open Physics / Scene Import</button></div>:
+          <div className="forgeRuleWorkspace">
+            <div className="forgeRuleComposer">
+              <h3>Place a gameplay marker</h3>
+              <label>Attach near primitive
+                <select value={physicsDescriptors?.some(o=>o.id===ruleAnchor&&!o.proxy)?ruleAnchor:
+                  physicsDescriptors?.find(o=>!o.proxy)?.id||''}
+                  onChange={e=>setRuleAnchor(e.target.value)}>
+                  {physicsDescriptors?.filter(o=>!o.proxy).map(o=><option value={o.id} key={o.id}>{o.name} ({o.id})</option>)}
+                </select>
+              </label>
+              <label>Display name<input maxLength={60} value={ruleName} onChange={e=>setRuleName(e.target.value)}
+                placeholder="Example: Field Spark"/></label>
+              <label>Checkpoint / victory message<input maxLength={180} value={ruleMessage} onChange={e=>setRuleMessage(e.target.value)}
+                placeholder="You found the hidden frequency!"/></label>
+              <div className="forgeRuleActions">
+                <button type="button" disabled={gameplayRules.collectibles.length>=MAX_PICKUPS} onClick={()=>createRule('collectible')}>◆ Add Collectible</button>
+                <button type="button" disabled={gameplayRules.triggers.length>=MAX_TRIGGERS} onClick={()=>createRule('trigger')}>⌖ Add Checkpoint</button>
+                <button type="button" onClick={()=>createRule('goal')}>◎ {gameplayRules.goal?'Replace Finish':'Set Finish'}</button>
+              </div>
+              <p>Markers are positioned above the selected object's center. Adjust their X/Y/Z coordinates and radius below to fine-tune the player interaction.</p>
+            </div>
+            <div className="forgeRuleList">
+              <div className="forgeRuleListHeader"><h3>Objective sequence</h3>
+                <span>{gameplayRules.collectibles.length} collectible(s) · {gameplayRules.triggers.length} checkpoint(s)</span></div>
+              {[...gameplayRules.collectibles.map(o=>({...o,markerType:'Collectible'})),
+                ...gameplayRules.triggers.map(o=>({...o,markerType:'Checkpoint'})),
+                ...(gameplayRules.goal?[{...gameplayRules.goal,markerType:'Finish'}]:[])].map(entry=>
+                <div className="forgeRuleRow" key={entry.id}>
+                  <div><strong>{entry.markerType}: {entry.name}</strong><span>{entry.id}</span></div>
+                  <div className="forgeRuleCoords">
+                    {['X','Y','Z'].map((axis,i)=><label key={axis}>{axis}<input type="number" step=".25"
+                      min="-100" max="100" key={entry.id+'-'+i+'-'+entry.position[i]}
+                      defaultValue={entry.position[i]} onBlur={e=>editRuleNumber(entry.id,'position',i,e.target.value)}/></label>)}
+                    <label>Radius<input type="number" step=".1" min=".3" max="4"
+                      key={entry.id+'-radius-'+entry.radius} defaultValue={entry.radius}
+                      onBlur={e=>editRuleNumber(entry.id,'radius',0,e.target.value)}/></label>
+                  </div>
+                  <button type="button" onClick={()=>removeRule(entry.id)}>Delete</button>
+                </div>)}
+              {!gameplayRules.goal&&<p className="forgeRuleWarning">Add a Finish marker to enable a victory condition.</p>}
+              {gameplayRules.goal&&<p className="forgeRuleNotice">Victory requires every collectible and checkpoint, then entering the Finish marker.</p>}
+              <div className="forgeRuleActions">
+                <button disabled={!gameRuleHistory.past.length} onClick={undoGameRules} type="button">↶ Undo</button>
+                <button disabled={!gameRuleHistory.future.length} onClick={redoGameRules} type="button">↷ Redo</button>
+                <button type="button" onClick={exportRules}>⇩ Export Game Rules</button>
+                <button type="button" onClick={()=>gameplayFileRef.current?.click()}>⇧ Import Matching Rules</button>
+                <button type="button" onClick={previewPlayable}>▶ Play With Rules</button>
+                <button type="button" onClick={exportPlayable}>⇩ Export Playable World</button>
+              </div>
+              <input hidden ref={gameplayFileRef} type="file" accept=".json,application/json" onChange={importRules}/>
+            </div>
+          </div>}
+        </section>}
+        {!showMap&&!physics&&workspace!=='Game Logic'&&<section className="forgeBridge forgePanel"><span className="forgeEyebrow">BRIDGED WORKSPACE / GRADUAL MIGRATION</span><h2>{LINK_PANELS[workspace]?.title||workspace}</h2><p>{LINK_PANELS[workspace]?.text||'This workflow remains in the existing PixelForge toolchain.'}</p><div className="forgeBridgeLinks">{(LINK_PANELS[workspace]?.links||[]).map(([label,path])=><ActionLink key={label} path={path}>{label}</ActionLink>)}</div>{workspace==='Build & Export'&&<button onClick={exportDemo} type="button" className="forgePrimary">⇩ Export current demo world JSON</button>}</section>}
         <section className="forgeBottom">
           <div className="forgeTimeline forgePanel"><h2>Scene Timeline / Events <span>PREVIEW</span></h2><div className="forgeTrack"><span>▶</span><span className="forgeTrackLine"/><i/><i/><i/></div><p>Animation timeline authoring is planned. Map edits and physics are functional in this rung.</p></div>
           <div className="forgeLog forgePanel"><h2>Console / Activity</h2><p>✓ v6 workspace loaded without changing v5 saves</p><p>✓ Demo grid: {WIDTH} × {HEIGHT}</p><p>{physicsStatus==='ready'?'✓ Rapier and Three.js initialized':'· Physics initializes when its workspace opens'}</p>
