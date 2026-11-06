@@ -92,3 +92,35 @@
  font-weight:900;font-size:11px;white-space:nowrap;text-align:center}
 .forgePlayableBridge button:hover,.forgePlayableBridge a:hover{background:#32776b;border-color:#96fbd8}
 @media(max-width:630px){.forgePlayableBridge button,.forgePlayableBridge a{flex:1 1 100%}}
+
+/* Rung 6: safe, declarative gameplay authoring. */
+.forgeRuleEditor{padding:19px;min-height:420px;border-color:#6962a7}
+.forgeRuleHead{display:flex;justify-content:space-between;align-items:start;gap:14px;flex-wrap:wrap}
+.forgeRuleHead h2{font-size:clamp(23px,3vw,30px);margin:7px 0}
+.forgeRuleHead p{color:#adc3dd;max-width:620px;font-size:12px;line-height:1.7}
+.forgeRuleHead .forgeActionLink{flex:0 0 auto;margin:0}
+.forgeRuleWorkspace{display:grid;grid-template-columns:minmax(210px,270px) minmax(0,1fr);gap:12px;margin-top:15px}
+.forgeRuleComposer,.forgeRuleList{background:#111b35;border:1px solid #374a79;border-radius:10px;padding:15px;min-width:0}
+.forgeRuleEditor h3{font-size:15px;margin:0 0 14px;color:#ffe8b2}
+.forgeRuleComposer label{display:grid;gap:5px;color:#c0ddeb;font-size:11px;font-weight:800;margin-bottom:12px}
+.forgeRuleComposer input,.forgeRuleComposer select,.forgeRuleCoords input{border:1px solid #6174a4;border-radius:7px;padding:9px;background:#1c2a4b;color:white;max-width:100%;font:12px ui-sans-serif,system-ui}
+.forgeRuleComposer p{font-size:11px;line-height:1.65;color:#a6b9db}
+.forgeRuleActions{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.forgeRuleActions button,.forgeRuleEmpty button{border:1px solid #65b9a8;background:#1f5551;color:#eafff7;font-size:11px;font-weight:850;border-radius:8px;padding:10px 12px}
+.forgeRuleActions button:hover,.forgeRuleEmpty button:hover{background:#34746d}
+.forgeRuleActions button:disabled{opacity:.4;cursor:not-allowed}
+.forgeRuleEmpty{border:1px dashed #626da3;padding:22px;border-radius:10px;margin-top:15px;color:#a5c6e4}
+.forgeRuleEmpty button{margin:7px}
+.forgeRuleListHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.forgeRuleListHeader span{font:10px ui-monospace,monospace;color:#8ce5d7}
+.forgeRuleRow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;margin:8px 0;padding:10px;border:1px solid #4a568a;background:#1a2341;border-radius:9px}
+.forgeRuleRow>div:first-child{display:grid;gap:3px;flex:1 1 150px;font-size:11px}
+.forgeRuleRow>div:first-child span{color:#9fb2d6;font-size:9px}
+.forgeRuleCoords{display:grid;grid-template-columns:repeat(4,minmax(44px,1fr));gap:4px;flex:1 1 200px}
+.forgeRuleCoords label{display:grid;gap:4px;font-size:9px;color:#7fe8da;font-weight:850}
+.forgeRuleCoords input{width:100%;min-width:0;padding:7px 6px}
+.forgeRuleRow>button{border:1px solid #cb788e;background:#472637;padding:8px 10px;border-radius:8px;color:#ffd5dd;font-size:10px}
+.forgeRuleWarning,.forgeRuleNotice{font-size:11px;color:#ffcf86;line-height:1.5}
+.forgeRuleNotice{color:#8ff2d3}
+@media(max-width:1050px){.forgeRuleWorkspace{grid-template-columns:1fr}}
+@media(max-width:600px){.forgeRuleEditor{padding:10px}.forgeRuleCoords{flex:1 1 100%}.forgeRuleRow>button{margin-left:auto}}
