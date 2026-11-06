@@ -40,6 +40,7 @@ export function applyGizmoTransform(profile,world,sceneHash,id,mode,raw,snaps=DE
   const config=validateGizmoSnap(snaps);
   if(!['translate','rotate','scale'].includes(mode))throw Error('Select an editable gizmo mode.');
   if(!own(raw))throw Error('Missing gizmo transform.');
+  if(Object.keys(raw).some(key=>!['position','yaw','scale'].includes(key)))throw Error('Unapproved gizmo transform field.');
   const profileBefore=validatePhysicsProfile(profile,world,sceneHash);
   const selected=profileBefore.objects.find(o=>o.id===id);
   if(!selected)throw Error('This scene object has no editable collision profile.');
