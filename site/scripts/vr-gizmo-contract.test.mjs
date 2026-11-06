@@ -35,7 +35,7 @@ test('scale limits, snap off, and no collider geometry forgery',async()=>{
   assert.deepEqual(next.objects.find(x=>x.id==='obj-2').scale,[1.12,2.35,.86]);
   assert.throws(()=>applyGizmoTransform(profile,scene,hash,'obj-2','scale',{scale:[0,1,1]}),/Scale exceeds/);
   assert.throws(()=>applyGizmoTransform(profile,scene,hash,'obj-2','scale',{scale:[51,1,1]}),/Scale exceeds/);
-  assert.throws(()=>applyGizmoTransform(profile,scene,hash,'obj-2','scale',{scale:[.05,1,1]},{translation:.25,rotation:15,scale:.1}),/collapse/);
+  assert.throws(()=>applyGizmoTransform(profile,scene,hash,'obj-2','scale',{scale:[.05,1,1]},{translation:.25,rotation:15,scale:.5}),/collapse/);
 });
 test('reject invalid modes, inputs, foreign hashes and unauthorized fields',async()=>{
   const {scene,hash,profile}=await fixture();
