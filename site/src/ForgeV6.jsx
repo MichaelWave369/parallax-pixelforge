@@ -172,8 +172,9 @@ export default function ForgeV6(){
     try {
       const next=applyGizmoTransform(vrPhysicsProfile,vrScene,vrHash,id,tool,transform,gizmoSnap);
       const changed=JSON.stringify(next)!==JSON.stringify(vrPhysicsProfile);
+      if(!changed){setMessage('Snap returned the object to its existing transform. No edit recorded.');return false;}
       const accepted=commitProfile(next);
-      if(changed)setMessage('Committed one '+tool+' edit for '+id+' to the sandbox sidecar. Source scene unchanged.');
+      setMessage('Committed one '+tool+' edit for '+id+' to the sandbox sidecar. Source scene unchanged.');
       return accepted;
     }catch(e){setMessage('Gizmo edit rejected: '+e.message);return false;}
   }
