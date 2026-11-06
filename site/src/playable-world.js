@@ -93,7 +93,7 @@ export function createSamplePlayableWorld(){
       format:'pixelforge.gameplay.v1',source_sha256:'0'.repeat(64),
       collectibles:[
         {id:'pickup-1',name:'Forge Spark',position:[-3,1.2,-1],radius:1.55,color:'#ffe49a'},
-        {id:'pickup-2',name:'Parallax Crystal',position:[3,2.6,0],radius:1.55,color:'#c4a2ff'}
+        {id:'pickup-2',name:'Parallax Crystal',position:[4.6,1.1,0],radius:1.55,color:'#c4a2ff'}
       ],
       triggers:[{id:'trigger-1',name:'Gateway',position:[1,2.1,-4],radius:2,message:'The old path is open. Find the final gateway!'}],
       goal:{id:'goal-1',name:'Finish Line',position:[6,1.4,-6],radius:1.8,message:'WORLD COMPLETE! You restored the Forge frequency.'}
