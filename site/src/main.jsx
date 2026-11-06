@@ -1,9 +1,11 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import './styles.css';
+import ForgeV6 from './ForgeV6.jsx';
 
 const BASE = import.meta.env.BASE_URL;
 const studioModules = [
+  {id:'forge',eyebrow:'NEW / WORKSPACE PREVIEW',title:'PixelForge v6 Creator Forge',description:'Neon workspace redesign with an editable demo tilemap, real Three.js + Rapier physics lab, and direct paths back to existing tools.',path:'?forge=1',cta:'Launch Creator Forge v6',glyph:'⚛',accent:'violet',tags:['v6 preview','Physics Lab','World Editor','Local-first']},
   {id:'studio',eyebrow:'01 / PIXEL & GAME DESIGN',title:'Creator Studio',description:'Sprite work, tile maps, runtime composition, project editing and cartridge export in the original PixelForge workbench.',path:'studio/',cta:'Launch Creator Studio',glyph:'▦',accent:'coral',tags:['2D','Sprite Studio','Tile Composer','Local saves']},
   {id:'layers',eyebrow:'02 / DEPTH COMPOSITION',title:'Layer Studio',description:'Compose animated 2.5D worlds with seven independent depth planes, parallax camera movement, sprite sheets, and per-plane particle effects.',path:'layer-studio/',cta:'Open Layer Studio',glyph:'◫',accent:'mint',tags:['2.5D','Parallax','Animated layers','Sprite sheets']},
   {id:'vr',eyebrow:'02 / SPATIAL CREATION',title:'VR World Studio',description:'Build and edit a 3D scene with bounded objects, transform controls, scene export and experimental WebXR preview.',path:'vr-studio/',cta:'Enter VR Studio',glyph:'⬡',accent:'mint',tags:['WebGL2','WebXR preview','Scene graph','Experimental']},
@@ -66,8 +68,8 @@ function App() {
             <h1>Build worlds.<br/><em>Make them real.</em></h1>
             <p className="lede">From a single pixel to a playable world to an immersive 3D scene. One creative home for human makers and governed agent workflows.</p>
             <div className="heroActions">
-              <a className="button bright" href={BASE+'studio/'}>Open PixelForge Studio <span>↗</span></a>
-              <a className="button outline" href={BASE+'vr-studio/'}>Explore VR Studio <span>⬡</span></a>
+              <a className="button bright" href={BASE+'?forge=1'}>Launch Creator Forge v6 <span>↗</span></a>
+              <a className="button outline" href={BASE+'studio/'}>Open Original Studio <span>⬡</span></a>
             </div>
             <div className="heroFoot"><span>LOCAL-FIRST TOOLS</span><span>●</span><span>OPEN WORKFLOWS</span><span>●</span><span>BUILD IN PUBLIC</span></div>
           </div>
@@ -119,4 +121,4 @@ function App() {
     </div>
   );
 }
-createRoot(document.getElementById('root')).render(<App/>);
+createRoot(document.getElementById('root')).render(new URLSearchParams(window.location.search).get('forge')==='1'?<ForgeV6/>:<App/>);
