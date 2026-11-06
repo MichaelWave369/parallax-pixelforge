@@ -7,6 +7,8 @@ import {applyGizmoTransform,DEFAULT_GIZMO_SNAP,GIZMO_SNAPS} from './vr-gizmo-con
 import {buildPlayableWorld} from './playable-world.js';
 import {MAX_PICKUPS,MAX_TRIGGERS,newGameplayRules,validateGameplayRules,
   addGameplayMarker,removeGameplayMarker,editGameplayMarker,markerPositionForObject} from './gameplay-rules.js';
+import {newEventGraph,addEventNode,addEventDoor,removeEventNode,updateEventNode,
+  validateEventGraphTargets,MAX_GRAPH_NODES,MAX_GRAPH_DOORS} from './event-graph.js';
 import './forge.css';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
 const WorldPlayer=lazy(()=>import('./WorldPlayer.jsx'));
@@ -44,6 +46,26 @@ function Tile({type,player,grid,index,onClick,mode}) {
     </button>;
 }
 function ActionLink({path,children}){return <a className="forgeActionLink" href={BASE+path}>{children}<span>↗</span></a>;}
+function GraphConditionControls({condition,available,onChange,minOne=false}){
+  const chosen=condition?.ids||[];
+  return <div className="forgeGraphConditions">
+    <label>Require
+      <select value={condition?.mode||'all'} onChange={e=>onChange({mode:e.target.value,ids:chosen})}>
+        <option value="all">ALL connected events (AND)</option>
+        <option value="any">ANY connected event (OR)</option>
+      </select>
+    </label>
+    <div className="forgeGraphChips" role="group" aria-label="Prerequisite event connections">
+      {available.length?available.map(({id,label})=><label key={id}>
+        <input type="checkbox" checked={chosen.includes(id)}
+          disabled={minOne&&chosen.length===1&&chosen.includes(id)}
+          onChange={e=>onChange({mode:condition?.mode||'all',
+            ids:e.target.checked?[...chosen,id]:chosen.filter(x=>x!==id)})}/>
+        {label}
+      </label>):<span>Make a pickup, checkpoint, switch or secret to connect first.</span>}
+    </div>
+  </div>;
+}
 export default function ForgeV6(){
   const [workspace,setWorkspace]=useState('World Builder');
   const [history,setHistory]=useState(()=>({current:createSeedWorld(),past:[],future:[]}));
@@ -72,6 +94,8 @@ export default function ForgeV6(){
   const [ruleAnchor,setRuleAnchor]=useState('');
   const [ruleName,setRuleName]=useState('');
   const [ruleMessage,setRuleMessage]=useState('Checkpoint reached.');
+  const [doorTarget,setDoorTarget]=useState('');
+  const [doorPrerequisite,setDoorPrerequisite]=useState('');
   const physicsRef=useRef(null);
   const fileRef=useRef(null);
   const vrFileRef=useRef(null);
@@ -139,7 +163,7 @@ export default function ForgeV6(){
     const draft=newPhysicsProfile(source,hash);
     setVrScene(source);setVrHash(hash);setVrPhysicsProfile(draft);
     setGameplayRules(newGameplayRules(hash));setGameRuleHistory({past:[],future:[]});
-    setRuleAnchor(draft.objects[0]?.id||'');
+    setRuleAnchor(draft.objects[0]?.id||'');setDoorTarget('');setDoorPrerequisite('');
     setVrSelected(draft.objects[0]?.id||source.objects[0]?.id||null);
     setWalkMode(false);setPaused(true);
     setGizmoMode('translate');setPlacementKind(null);setProfileHistory({past:[],future:[]});
@@ -275,7 +299,7 @@ export default function ForgeV6(){
   function leaveVrScene(){
     setVrScene(null);setVrHash('');setVrPhysicsProfile(null);
     setGameplayRules(null);setGameRuleHistory({past:[],future:[]});
-    setRuleAnchor('');
+    setRuleAnchor('');setDoorTarget('');setDoorPrerequisite('');
     setVrSelected(null);setWalkMode(false);setPaused(false);
     setProfileHistory({past:[],future:[]});setGizmoMode('translate');setPlacementKind(null);
     setMessage('Returned to the standard Physics Lab. No VR Studio files were changed.');
@@ -334,8 +358,73 @@ export default function ForgeV6(){
       setMessage('Loaded matching source-bound gameplay rule file.');
     }catch(e){setMessage('Gameplay import rejected: '+e.message);}
   }
+  const eventGraph=gameplayRules?.graph||newEventGraph();
+  const graphMarkerIds=gameplayRules?
+    [...gameplayRules.collectibles.map(o=>o.id),...gameplayRules.triggers.map(o=>o.id)]:[];
+  const graphDependencies=gameplayRules?[
+    ...gameplayRules.collectibles.map(o=>({id:o.id,label:'◆ '+o.name})),
+    ...gameplayRules.triggers.map(o=>({id:o.id,label:'⌖ '+o.name})),
+    ...eventGraph.nodes.map(o=>({id:o.id,label:(o.kind==='switch'?'⌘ ':'✧ ')+o.name}))
+  ]:[];
+  const doorCandidates=physicsDescriptors?.filter(o=>!o.proxy&&o.body==='fixed'&&
+    ['block','pillar','platform'].includes(o.kind))||[];
+  function commitEventGraph(next){
+    if(!gameplayRules)return;
+    try{
+      const validated=validateGameplayRules({...gameplayRules,graph:next},vrHash);
+      validateEventGraphTargets(validated.graph,physicsDescriptors||[]);
+      commitGameplay(validated);
+      return true;
+    }catch(e){setMessage('Event graph rejected: '+e.message);return false;}
+  }
+  function createGraphNode(kind){
+    if(!gameplayRules)return;
+    try{
+      const anchor=physicsDescriptors?.find(o=>o.id===ruleAnchor&&!o.proxy)||
+        physicsDescriptors?.find(o=>!o.proxy);
+      if(!anchor)throw Error('Select a primitive anchor to place this event.');
+      const next=addEventNode(eventGraph,graphMarkerIds,kind,markerPositionForObject(anchor),
+        ruleName.trim()||(kind==='switch'?'New Switch':'Hidden Secret'));
+      if(commitEventGraph(next))setMessage('Added '+kind+' node. Connect its prerequisites below.');
+    }catch(e){setMessage('Event graph creation rejected: '+e.message);}
+  }
+  function createGraphDoor(){
+    if(!gameplayRules)return;
+    try{
+      const target=doorCandidates.find(o=>o.id===(doorTarget||doorCandidates[0]?.id));
+      const dep=graphDependencies.find(o=>o.id===(doorPrerequisite||graphDependencies[0]?.id));
+      if(!target||!dep)throw Error('Choose a solid block/pillar and an event that unlocks it.');
+      const next=addEventDoor(eventGraph,graphMarkerIds,target.id,
+        target.name+' Gate',dep.id);
+      if(commitEventGraph(next))setMessage('Linked '+dep.id+' to a locked collider: '+target.name+'.');
+    }catch(e){setMessage('Door connection rejected: '+e.message);}
+  }
+  function changeGraphNode(id,patch){
+    try{commitEventGraph(updateEventNode(eventGraph,graphMarkerIds,id,patch));}
+    catch(e){setMessage('Graph edit rejected: '+e.message);}
+  }
+  function deleteGraphNode(id){
+    try{
+      if(commitEventGraph(removeEventNode(eventGraph,graphMarkerIds,id)))
+        setMessage('Removed event node and its dependent connections.');
+    }catch(e){setMessage('Graph removal rejected: '+e.message);}
+  }
+  function editGraphNumber(id,field,axis,input){
+    if(input.trim()==='')return;
+    const value=Number(input);
+    if(!Number.isFinite(value)){setMessage('Graph coordinate/radius must be finite.');return;}
+    const node=eventGraph.nodes.find(n=>n.id===id);
+    if(!node)return;
+    changeGraphNode(id,field==='position'?
+      {position:node.position.map((v,i)=>i===axis?value:v)}:{radius:value});
+  }
+  function setGraphGoalCondition(condition){
+    changeGraphNode('goal',{goalRequires:condition});
+  }
   const gameplayForExport=gameplayRules&&
-    (gameplayRules.collectibles.length||gameplayRules.triggers.length||gameplayRules.goal)?gameplayRules:null;
+    (gameplayRules.collectibles.length||gameplayRules.triggers.length||gameplayRules.goal||
+      gameplayRules.graph?.nodes.length||gameplayRules.graph?.doors.length||
+      gameplayRules.graph?.goalRequires)?gameplayRules:null;
   const exportDemo=()=>downloadJson(doc,'pixelforge-v6-demo-world.json');
   const exportPhysicsProfile=()=>{if(vrScene&&vrPhysicsProfile)
     downloadJson(validatePhysicsProfile(vrPhysicsProfile,vrScene,vrHash),'pixelforge-physics-sandbox.v1.json');};
@@ -350,7 +439,7 @@ export default function ForgeV6(){
   function previewPlayable(){
     if(!vrScene||!vrPhysicsProfile)return;
     try{
-      const world=buildPlayableWorld(vrScene,vrPhysicsProfile,vrHash,gravity);
+      const world=buildPlayableWorld(vrScene,vrPhysicsProfile,vrHash,gravity,gameplayForExport);
       setPaused(true);setPhysicsStatus('standby');
       setPlayablePreview(world);
     }catch(e){setMessage('World preview rejected: '+e.message);}
@@ -499,7 +588,7 @@ export default function ForgeV6(){
         {workspace==='Game Logic'&&<section className="forgeRuleEditor forgePanel">
           <div className="forgeRuleHead"><div><span className="forgeEyebrow">RUNG 6 / DECLARATIVE GAMEPLAY</span>
             <h2>Quest & Trigger Builder</h2>
-            <p>Add collectibles, checkpoints and a finish marker to your 3D world. No scripts or network actions. All objectives are required before victory.</p></div>
+            <p>Build collectibles, checkpoint triggers and an event dependency graph with switches, secrets, locked doors and AND/OR victory paths. No scripts or network actions.</p></div>
             <a className="forgeActionLink" href={BASE+'studio/'}>Original Logic Composer ↗</a>
           </div>
           {!vrScene?<div className="forgeRuleEmpty"><p>Start with the official VR World sample, or import your own world through Physics first.</p>
@@ -545,7 +634,10 @@ export default function ForgeV6(){
                   <button type="button" onClick={()=>removeRule(entry.id)}>Delete</button>
                 </div>)}
               {!gameplayRules.goal&&<p className="forgeRuleWarning">Add a Finish marker to enable a victory condition.</p>}
-              {gameplayRules.goal&&<p className="forgeRuleNotice">Victory requires every collectible and checkpoint, then entering the Finish marker.</p>}
+              {gameplayRules.goal&&<p className="forgeRuleNotice">
+                {eventGraph.goalRequires?'Victory follows the graph branch requirements below.':
+                  'Default victory requires every collectible and checkpoint, then entering the Finish marker.'}
+              </p>}
               <div className="forgeRuleActions">
                 <button disabled={!gameRuleHistory.past.length} onClick={undoGameRules} type="button">↶ Undo</button>
                 <button disabled={!gameRuleHistory.future.length} onClick={redoGameRules} type="button">↷ Redo</button>
@@ -556,6 +648,81 @@ export default function ForgeV6(){
               </div>
               <input hidden ref={gameplayFileRef} type="file" accept=".json,application/json" onChange={importRules}/>
             </div>
+            <section className="forgeGraphBoard" aria-label="Event graph editor">
+              <div className="forgeGraphIntro">
+                <div><span className="forgeEyebrow">RUNG 7 / EVENT GRAPH</span>
+                  <h3>Switches · Secrets · Doors · Branches</h3>
+                  <p>Connect event IDs through checked prerequisites. A switch requires E during play; a secret activates when approached. Doors remove only their declared fixed collider.</p>
+                </div>
+                <span className="forgePill">{eventGraph.nodes.length} EVENTS · {eventGraph.doors.length} DOORS</span>
+              </div>
+              <div className="forgeGraphCreate">
+                <button type="button" disabled={eventGraph.nodes.length>=MAX_GRAPH_NODES}
+                  onClick={()=>createGraphNode('switch')}>⌘ Add Interactive Switch</button>
+                <button type="button" disabled={eventGraph.nodes.length>=MAX_GRAPH_NODES}
+                  onClick={()=>createGraphNode('secret')}>✧ Add Hidden Secret</button>
+                <div className="forgeGraphDoorCreator">
+                  <label>Locked collider<select aria-label="Door collider" value={doorCandidates.some(o=>o.id===doorTarget)?doorTarget:doorCandidates[0]?.id||''}
+                    onChange={e=>setDoorTarget(e.target.value)}>
+                    {doorCandidates.map(o=><option key={o.id} value={o.id}>{o.name} ({o.id})</option>)}
+                  </select></label>
+                  <label>Initial prerequisite<select aria-label="Door prerequisite" value={graphDependencies.some(o=>o.id===doorPrerequisite)?doorPrerequisite:graphDependencies[0]?.id||''}
+                    onChange={e=>setDoorPrerequisite(e.target.value)}>
+                    {graphDependencies.map(o=><option key={o.id} value={o.id}>{o.label}</option>)}
+                  </select></label>
+                  <button type="button" disabled={!doorCandidates.length||!graphDependencies.length||eventGraph.doors.length>=MAX_GRAPH_DOORS}
+                    onClick={createGraphDoor}>▣ Connect Locked Door</button>
+                </div>
+              </div>
+              <div className="forgeGraphCards">
+                {eventGraph.nodes.map(node=><article className="forgeGraphCard" key={node.id}>
+                  <div className="forgeGraphCardHead">
+                    <div><small>{node.id} · {node.kind==='switch'?'PRESS E TO ACTIVATE':'HIDDEN DISCOVERY'}</small>
+                      <h4>{node.kind==='switch'?'⌘':'✧'} {node.name}</h4></div>
+                    <button type="button" onClick={()=>deleteGraphNode(node.id)}>Delete</button>
+                  </div>
+                  <div className="forgeGraphSequence"><span>IF PREREQUISITES</span><b>→</b><strong>{node.kind.toUpperCase()} ACTIVATES</strong></div>
+                  <GraphConditionControls condition={node.requires}
+                    available={graphDependencies.filter(x=>x.id!==node.id)}
+                    onChange={requires=>changeGraphNode(node.id,{requires})}/>
+                  <div className="forgeGraphCoords">{['X','Y','Z'].map((axis,i)=><label key={axis}>{axis}
+                    <input type="number" min="-100" max="100" step=".25"
+                      key={node.id+'-pos-'+i+'-'+node.position[i]} defaultValue={node.position[i]}
+                      onBlur={e=>editGraphNumber(node.id,'position',i,e.target.value)}/></label>)}
+                    <label>Radius<input type="number" min=".3" max="4" step=".1"
+                      key={node.id+'-radius-'+node.radius} defaultValue={node.radius}
+                      onBlur={e=>editGraphNumber(node.id,'radius',0,e.target.value)}/></label></div>
+                  <label>Event message<input type="text" maxLength={180} key={node.id+'-message-'+node.message}
+                    defaultValue={node.message} onBlur={e=>{if(e.target.value!==node.message)
+                      changeGraphNode(node.id,{message:e.target.value});}}/></label>
+                </article>)}
+                {eventGraph.doors.map(door=><article className="forgeGraphCard forgeDoorCard" key={door.id}>
+                  <div className="forgeGraphCardHead"><div><small>{door.id} · FIXED COLLIDER {door.objectId}</small>
+                    <h4>▣ {door.name}</h4></div>
+                    <button type="button" onClick={()=>deleteGraphNode(door.id)}>Delete</button></div>
+                  <div className="forgeGraphSequence"><span>IF PREREQUISITES</span><b>→</b><strong>REMOVE COLLIDER</strong></div>
+                  <GraphConditionControls condition={door.requires} available={graphDependencies}
+                    minOne onChange={requires=>changeGraphNode(door.id,{requires})}/>
+                  <label>Unlock message<input maxLength={180} type="text" defaultValue={door.message}
+                    key={door.id+'-message-'+door.message}
+                    onBlur={e=>{if(e.target.value!==door.message)changeGraphNode(door.id,{message:e.target.value});}}/></label>
+                </article>)}
+                <article className="forgeGraphCard forgeGoalCard">
+                  <div className="forgeGraphCardHead"><div><small>FINISH LINE / CONDITIONAL VICTORY</small>
+                    <h4>◎ Branching Objective</h4></div>
+                    {eventGraph.goalRequires&&<button type="button" onClick={()=>setGraphGoalCondition(null)}>Use classic goal</button>}</div>
+                  <div className="forgeGraphSequence"><span>IF CONDITION</span><b>→</b><strong>ENABLE VICTORY</strong></div>
+                  {!eventGraph.goalRequires?
+                    <><p>Classic goal: require all pickups and checkpoints. Enable branching to choose AND/OR event dependencies instead.</p>
+                      <button type="button" disabled={!graphDependencies.length} onClick={()=>
+                        setGraphGoalCondition({mode:'any',ids:[graphDependencies[0].id]})}>+ Enable Alternative Route</button></>:
+                    <GraphConditionControls condition={eventGraph.goalRequires}
+                      available={graphDependencies} minOne onChange={setGraphGoalCondition}/>}
+                  {!gameplayRules.goal&&<p className="forgeRuleWarning">Add a Finish marker above before victory can fire.</p>}
+                </article>
+              </div>
+              <p className="forgeGraphFoot">All graph edges are checked before export. Cyclic links, missing markers and unsafe actions are refused. Changes are covered by Game Logic Undo/Redo.</p>
+            </section>
           </div>}
         </section>}
         {!showMap&&!physics&&workspace!=='Game Logic'&&<section className="forgeBridge forgePanel"><span className="forgeEyebrow">BRIDGED WORKSPACE / GRADUAL MIGRATION</span><h2>{LINK_PANELS[workspace]?.title||workspace}</h2><p>{LINK_PANELS[workspace]?.text||'This workflow remains in the existing PixelForge toolchain.'}</p><div className="forgeBridgeLinks">{(LINK_PANELS[workspace]?.links||[]).map(([label,path])=><ActionLink key={label} path={path}>{label}</ActionLink>)}</div>{workspace==='Build & Export'&&<button onClick={exportDemo} type="button" className="forgePrimary">⇩ Export current demo world JSON</button>}</section>}

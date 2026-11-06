@@ -54,6 +54,20 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     let cancelled=false,renderer=null,controls=null,resizeObserver=null,world=null,scene=null;
     let dynamic=[],environment=[],canvas=null,player=null,gizmo=null,outline=null,ghost=null;
     let gameplayMeshes=[],positionReportElapsed=0;
+    const doorBodies=new Map();
+    const syncDoorColliders=()=>{
+      if(!world||!gameplayRef.current?.graph)return;
+      const opened=new Set(progressRef.current?.openedDoors||[]);
+      for(const door of gameplayRef.current.graph.doors){
+        const record=doorBodies.get(door.objectId);
+        if(!record||record.opened||!opened.has(door.id))continue;
+        // Declared doors were validated as fixed solid objects at JSON import.
+        // Removing this Rapier body also removes its attached collider.
+        world.removeRigidBody(record.body);
+        record.mesh.visible=false;
+        record.opened=true;
+      }
+    };
     const clearGameplayMarkers=()=>{
       if(!scene)return;
       for(const entry of gameplayMeshes){
@@ -64,9 +78,12 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     const syncGameplayMarkers=()=>{
       const state=progressRef.current;
       const collected=new Set(state?.collected||[]),triggered=new Set(state?.triggered||[]);
+      const activated=new Set(state?.activated||[]);
       for(const entry of gameplayMeshes)
         entry.mesh.visible=entry.kind==='collectible'?!collected.has(entry.id)
-          :entry.kind==='trigger'?!triggered.has(entry.id):true;
+          :entry.kind==='trigger'?!triggered.has(entry.id)
+          :['switch','secret'].includes(entry.kind)?!activated.has(entry.id):true;
+      syncDoorColliders();
     };
     const buildGameplayMarkers=()=>{
       clearGameplayMarkers();
@@ -75,14 +92,19 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
       const defs=[
         ...(rules.collectibles||[]).map(o=>({...o,markerKind:'collectible'})),
         ...(rules.triggers||[]).map(o=>({...o,markerKind:'trigger'})),
+        ...(rules.graph?.nodes||[]).map(o=>({...o,markerKind:o.kind})),
         ...(rules.goal?[{...rules.goal,markerKind:'goal'}]:[])
       ];
       for(const entry of defs){
         const isPickup=entry.markerKind==='collectible';
-        const geometry=isPickup?new THREE.IcosahedronGeometry(.34,1):new THREE.TorusGeometry(.52,.105,8,24);
+        const isSecret=entry.markerKind==='secret',isSwitch=entry.markerKind==='switch';
+        const geometry=isPickup?new THREE.IcosahedronGeometry(.34,1)
+          :isSwitch?new THREE.OctahedronGeometry(.4):isSecret?new THREE.DodecahedronGeometry(.3)
+          :new THREE.TorusGeometry(.52,.105,8,24);
+        const color=isPickup?entry.color:isSecret?0xe3aaff:isSwitch?0xffa45e:
+          entry.markerKind==='goal'?0xffd178:0x7ff7e0;
         const material=new THREE.MeshStandardMaterial({
-          color:isPickup?entry.color:entry.markerKind==='goal'?0xffd178:0x7ff7e0,
-          emissive:isPickup?entry.color:entry.markerKind==='goal'?0xffbb66:0x3bcea9,
+          color,emissive:color,
           emissiveIntensity:.48,roughness:.26,metalness:.2,transparent:true,opacity:.95
         });
         const mesh=new THREE.Mesh(geometry,material);
@@ -198,7 +220,12 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
           const collider=RAPIER.ColliderDesc.cuboid(o.scale[0]/2,o.scale[1]/2,o.scale[2]/2)
             .setFriction(o.friction).setRestitution(o.restitution);
           world.createCollider(collider,body);
-          if(o.body==='dynamic')dynamic.push({mesh,body});else environment.push(mesh);
+          if(o.body==='dynamic')dynamic.push({mesh,body});
+          else {
+            environment.push(mesh);
+            if(gameplayRef.current?.graph?.doors.some(d=>d.objectId===o.id))
+              doorBodies.set(o.id,{body,mesh,opened:false});
+          }
         }
         function addWalkAvatar(authored){
           const floor=authored.find(o=>o.kind==='floor'&&o.body!=='none');
@@ -217,6 +244,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
         const makeWorld=(frame=true)=>{
           if(gizmo)gizmo.detach();
           clearGameplayMarkers();
+          doorBodies.clear();
           disposeOutline();
           clearDynamic();
           if(world)world.free();

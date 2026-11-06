@@ -25,3 +25,12 @@
 .pixWorldActivity{margin:15px 0;padding:15px;border:1px solid #3d6680;border-radius:10px;background:#121c3c}
 .pixWorldActivity h3{font-size:12px;color:#98f4d9;letter-spacing:.1em;margin:0 0 10px}
 .pixWorldActivity p{font:11px ui-monospace,monospace;color:#ebd1a1;margin:4px 0;padding:7px;border-bottom:1px solid #304163}
+
+/* Rung 7: explicit switch/secret and collider door state in the World Player. */
+.pixWorldDoorList{display:grid;gap:7px;margin:10px 0}
+.pixWorldDoorList div{display:flex;align-items:center;gap:8px;padding:9px;border:1px solid #986d53;
+ background:#3b2837;border-radius:8px;color:#ffd5af;font-size:11px;font-weight:800}
+.pixWorldDoorList div span{font-size:15px;color:#ffb778}
+.pixWorldDoorList div.open{border-color:#5cba93;background:#224b44;color:#b6ffe2}
+.pixWorldDoorList div.open span{color:#85edc9}
+.pixWorldQuest p b{color:#ffda91;background:#2e3a5a;border:1px solid #637aaa;border-radius:4px;padding:2px 5px}

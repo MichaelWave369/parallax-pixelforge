@@ -91,13 +91,16 @@ test('strict collection limits and stable marker positions',async()=>{
   const p=markerPositionForObject(world.objects[0]);
   assert.deepEqual(p,[0,.9,-4]);
 });
-test('world player starter course is winnable by a deterministic position path',()=>{
+test('world player starter course is winnable through its declared deterministic secret route',()=>{
   const sample=createSamplePlayableWorld();
   assert.ok(sample.gameplay);
   let state=newGameplaySession();
-  for(const marker of [...sample.gameplay.collectibles,...sample.gameplay.triggers,sample.gameplay.goal]){
+  const secret=sample.gameplay.graph?.nodes.find(n=>n.kind==='secret');
+  assert.ok(secret);
+  for(const marker of [...sample.gameplay.collectibles,...sample.gameplay.triggers,secret,sample.gameplay.goal]){
     const tick=advanceGameplaySession(sample.gameplay,state,marker.position);
     state=tick.session;
   }
   assert.equal(state.won,true);
+  assert.deepEqual(state.openedDoors,['door-1']);
 });
