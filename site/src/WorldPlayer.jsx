@@ -25,7 +25,6 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
   }
   function reset(){
     setSession(n=>n+1);setPaused(false);
-    stage.current?.reset();
     setStatus('World restarted at its declared spawn point.');
   }
   function demo(){
@@ -50,7 +49,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
         <section className="pixWorldScreen">
           <div className="pixWorldScreenHeader"><b>WORLD VIEWPORT</b><span>WASD / ARROWS MOVE · DRAG TO ORBIT · SCROLL TO ZOOM</span></div>
           <Suspense fallback={<div className="pixWorldLoading">Loading Three.js + Rapier world runtime…</div>}>
-            <PhysicsStage ref={stage} paused={paused} gravity={world.gravity} sceneObjects={world.objects}
+            <PhysicsStage key={sceneKey} ref={stage} paused={paused} gravity={world.gravity} sceneObjects={world.objects}
               sceneKey={sceneKey} playerSpawn={world.spawn} walkMode={true}
               onStats={setFps} onStatus={setRuntime}/>
           </Suspense>
