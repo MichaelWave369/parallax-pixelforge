@@ -82,6 +82,7 @@ export default function ForgeV6(){
     return()=>window.removeEventListener('keydown',handler);
   },[mode,doc]);
   function setSection(name){
+    if(name!=='Physics')setPhysicsStatus('standby');
     setWorkspace(name==='Studio'?'World Builder':name);
     if(name==='Playtest'){setMode('play');setMessage('Play Preview: use WASD or arrow keys to walk around the demo map.');}
   }
@@ -137,7 +138,7 @@ export default function ForgeV6(){
           {showMap&&<><button className={mode==='edit'?'selected':''} onClick={()=>setMode('edit')} type="button">✎ Editor</button><button className={mode==='play'?'selected':''} onClick={()=>{setMode('play');setMessage('Use WASD or arrow keys to explore.');}} type="button">▶ Play Preview</button><button onClick={undo} disabled={!history.past.length} type="button">↶ Undo</button><button onClick={redo} disabled={!history.future.length} type="button">↷ Redo</button><button onClick={()=>setGrid(v=>!v)} type="button">▦ Grid {grid?'On':'Off'}</button></>}
           {physics&&<><button className="selected" type="button" onClick={()=>setPaused(v=>!v)}>{paused?'▶ Resume':'Ⅱ Pause'}</button><button type="button" onClick={()=>physicsRef.current?.reset()}>↻ Reset</button></>}
           <div className="forgeToolbarSpacer"/>
-          <button type="button" onClick={save}>▣ Save Local</button><button type="button" onClick={exportDemo}>⇩ Export JSON</button>
+          <button type="button" onClick={save}>▣ Save Local</button><button type="button" onClick={load}>↻ Load Local</button><button type="button" onClick={exportDemo}>⇩ Export JSON</button>
           <button type="button" onClick={()=>fileRef.current?.click()}>⇧ Import</button>
           <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={importFile}/>
         </section>
