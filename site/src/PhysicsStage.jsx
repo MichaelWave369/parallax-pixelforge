@@ -9,7 +9,8 @@ const MAX_BODIES=250;
 const PALETTE=[0x50e4cf,0xfcb75b,0xb28bff,0xf675bd,0x62aaff];
 function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=null,onObjectClick,walkMode=false,
     selectedObjectId=null,gizmoMode='inspect',gizmoSnap=null,onTransformCommit=null,sceneKey=null,
-    placementKind=null,onPlacementRequest=null,onPlacementStatus=null,playerSpawn=null},ref) {
+    placementKind=null,onPlacementRequest=null,onPlacementStatus=null,playerSpawn=null,
+    gameplay=null,gameplayProgress=null,onPlayerPosition=null},ref) {
   const mountRef=useRef(null),apiRef=useRef(null),pausedRef=useRef(paused),gravityRef=useRef(gravity);
   const statsRef=useRef(onStats),statusRef=useRef(onStatus);
   const sceneObjectsRef=useRef(sceneObjects),selectionRef=useRef(onObjectClick),walkRef=useRef(walkMode);
@@ -17,6 +18,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
   const commitRef=useRef(onTransformCommit);
   const placementKindRef=useRef(placementKind),placementRef=useRef(onPlacementRequest),placementStatusRef=useRef(onPlacementStatus);
   const playerSpawnRef=useRef(playerSpawn);
+  const gameplayRef=useRef(gameplay),progressRef=useRef(gameplayProgress),positionCallbackRef=useRef(onPlayerPosition);
   const [error,setError]=useState('');
   useEffect(()=>{pausedRef.current=paused;apiRef.current?.syncGizmo();},[paused]);
   useEffect(()=>{gravityRef.current=gravity;},[gravity]);
@@ -29,6 +31,9 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
   },[sceneObjects,sceneKey]);
   useEffect(()=>{walkRef.current=walkMode;apiRef.current?.loadScene(true);},[walkMode]);
   useEffect(()=>{playerSpawnRef.current=playerSpawn;},[playerSpawn]);
+  useEffect(()=>{gameplayRef.current=gameplay;apiRef.current?.buildGameplayMarkers?.();},[gameplay]);
+  useEffect(()=>{progressRef.current=gameplayProgress;apiRef.current?.syncGameplayMarkers?.();},[gameplayProgress]);
+  useEffect(()=>{positionCallbackRef.current=onPlayerPosition;},[onPlayerPosition]);
   useEffect(()=>{
     gizmoOptionsRef.current={selectedObjectId,gizmoMode,gizmoSnap};
     apiRef.current?.syncGizmo();
@@ -48,6 +53,45 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
   useEffect(()=>{
     let cancelled=false,renderer=null,controls=null,resizeObserver=null,world=null,scene=null;
     let dynamic=[],environment=[],canvas=null,player=null,gizmo=null,outline=null,ghost=null;
+    let gameplayMeshes=[],positionReportElapsed=0;
+    const clearGameplayMarkers=()=>{
+      if(!scene)return;
+      for(const entry of gameplayMeshes){
+        scene.remove(entry.mesh);entry.mesh.geometry.dispose();entry.mesh.material.dispose();
+      }
+      gameplayMeshes=[];
+    };
+    const syncGameplayMarkers=()=>{
+      const state=progressRef.current;
+      const collected=new Set(state?.collected||[]),triggered=new Set(state?.triggered||[]);
+      for(const entry of gameplayMeshes)
+        entry.mesh.visible=entry.kind==='collectible'?!collected.has(entry.id)
+          :entry.kind==='trigger'?!triggered.has(entry.id):true;
+    };
+    const buildGameplayMarkers=()=>{
+      clearGameplayMarkers();
+      if(!scene||!gameplayRef.current)return;
+      const rules=gameplayRef.current;
+      const defs=[
+        ...(rules.collectibles||[]).map(o=>({...o,markerKind:'collectible'})),
+        ...(rules.triggers||[]).map(o=>({...o,markerKind:'trigger'})),
+        ...(rules.goal?[{...rules.goal,markerKind:'goal'}]:[])
+      ];
+      for(const entry of defs){
+        const isPickup=entry.markerKind==='collectible';
+        const geometry=isPickup?new THREE.IcosahedronGeometry(.34,1):new THREE.TorusGeometry(.52,.105,8,24);
+        const material=new THREE.MeshStandardMaterial({
+          color:isPickup?entry.color:entry.markerKind==='goal'?0xffd178:0x7ff7e0,
+          emissive:isPickup?entry.color:entry.markerKind==='goal'?0xffbb66:0x3bcea9,
+          emissiveIntensity:.48,roughness:.26,metalness:.2,transparent:true,opacity:.95
+        });
+        const mesh=new THREE.Mesh(geometry,material);
+        mesh.position.set(...entry.position);
+        mesh.userData.gameplayMarkerId=entry.id;
+        scene.add(mesh);gameplayMeshes.push({id:entry.id,kind:entry.markerKind,mesh});
+      }
+      syncGameplayMarkers();
+    };
     let pointerStart=null;
     let dragStarted=false,ignoreNextClick=false;
     const disposeOutline=()=>{
@@ -172,6 +216,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
         }
         const makeWorld=(frame=true)=>{
           if(gizmo)gizmo.detach();
+          clearGameplayMarkers();
           disposeOutline();
           clearDynamic();
           if(world)world.free();
@@ -199,6 +244,8 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
             for(let i=0;i<8;i++)spawn(i%3===0?'ball':'box',true);
           }
           syncGizmo();
+          buildGameplayMarkers();
+          positionReportElapsed=0;
           statsRef.current?.({fps:0,bodies:dynamic.length});
         };
         function spawn(shape='box',initial=false) {
@@ -249,6 +296,8 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
           reset:()=>makeWorld(false),
           loadScene:frame=>makeWorld(frame!==false),
           syncGizmo,
+          buildGameplayMarkers,
+          syncGameplayMarkers,
           cancelTransform:()=>{
             if(!gizmo?.dragging)return false;
             dragStarted=false;
@@ -362,6 +411,17 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
             mesh.position.set(p.x,p.y,p.z);
             mesh.quaternion.set(q.x,q.y,q.z,q.w);
           }
+          if(player&&!pausedRef.current&&positionCallbackRef.current){
+            positionReportElapsed+=dt;
+            if(positionReportElapsed>=.10){
+              positionReportElapsed=0;
+              const pos=player.body.translation();
+              positionCallbackRef.current([pos.x,pos.y,pos.z]);
+            }
+          }
+          for(const item of gameplayMeshes){
+            if(item.kind==='collectible')item.mesh.rotation.y+=dt*.9;
+          }
           if(outline)outline.update();
           if(player){
             const shift=new THREE.Vector3().subVectors(player.mesh.position,controls.target).multiplyScalar(.1);
@@ -393,6 +453,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
       if(gizmo){gizmo.detach();scene?.remove(gizmo.getHelper());gizmo.dispose();}
       if(ghost){scene?.remove(ghost);ghost.geometry.dispose();ghost.material.dispose();}
       if(scene)disposeOutline();
+      clearGameplayMarkers();
       if(controls)controls.dispose();
       if(scene) {
         clearDynamic();
