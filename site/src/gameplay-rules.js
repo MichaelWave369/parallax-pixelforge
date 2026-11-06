@@ -1,5 +1,6 @@
 // PixelForge Rung 6: closed-world declarative game rules.
 // Data only. No eval, scripting, network actions, or authority escalation.
+import {validateEventGraph,advanceEventGraph,dependenciesMet} from './event-graph.js';
 export const GAMEPLAY_FORMAT='pixelforge.gameplay.v1';
 export const MAX_PICKUPS=24;
 export const MAX_TRIGGERS=12;
@@ -42,7 +43,7 @@ export function newGameplayRules(sourceSha){
   return {format:GAMEPLAY_FORMAT,source_sha256:sourceSha,collectibles:[],triggers:[],goal:null};
 }
 export function validateGameplayRules(value,sourceSha){
-  only(value,['format','source_sha256','collectibles','triggers','goal']);
+  only(value,['format','source_sha256','collectibles','triggers','goal','graph']);
   if(value.format!==GAMEPLAY_FORMAT||!hash(sourceSha)||value.source_sha256!==sourceSha)
     throw Error('Gameplay rules do not match this source scene.');
   if(!Array.isArray(value.collectibles)||value.collectibles.length>MAX_PICKUPS||
@@ -59,7 +60,10 @@ export function validateGameplayRules(value,sourceSha){
       position:pos(value.goal.position,value.goal.radius),radius:value.goal.radius,
       message:text(value.goal.message,180)};
   }
-  return {format:GAMEPLAY_FORMAT,source_sha256:sourceSha,collectibles,triggers,goal};
+  const graph=value.graph===undefined?null:
+    validateEventGraph(value.graph,[...collectibles.map(x=>x.id),...triggers.map(x=>x.id)]);
+  return {format:GAMEPLAY_FORMAT,source_sha256:sourceSha,collectibles,triggers,goal,
+    ...(graph?{graph}:{})};
 }
 function nextId(records,prefix){
   const used=new Set(records.map(x=>x.id));
@@ -91,6 +95,15 @@ export function removeGameplayMarker(rules,sourceSha,id){
     v.triggers=v.triggers.filter(x=>x.id!==id);
     if(v.collectibles.length+v.triggers.length===before)throw Error('Gameplay marker not found.');
   }
+  if(v.graph){
+    const prune=c=>c?{mode:c.mode,ids:c.ids.filter(x=>x!==id)}:null;
+    v.graph={...v.graph,
+      nodes:v.graph.nodes.map(n=>({...n,requires:prune(n.requires)})),
+      doors:v.graph.doors.map(d=>({...d,requires:prune(d.requires)}))
+        .filter(d=>d.requires.ids.length>0),
+      goalRequires:prune(v.graph.goalRequires)};
+    if(v.graph.goalRequires&&!v.graph.goalRequires.ids.length)v.graph.goalRequires=null;
+  }
   return validateGameplayRules(v,sourceSha);
 }
 export function editGameplayMarker(rules,sourceSha,id,patch){
@@ -109,24 +122,33 @@ export function editGameplayMarker(rules,sourceSha,id,patch){
   return validateGameplayRules(v,sourceSha);
 }
 export function newGameplaySession(){
-  return {collected:[],triggered:[],won:false};
+  return {collected:[],triggered:[],activated:[],openedDoors:[],won:false};
 }
 function near(player,mark){
   return Math.hypot(player[0]-mark.position[0],player[1]-mark.position[1],player[2]-mark.position[2])<=mark.radius;
 }
-export function advanceGameplaySession(rules,session,position){
+export function advanceGameplaySession(rules,session,position,options={}){
   // Validate exactly once when loading, and reject mutations or malformed sessions
   // rather than allowing arbitrary event types through the runtime.
   if(!plain(rules)||rules.format!==GAMEPLAY_FORMAT||!hash(rules.source_sha256))
     throw Error('Invalid game rules.');
   if(!vec(position))throw Error('Invalid player coordinates.');
-  only(session,['collected','triggered','won']);
-  if(!Array.isArray(session.collected)||!Array.isArray(session.triggered)||typeof session.won!=='boolean')
-    throw Error('Invalid game session.');
+  only(options,['interact']);
+  if(options.interact!==undefined&&typeof options.interact!=='boolean')throw Error('Invalid interact flag.');
+  only(session,['collected','triggered','activated','openedDoors','won']);
+  if(!Array.isArray(session.collected)||!Array.isArray(session.triggered)||
+     (session.activated!==undefined&&!Array.isArray(session.activated))||
+     (session.openedDoors!==undefined&&!Array.isArray(session.openedDoors))||
+     typeof session.won!=='boolean')throw Error('Invalid game session.');
   const collectibles=new Set(rules.collectibles.map(x=>x.id));
   const triggers=new Set(rules.triggers.map(x=>x.id));
   if(session.collected.some(x=>!collectibles.has(x))||session.triggered.some(x=>!triggers.has(x)))
     throw Error('Session contains invalid marker IDs.');
+  const nodeIds=new Set(rules.graph?.nodes.map(x=>x.id)||[]);
+  const doorIds=new Set(rules.graph?.doors.map(x=>x.id)||[]);
+  if((session.activated||[]).some(x=>!nodeIds.has(x))||
+      (session.openedDoors||[]).some(x=>!doorIds.has(x)))
+    throw Error('Session contains invalid event graph IDs.');
   if(session.won)return {session,events:[]};
   const collected=new Set(session.collected),triggered=new Set(session.triggered),events=[];
   for(const entry of rules.collectibles){
@@ -139,11 +161,23 @@ export function advanceGameplaySession(rules,session,position){
       triggered.add(entry.id);events.push({type:'trigger',id:entry.id,text:entry.message});
     }
   }
-  const win=Boolean(rules.goal)&&collected.size===rules.collectibles.length&&triggered.size===rules.triggers.length
-    &&near(position,rules.goal);
+  const graphResult=rules.graph?
+    advanceEventGraph(rules.graph,{...session,collected:[...collected],triggered:[...triggered]},
+      position,options.interact===true):null;
+  if(graphResult)events.push(...graphResult.events);
+  const completed=graphResult?.active||new Set([...collected,...triggered]);
+  const goalReady=rules.graph?.goalRequires?
+    dependenciesMet(rules.graph.goalRequires,completed):
+    collected.size===rules.collectibles.length&&triggered.size===rules.triggers.length;
+  const win=Boolean(rules.goal)&&goalReady&&near(position,rules.goal);
   if(win)events.push({type:'win',id:rules.goal.id,text:rules.goal.message});
   if(!events.length)return {session,events};
-  return {session:{collected:[...collected],triggered:[...triggered],won:win},events};
+  return {session:{
+    collected:[...collected],triggered:[...triggered],
+    activated:graphResult?.activated||session.activated||[],
+    openedDoors:graphResult?.openedDoors||session.openedDoors||[],
+    won:win
+  },events};
 }
 export function markerPositionForObject(object){
   if(!plain(object)||!vec(object.position)||!vec(object.scale))throw Error('Select valid scene geometry.');
