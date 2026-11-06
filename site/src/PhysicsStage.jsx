@@ -8,12 +8,14 @@ const FIXED_STEP=1/60;
 const MAX_BODIES=250;
 const PALETTE=[0x50e4cf,0xfcb75b,0xb28bff,0xf675bd,0x62aaff];
 function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=null,onObjectClick,walkMode=false,
-    selectedObjectId=null,gizmoMode='inspect',gizmoSnap=null,onTransformCommit=null,sceneKey=null},ref) {
+    selectedObjectId=null,gizmoMode='inspect',gizmoSnap=null,onTransformCommit=null,sceneKey=null,
+    placementKind=null,onPlacementRequest=null,onPlacementStatus=null},ref) {
   const mountRef=useRef(null),apiRef=useRef(null),pausedRef=useRef(paused),gravityRef=useRef(gravity);
   const statsRef=useRef(onStats),statusRef=useRef(onStatus);
   const sceneObjectsRef=useRef(sceneObjects),selectionRef=useRef(onObjectClick),walkRef=useRef(walkMode);
   const sceneKeyRef=useRef(sceneKey),gizmoOptionsRef=useRef({selectedObjectId,gizmoMode,gizmoSnap});
   const commitRef=useRef(onTransformCommit);
+  const placementKindRef=useRef(placementKind),placementRef=useRef(onPlacementRequest),placementStatusRef=useRef(onPlacementStatus);
   const [error,setError]=useState('');
   useEffect(()=>{pausedRef.current=paused;apiRef.current?.syncGizmo();},[paused]);
   useEffect(()=>{gravityRef.current=gravity;},[gravity]);
@@ -27,16 +29,24 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
   useEffect(()=>{walkRef.current=walkMode;apiRef.current?.loadScene(true);},[walkMode]);
   useEffect(()=>{
     gizmoOptionsRef.current={selectedObjectId,gizmoMode,gizmoSnap};
-    commitRef.current=onTransformCommit;
     apiRef.current?.syncGizmo();
-  },[selectedObjectId,gizmoMode,gizmoSnap,onTransformCommit]);
+  },[selectedObjectId,gizmoMode,gizmoSnap]);
+  useEffect(()=>{commitRef.current=onTransformCommit;},[onTransformCommit]);
+  useEffect(()=>{
+    placementKindRef.current=placementKind;
+    apiRef.current?.syncPlacement?.();
+    apiRef.current?.syncGizmo?.();
+  },[placementKind]);
+  useEffect(()=>{placementRef.current=onPlacementRequest;placementStatusRef.current=onPlacementStatus;},
+    [onPlacementRequest,onPlacementStatus]);
   useImperativeHandle(ref,()=>({
     spawn:shape=>apiRef.current?.spawn(shape),
     reset:()=>apiRef.current?.reset()
   }),[]);
   useEffect(()=>{
     let cancelled=false,renderer=null,controls=null,resizeObserver=null,world=null,scene=null;
-    let dynamic=[],environment=[],canvas=null,player=null,gizmo=null,outline=null;
+    let dynamic=[],environment=[],canvas=null,player=null,gizmo=null,outline=null,ghost=null;
+    let pointerStart=null;
     let dragStarted=false,ignoreNextClick=false;
     const disposeOutline=()=>{
       if(!outline)return;
@@ -51,7 +61,8 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
       if(!selected)return;
       outline=new THREE.BoxHelper(selected,0xffdc84);
       scene.add(outline);
-      if(!gizmo||!pausedRef.current||walkRef.current||options.gizmoMode==='inspect'||!sceneObjectsRef.current)return;
+      if(!gizmo||!pausedRef.current||walkRef.current||placementKindRef.current||
+        options.gizmoMode==='inspect'||!sceneObjectsRef.current)return;
       const record=sceneObjectsRef.current.find(o=>o.id===options.selectedObjectId);
       if(!record||record.proxy)return;
       gizmo.attach(selected);
@@ -251,23 +262,78 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
         }
         resize();
         resizeObserver=new ResizeObserver(resize);resizeObserver.observe(mount);
+        ghost=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),
+          new THREE.MeshBasicMaterial({color:0x82f9da,transparent:true,opacity:.33,
+            depthWrite:false,side:THREE.DoubleSide}));
+        ghost.visible=false;ghost.renderOrder=3;scene.add(ghost);
         const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
-        const onClick=e=>{
-          if(ignoreNextClick||gizmo?.dragging){ignoreNextClick=false;return;}
-          if(!Array.isArray(sceneObjectsRef.current))return;
+        const cast=(e)=>{
           const rect=canvas.getBoundingClientRect();
           pointer.x=((e.clientX-rect.left)/rect.width)*2-1;
           pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
           raycaster.setFromCamera(pointer,camera);
-          const meshes=[...environment,...dynamic.map(d=>d.mesh)];
-          const hit=raycaster.intersectObjects(meshes,false).find(h=>h.object.userData.sourceObjectId);
+          const meshes=[...environment,...dynamic.map(d=>d.mesh)].filter(m=>m.userData.sourceObjectId);
+          return raycaster.intersectObjects(meshes,false);
+        };
+        const surfaceHit=(e)=>{
+          const hits=cast(e);
+          for(const hit of hits){
+            const obj=sceneObjectsRef.current?.find(o=>o.id===hit.object.userData.sourceObjectId);
+            if(!obj||obj.proxy||obj.body!=='fixed'||!hit.face)continue;
+            const n=hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+            if(n.y<.93)continue;
+            return {targetId:obj.id,point:hit.point.toArray(),normal:n.toArray()};
+          }
+          return null;
+        };
+        const placementSizes={block:[1,1,1],platform:[2.5,.3,2.5],pillar:[.7,2,.7]};
+        const syncPlacement=()=>{
+          canvas.style.cursor=placementKindRef.current?'crosshair':'';
+          if(ghost)ghost.visible=false;
+        };
+        const onPlacementMove=e=>{
+          if(!ghost||!placementKindRef.current||!pausedRef.current||walkRef.current){
+            if(ghost)ghost.visible=false;return;
+          }
+          const hit=surfaceHit(e);
+          if(!hit){ghost.visible=false;return;}
+          const size=placementSizes[placementKindRef.current];
+          if(!size){ghost.visible=false;return;}
+          const snap=gizmoOptionsRef.current.gizmoSnap?.translation||0;
+          const pos=hit.point.map((v,i)=>(i===1||!snap)?v:Math.round(v/snap)*snap);
+          ghost.scale.set(...size);
+          ghost.position.set(pos[0],hit.point[1]+size[1]/2,pos[2]);
+          ghost.visible=true;
+        };
+        const onPointerLeave=()=>{if(ghost)ghost.visible=false;};
+        const onClick=e=>{
+          if(ignoreNextClick||gizmo?.dragging){ignoreNextClick=false;return;}
+          if(pointerStart&&Math.hypot(e.clientX-pointerStart.x,e.clientY-pointerStart.y)>6)return;
+          if(!Array.isArray(sceneObjectsRef.current))return;
+          if(placementKindRef.current){
+            if(!pausedRef.current||walkRef.current){placementStatusRef.current?.('Pause the scene before placing objects.');return;}
+            const hit=surfaceHit(e);
+            if(!hit){placementStatusRef.current?.('Aim at the upper face of a fixed solid object, not a wall or moving body.');return;}
+            placementRef.current?.({...hit,kind:placementKindRef.current});
+            return;
+          }
+          const hit=cast(e)[0];
           if(hit)selectionRef.current?.(hit.object.userData.sourceObjectId);
         };
-        const onPointerDown=()=>{if(!gizmo?.axis)ignoreNextClick=false;};
+        const onPointerDown=e=>{
+          pointerStart={x:e.clientX,y:e.clientY};
+          if(!gizmo?.axis)ignoreNextClick=false;
+        };
         canvas.addEventListener('pointerdown',onPointerDown);
+        canvas.addEventListener('pointermove',onPlacementMove);
+        canvas.addEventListener('pointerleave',onPointerLeave);
         canvas.addEventListener('click',onClick);
+        apiRef.current.syncPlacement=syncPlacement;
+        syncPlacement();
         apiRef.current.removePointerHandlers=()=>{
           canvas.removeEventListener('pointerdown',onPointerDown);
+          canvas.removeEventListener('pointermove',onPlacementMove);
+          canvas.removeEventListener('pointerleave',onPointerLeave);
           canvas.removeEventListener('click',onClick);
         };
         let last=performance.now(),accumulator=0,frames=0,elapsed=0;
@@ -322,6 +388,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
       if(renderer)renderer.setAnimationLoop(null);
       if(resizeObserver)resizeObserver.disconnect();
       if(gizmo){gizmo.detach();scene?.remove(gizmo.getHelper());gizmo.dispose();}
+      if(ghost){scene?.remove(ghost);ghost.geometry.dispose();ghost.material.dispose();}
       if(scene)disposeOutline();
       if(controls)controls.dispose();
       if(scene) {
@@ -333,7 +400,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     };
   },[]);
   return <div className="forgePhysicsCanvas" ref={mountRef} aria-label="Interactive 3D Rapier physics simulation. Drag to orbit, scroll to zoom.">
-    {error?<div className="forgePhysicsError" role="alert">{error}</div>:<div className="forgeCanvasOverlay">DRAG TO ORBIT · W/E/R TRANSFORMS IN PAUSED SCENE · ESC CANCEL · RAPIER COLLIDERS</div>}
+    {error?<div className="forgePhysicsError" role="alert">{error}</div>:<div className="forgeCanvasOverlay">DRAG TO ORBIT · W/E/R GIZMOS · CLICK GHOST TO PLACE ON FIXED TOP · ESC CANCEL</div>}
   </div>;
 }
 export default forwardRef(PhysicsStage);
