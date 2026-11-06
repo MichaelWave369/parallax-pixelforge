@@ -45,6 +45,7 @@ test('reject invalid modes, inputs, foreign hashes and unauthorized fields',asyn
   assert.throws(()=>applyGizmoTransform(profile,scene,'a'.repeat(64),'obj-2','rotate',{yaw:10}),/match/);
   assert.throws(()=>applyGizmoTransform(profile,scene,hash,'obj-2','rotate',{yaw:NaN}),/yaw/);
   assert.throws(()=>validateGizmoSnap({translation:7,rotation:15,scale:.1}),/snap/);
+  assert.throws(()=>applyGizmoTransform(profile,scene,hash,'obj-2','rotate',{yaw:9,asset:'private.glb'}),/Unapproved/);
   assert.throws(()=>applyGizmoTransform(profile,scene,hash,'obj-2','rotate',{yaw:9,asset:'stolen'} ,{translation:7,rotation:15,scale:.1}),/snap/);
   assert.deepEqual(validateGizmoSnap(DEFAULT_GIZMO_SNAP),DEFAULT_GIZMO_SNAP);
 });
