@@ -79,3 +79,16 @@
  color:#ffd7df;background:#44243f;font-weight:850;font-size:11px}
 .forgeDeletePrefab:hover{background:#63334a}
 @media(max-width:660px){.forgeConstructionToolbar>span,.forgeConstructionToolbar small{width:100%;margin-left:0}}
+
+/* Rung 5 portable World Player handoff, separate from canonical Studio exports. */
+.forgePlayableBridge{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:15px;
+ padding:14px;border:1px solid #3d987c;border-radius:10px;
+ background:radial-gradient(circle at right,#205e5966,transparent 55%),#13263f}
+.forgePlayableBridge>div{flex:1 1 230px;min-width:0}
+.forgePlayableBridge h4{font-size:16px;color:#fff2c8;margin:5px 0 4px}
+.forgePlayableBridge p{font-size:11px;line-height:1.55;color:#b9d8dd;margin:0}
+.forgePlayableBridge button,.forgePlayableBridge a{border:1px solid #59b6a0;
+ padding:11px 13px;border-radius:8px;background:#265653;color:#e7fff3;
+ font-weight:900;font-size:11px;white-space:nowrap;text-align:center}
+.forgePlayableBridge button:hover,.forgePlayableBridge a:hover{background:#32776b;border-color:#96fbd8}
+@media(max-width:630px){.forgePlayableBridge button,.forgePlayableBridge a{flex:1 1 100%}}

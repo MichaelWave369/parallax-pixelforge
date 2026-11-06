@@ -4,8 +4,10 @@ import {VR_SCENE_STORAGE_KEY,MAX_SCENE_BYTES,MAX_PROFILE_BYTES,sampleVrWorld,par
   fingerprintVrWorld,newPhysicsProfile,validatePhysicsProfile,editPhysicsObject,toPhysicsDescriptors,
   placeOnSurface,removePlacedObject,PLACEMENT_TEMPLATES,MAX_PLACED_OBJECTS} from './vr-physics-bridge.js';
 import {applyGizmoTransform,DEFAULT_GIZMO_SNAP,GIZMO_SNAPS} from './vr-gizmo-contract.js';
+import {buildPlayableWorld} from './playable-world.js';
 import './forge.css';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
+const WorldPlayer=lazy(()=>import('./WorldPlayer.jsx'));
 const BASE=import.meta.env.BASE_URL;
 const NAV=[
   ['Studio','⌂'],['World Builder','▧'],['Game Logic','⌘'],['Physics','⚛'],['VFX Studio','✧'],
@@ -62,6 +64,7 @@ export default function ForgeV6(){
   const [gizmoSnap,setGizmoSnap]=useState({...DEFAULT_GIZMO_SNAP});
   const [profileHistory,setProfileHistory]=useState({past:[],future:[]});
   const [placementKind,setPlacementKind]=useState(null);
+  const [playablePreview,setPlayablePreview]=useState(null);
   const physicsRef=useRef(null);
   const fileRef=useRef(null);
   const vrFileRef=useRef(null);
@@ -268,9 +271,28 @@ export default function ForgeV6(){
   const exportDemo=()=>downloadJson(doc,'pixelforge-v6-demo-world.json');
   const exportPhysicsProfile=()=>{if(vrScene&&vrPhysicsProfile)
     downloadJson(validatePhysicsProfile(vrPhysicsProfile,vrScene,vrHash),'pixelforge-physics-sandbox.v1.json');};
+  function exportPlayable(){
+    if(!vrScene||!vrPhysicsProfile)return;
+    try{
+      const world=buildPlayableWorld(vrScene,vrPhysicsProfile,vrHash,gravity);
+      downloadJson(world,'pixelforge-playable-world.v1.json');
+      setMessage('Exported playable-world.v1 JSON, ready for the standalone World Player.');
+    }catch(e){setMessage('World export rejected: '+e.message);}
+  }
+  function previewPlayable(){
+    if(!vrScene||!vrPhysicsProfile)return;
+    try{
+      const world=buildPlayableWorld(vrScene,vrPhysicsProfile,vrHash,gravity);
+      setPaused(true);setPhysicsStatus('standby');
+      setPlayablePreview(world);
+    }catch(e){setMessage('World preview rejected: '+e.message);}
+  }
   const showMap=workspace==='World Builder'||workspace==='Playtest';
   const physics=workspace==='Physics';
   const stats=[['SCENES','1'],['TILES',String(doc.tiles.length)],['KINDS',String(new Set(doc.tiles).size)],['BODIES',physics?String(physicsStats.bodies):'–']];
+  if(playablePreview)return <Suspense fallback={<div className="forgeLoading">Launching your playable world…</div>}>
+    <WorldPlayer initialWorld={playablePreview} onExit={()=>{setPlayablePreview(null);setPaused(true);setPhysicsStatus('standby');}}/>
+  </Suspense>;
   return <div className="forgePage">
     <header className="forgeMast">
       <div className="forgeOrbLogo">Φ</div>
@@ -392,6 +414,13 @@ export default function ForgeV6(){
                 <button type="button" className={walkMode?'forgeVrActive':''} onClick={toggleWalkTest}>{walkMode?'■ End walk test':'▶ Walk test (WASD)'}</button>
                 <button type="button" onClick={exportPhysicsProfile}>⇩ Export physics sidecar</button>
                 <button type="button" onClick={()=>profileFileRef.current?.click()}>⇧ Import matching sidecar</button>
+              </div>
+              <div className="forgePlayableBridge" aria-label="Playable World export">
+                <div><span className="forgeEyebrow">RUNG 5 / WORLD PLAYER</span><h4>Build a playable world</h4>
+                  <p>Freeze your scene and collider layout into a portable, validated JSON world. Private asset proxies and scripts are excluded.</p></div>
+                <button type="button" onClick={previewPlayable}>▶ Play This World</button>
+                <button type="button" onClick={exportPlayable}>⇩ Export Playable World</button>
+                <a href={BASE+'?play=1'}>Standalone World Player ↗</a>
               </div>
               <input hidden ref={profileFileRef} type="file" accept=".json,application/json" onChange={importPhysicsFile}/>
               <p className="forgeVrNotice">Rung 4: click + Block, + Platform, or + Pillar, hover over an upward fixed surface for a ghost preview, and click to place. Only the sidecar changes. Rung 3: click an eligible object, pause simulation, then drag X/Y/Z move or scale handles, or the Y rotation ring. W/E/R select tools; Esc cancels an active drag. One drag commits one bounded sidecar edit with Undo/Redo. Collisions use cuboid proxies, not real GLB mesh triangles. Walk mode uses a Rapier capsule. This is a sandbox proof, not a runtime capability change, game-cartridge export, or validated Quest 3 behavior.</p>

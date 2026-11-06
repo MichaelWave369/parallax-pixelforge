@@ -9,13 +9,14 @@ const MAX_BODIES=250;
 const PALETTE=[0x50e4cf,0xfcb75b,0xb28bff,0xf675bd,0x62aaff];
 function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=null,onObjectClick,walkMode=false,
     selectedObjectId=null,gizmoMode='inspect',gizmoSnap=null,onTransformCommit=null,sceneKey=null,
-    placementKind=null,onPlacementRequest=null,onPlacementStatus=null},ref) {
+    placementKind=null,onPlacementRequest=null,onPlacementStatus=null,playerSpawn=null},ref) {
   const mountRef=useRef(null),apiRef=useRef(null),pausedRef=useRef(paused),gravityRef=useRef(gravity);
   const statsRef=useRef(onStats),statusRef=useRef(onStatus);
   const sceneObjectsRef=useRef(sceneObjects),selectionRef=useRef(onObjectClick),walkRef=useRef(walkMode);
   const sceneKeyRef=useRef(sceneKey),gizmoOptionsRef=useRef({selectedObjectId,gizmoMode,gizmoSnap});
   const commitRef=useRef(onTransformCommit);
   const placementKindRef=useRef(placementKind),placementRef=useRef(onPlacementRequest),placementStatusRef=useRef(onPlacementStatus);
+  const playerSpawnRef=useRef(playerSpawn);
   const [error,setError]=useState('');
   useEffect(()=>{pausedRef.current=paused;apiRef.current?.syncGizmo();},[paused]);
   useEffect(()=>{gravityRef.current=gravity;},[gravity]);
@@ -27,6 +28,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     apiRef.current?.loadScene(frame);
   },[sceneObjects,sceneKey]);
   useEffect(()=>{walkRef.current=walkMode;apiRef.current?.loadScene(true);},[walkMode]);
+  useEffect(()=>{playerSpawnRef.current=playerSpawn;},[playerSpawn]);
   useEffect(()=>{
     gizmoOptionsRef.current={selectedObjectId,gizmoMode,gizmoSnap};
     apiRef.current?.syncGizmo();
@@ -157,8 +159,9 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
         function addWalkAvatar(authored){
           const floor=authored.find(o=>o.kind==='floor'&&o.body!=='none');
           const center=floor||authored[0];
-          const x=center?.position[0]??0,z=center?.position[2]??0;
-          const y=(center?.position[1]??0)+(center?.scale[1]??0)/2+2.2;
+          const spawn=playerSpawnRef.current;
+          const x=spawn?.[0]??center?.position[0]??0,z=spawn?.[2]??center?.position[2]??0;
+          const y=spawn?.[1]??((center?.position[1]??0)+(center?.scale[1]??0)/2+2.2);
           const mesh=new THREE.Mesh(new THREE.CapsuleGeometry(.33,1,6,10),
             new THREE.MeshStandardMaterial({color:0xffd36d,emissive:0x40240c,roughness:.4}));
           const body=world.createRigidBody(RAPIER.RigidBodyDesc.dynamic()

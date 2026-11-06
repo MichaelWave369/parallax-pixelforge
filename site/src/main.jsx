@@ -2,9 +2,11 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import './styles.css';
 import ForgeV6 from './ForgeV6.jsx';
+const WorldPlayer=React.lazy(()=>import('./WorldPlayer.jsx'));
 
 const BASE = import.meta.env.BASE_URL;
 const studioModules = [
+  {id:'player',eyebrow:'NEW / PLAYABLE 3D WORLD',title:'PixelForge World Player',description:'Import data-only playable-world JSON, explore collisions with Rapier, and play the public starter course in your browser.',path:'?play=1',cta:'Open World Player',glyph:'▹',accent:'mint',tags:['3D','Rapier','Portable worlds','Player runtime']},
   {id:'forge',eyebrow:'NEW / WORKSPACE PREVIEW',title:'PixelForge v6 Creator Forge',description:'Neon workspace redesign with an editable demo tilemap, real Three.js + Rapier physics lab, and direct paths back to existing tools.',path:'?forge=1',cta:'Launch Creator Forge v6',glyph:'⚛',accent:'violet',tags:['v6 preview','Physics Lab','World Editor','Local-first']},
   {id:'studio',eyebrow:'01 / PIXEL & GAME DESIGN',title:'Creator Studio',description:'Sprite work, tile maps, runtime composition, project editing and cartridge export in the original PixelForge workbench.',path:'studio/',cta:'Launch Creator Studio',glyph:'▦',accent:'coral',tags:['2D','Sprite Studio','Tile Composer','Local saves']},
   {id:'layers',eyebrow:'02 / DEPTH COMPOSITION',title:'Layer Studio',description:'Compose animated 2.5D worlds with seven independent depth planes, parallax camera movement, sprite sheets, and per-plane particle effects.',path:'layer-studio/',cta:'Open Layer Studio',glyph:'◫',accent:'mint',tags:['2.5D','Parallax','Animated layers','Sprite sheets']},
@@ -121,4 +123,7 @@ function App() {
     </div>
   );
 }
-createRoot(document.getElementById('root')).render(new URLSearchParams(window.location.search).get('forge')==='1'?<ForgeV6/>:<App/>);
+const route=new URLSearchParams(window.location.search);
+createRoot(document.getElementById('root')).render(route.get('play')==='1'
+  ?<React.Suspense fallback={<div className="app" style={{padding:40}}>Loading PixelForge World Player…</div>}><WorldPlayer/></React.Suspense>
+  :route.get('forge')==='1'?<ForgeV6/>:<App/>);
