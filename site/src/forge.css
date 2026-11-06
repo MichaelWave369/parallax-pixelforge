@@ -51,3 +51,15 @@
 .forgeVrAxes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .forgeVrNotice{font-size:10px!important;color:#edc58d!important;margin:13px 0 0!important}
 @media(max-width:650px){.forgeVrEditorGrid{grid-template-columns:1fr}.forgeVrObjectList{grid-template-columns:repeat(2,1fr);max-height:175px}.forgeVrSliders{grid-template-columns:1fr}}
+
+/* Rung 3: direct, bounded TransformControls editing inside imported VR scenes. */
+.forgeGizmoToolbar{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:1px 0 11px;padding:9px 11px;border:1px solid #4b5688;border-radius:9px;background:linear-gradient(115deg,#192849,#1a1b3d)}
+.forgeGizmoToolbar>span{font-size:10px;color:#76f2e3;letter-spacing:.12em;font-weight:950;margin-right:5px}
+.forgeGizmoToolbar button{border:1px solid #64749d;background:#20284d;color:#e6ecff;border-radius:7px;font-size:11px;font-weight:850;padding:9px 10px;min-height:35px}
+.forgeGizmoToolbar button.active{background:#4b3a61;border-color:#ffca72;color:#ffe9b3;box-shadow:0 0 9px #e8b66a44}
+.forgeGizmoToolbar button:hover:not(:disabled){background:#39416c}
+.forgeGizmoToolbar button:disabled{opacity:.4;cursor:not-allowed}
+.forgeGizmoToolbar label{color:#b6c9eb;font-size:11px;font-weight:800;display:flex;align-items:center;gap:7px}
+.forgeGizmoToolbar select{border:1px solid #6875a8;border-radius:7px;padding:8px;background:#0e1938;color:#ebecff;font-size:11px}
+.forgeGizmoToolbar small{color:#a1eddb;font-weight:900;font-size:9px;letter-spacing:.05em;margin-left:auto}
+@media(max-width:700px){.forgeGizmoToolbar small{width:100%;text-align:right;margin-left:0}.forgeGizmoToolbar button{padding:8px;font-size:10px}}

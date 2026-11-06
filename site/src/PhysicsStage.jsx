@@ -1,30 +1,79 @@
 import React,{forwardRef,useEffect,useImperativeHandle,useRef,useState} from 'react';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 
 const FIXED_STEP=1/60;
 const MAX_BODIES=250;
 const PALETTE=[0x50e4cf,0xfcb75b,0xb28bff,0xf675bd,0x62aaff];
-function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=null,onObjectClick,walkMode=false},ref) {
+function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=null,onObjectClick,walkMode=false,
+    selectedObjectId=null,gizmoMode='inspect',gizmoSnap=null,onTransformCommit=null,sceneKey=null},ref) {
   const mountRef=useRef(null),apiRef=useRef(null),pausedRef=useRef(paused),gravityRef=useRef(gravity);
   const statsRef=useRef(onStats),statusRef=useRef(onStatus);
   const sceneObjectsRef=useRef(sceneObjects),selectionRef=useRef(onObjectClick),walkRef=useRef(walkMode);
+  const sceneKeyRef=useRef(sceneKey),gizmoOptionsRef=useRef({selectedObjectId,gizmoMode,gizmoSnap});
+  const commitRef=useRef(onTransformCommit);
   const [error,setError]=useState('');
-  useEffect(()=>{pausedRef.current=paused;},[paused]);
+  useEffect(()=>{pausedRef.current=paused;apiRef.current?.syncGizmo();},[paused]);
   useEffect(()=>{gravityRef.current=gravity;},[gravity]);
   useEffect(()=>{statsRef.current=onStats;statusRef.current=onStatus;selectionRef.current=onObjectClick;},[onStats,onStatus,onObjectClick]);
-  useEffect(()=>{sceneObjectsRef.current=sceneObjects;apiRef.current?.loadScene(sceneObjects);},[sceneObjects]);
-  useEffect(()=>{walkRef.current=walkMode;apiRef.current?.reset();},[walkMode]);
+  useEffect(()=>{
+    const frame=sceneKeyRef.current!==sceneKey;
+    sceneKeyRef.current=sceneKey;
+    sceneObjectsRef.current=sceneObjects;
+    apiRef.current?.loadScene(frame);
+  },[sceneObjects,sceneKey]);
+  useEffect(()=>{walkRef.current=walkMode;apiRef.current?.loadScene(true);},[walkMode]);
+  useEffect(()=>{
+    gizmoOptionsRef.current={selectedObjectId,gizmoMode,gizmoSnap};
+    commitRef.current=onTransformCommit;
+    apiRef.current?.syncGizmo();
+  },[selectedObjectId,gizmoMode,gizmoSnap,onTransformCommit]);
   useImperativeHandle(ref,()=>({
     spawn:shape=>apiRef.current?.spawn(shape),
     reset:()=>apiRef.current?.reset()
   }),[]);
   useEffect(()=>{
     let cancelled=false,renderer=null,controls=null,resizeObserver=null,world=null,scene=null;
-    let dynamic=[],environment=[],canvas=null,player=null;
+    let dynamic=[],environment=[],canvas=null,player=null,gizmo=null,outline=null;
+    let dragStarted=false,ignoreNextClick=false;
+    const disposeOutline=()=>{
+      if(!outline)return;
+      scene.remove(outline);outline.geometry.dispose();outline.material.dispose();outline=null;
+    };
+    const syncGizmo=()=>{
+      if(!scene)return;
+      if(gizmo)gizmo.detach();
+      disposeOutline();
+      const options=gizmoOptionsRef.current;
+      const selected=[...environment,...dynamic.map(d=>d.mesh)].find(m=>m.userData.sourceObjectId===options.selectedObjectId);
+      if(!selected)return;
+      outline=new THREE.BoxHelper(selected,0xffdc84);
+      scene.add(outline);
+      if(!gizmo||!pausedRef.current||walkRef.current||options.gizmoMode==='inspect'||!sceneObjectsRef.current)return;
+      const record=sceneObjectsRef.current.find(o=>o.id===options.selectedObjectId);
+      if(!record||record.proxy)return;
+      gizmo.attach(selected);
+      gizmo.setMode(options.gizmoMode);
+      gizmo.setSpace('world');
+      gizmo.showX=options.gizmoMode!=='rotate';
+      gizmo.showY=true;
+      gizmo.showZ=options.gizmoMode!=='rotate';
+      // VR World v1 is strictly yaw-only. Disable screen/free rotation
+      // and all plane handles, not merely the X/Z axis rings.
+      gizmo.showE=false;gizmo.showXYZE=false;
+      gizmo.showXY=false;gizmo.showYZ=false;gizmo.showXZ=false;
+      gizmo.minX=-100;gizmo.maxX=100;
+      gizmo.minY=-100;gizmo.maxY=100;
+      gizmo.minZ=-100;gizmo.maxZ=100;
+      gizmo.setTranslationSnap(options.gizmoSnap?.translation||null);
+      gizmo.setRotationSnap(options.gizmoSnap?.rotation?THREE.MathUtils.degToRad(options.gizmoSnap.rotation):null);
+      gizmo.setScaleSnap(options.gizmoSnap?.scale||null);
+    };
     const held=new Set();
     const onKeyDown=e=>{
+      if(e.key==='Escape'&&apiRef.current?.cancelTransform?.()){e.preventDefault();return;}
       if(!walkRef.current||/^(input|textarea|select)$/i.test(e.target?.tagName||''))return;
       const k=e.key.toLowerCase();
       if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){held.add(k);e.preventDefault();}
@@ -107,7 +156,9 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
           scene.add(mesh);player={body,mesh};dynamic.push(player);
           controls.target.set(x,y,z);camera.position.set(x+8,y+6,z+9);controls.update();
         }
-        const makeWorld=()=>{
+        const makeWorld=(frame=true)=>{
+          if(gizmo)gizmo.detach();
+          disposeOutline();
           clearDynamic();
           if(world)world.free();
           world=new RAPIER.World({x:0,y:gravityRef.current,z:0});
@@ -120,7 +171,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
             if(!authored.some(o=>o.kind==='floor'&&o.body!=='none'))
               addStatic([16,.4,16],[0,-.2,0],0x28334d);
             if(walkRef.current)addWalkAvatar(authored);
-            else {
+            else if(frame) {
               const center=authored.find(o=>o.kind==='floor')||authored[0];
               controls.target.set(center?.position[0]??0,center?.position[1]??1,center?.position[2]??0);
               camera.position.set(controls.target.x+12,controls.target.y+11,controls.target.z+16);
@@ -133,6 +184,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
             addStatic([2,.35,3],[0,.85,3],0x285f68);
             for(let i=0;i<8;i++)spawn(i%3===0?'ball':'box',true);
           }
+          syncGizmo();
           statsRef.current?.({fps:0,bodies:dynamic.length});
         };
         function spawn(shape='box',initial=false) {
@@ -156,10 +208,40 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
           statsRef.current?.({bodies:dynamic.length});
         }
         makeWorld();
+        gizmo=new TransformControls(camera,canvas);
+        gizmo.setSize(.85);
+        scene.add(gizmo.getHelper());
+        gizmo.addEventListener('dragging-changed',event=>{controls.enabled=!event.value;});
+        gizmo.addEventListener('mouseDown',()=>{dragStarted=true;ignoreNextClick=true;});
+        gizmo.addEventListener('mouseUp',()=>{
+          if(!dragStarted)return;
+          dragStarted=false;
+          const obj=gizmo.object;
+          const id=obj?.userData.sourceObjectId;
+          const original=sceneObjectsRef.current?.find(o=>o.id===id);
+          const mode=gizmoOptionsRef.current.gizmoMode;
+          if(!id||!original||!pausedRef.current||walkRef.current){makeWorld(false);return;}
+          const raw={
+            position:obj.position.toArray(),
+            yaw:THREE.MathUtils.radToDeg(obj.rotation.y),
+            scale:[original.scale[0]*obj.scale.x,original.scale[1]*obj.scale.y,original.scale[2]*obj.scale.z]
+          };
+          const committed=commitRef.current?.(id,mode,raw);
+          if(committed!==true)makeWorld(false);
+        });
+        syncGizmo();
         apiRef.current={
           spawn:shape=>spawn(shape,false),
-          reset:()=>makeWorld(),
-          loadScene:()=>makeWorld()
+          reset:()=>makeWorld(false),
+          loadScene:frame=>makeWorld(frame!==false),
+          syncGizmo,
+          cancelTransform:()=>{
+            if(!gizmo?.dragging)return false;
+            dragStarted=false;
+            controls.enabled=true;
+            makeWorld(false);
+            return true;
+          }
         };
         function resize() {
           if(!mount||!renderer)return;
@@ -171,6 +253,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
         resizeObserver=new ResizeObserver(resize);resizeObserver.observe(mount);
         const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
         const onClick=e=>{
+          if(ignoreNextClick||gizmo?.dragging){ignoreNextClick=false;return;}
           if(!Array.isArray(sceneObjectsRef.current))return;
           const rect=canvas.getBoundingClientRect();
           pointer.x=((e.clientX-rect.left)/rect.width)*2-1;
@@ -180,7 +263,13 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
           const hit=raycaster.intersectObjects(meshes,false).find(h=>h.object.userData.sourceObjectId);
           if(hit)selectionRef.current?.(hit.object.userData.sourceObjectId);
         };
+        const onPointerDown=()=>{if(!gizmo?.axis)ignoreNextClick=false;};
+        canvas.addEventListener('pointerdown',onPointerDown);
         canvas.addEventListener('click',onClick);
+        apiRef.current.removePointerHandlers=()=>{
+          canvas.removeEventListener('pointerdown',onPointerDown);
+          canvas.removeEventListener('click',onClick);
+        };
         let last=performance.now(),accumulator=0,frames=0,elapsed=0;
         const animate=(now)=>{
           const dt=Math.min((now-last)/1000,.1);last=now;
@@ -204,6 +293,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
             mesh.position.set(p.x,p.y,p.z);
             mesh.quaternion.set(q.x,q.y,q.z,q.w);
           }
+          if(outline)outline.update();
           if(player){
             const shift=new THREE.Vector3().subVectors(player.mesh.position,controls.target).multiplyScalar(.1);
             controls.target.add(shift);camera.position.add(shift);
@@ -224,11 +314,15 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     }
     initialize();
     return()=>{
-      cancelled=true;apiRef.current=null;
+      cancelled=true;
+      apiRef.current?.removePointerHandlers?.();
+      apiRef.current=null;
       window.removeEventListener('keydown',onKeyDown);
       window.removeEventListener('keyup',onKeyUp);
       if(renderer)renderer.setAnimationLoop(null);
       if(resizeObserver)resizeObserver.disconnect();
+      if(gizmo){gizmo.detach();scene?.remove(gizmo.getHelper());gizmo.dispose();}
+      if(scene)disposeOutline();
       if(controls)controls.dispose();
       if(scene) {
         clearDynamic();
@@ -239,7 +333,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     };
   },[]);
   return <div className="forgePhysicsCanvas" ref={mountRef} aria-label="Interactive 3D Rapier physics simulation. Drag to orbit, scroll to zoom.">
-    {error?<div className="forgePhysicsError" role="alert">{error}</div>:<div className="forgeCanvasOverlay">DRAG TO ORBIT · CLICK TO SELECT · WASD IN WALK TEST · RAPIER COLLIDERS</div>}
+    {error?<div className="forgePhysicsError" role="alert">{error}</div>:<div className="forgeCanvasOverlay">DRAG TO ORBIT · W/E/R TRANSFORMS IN PAUSED SCENE · ESC CANCEL · RAPIER COLLIDERS</div>}
   </div>;
 }
 export default forwardRef(PhysicsStage);
