@@ -4,6 +4,7 @@
 import {validateWorld} from '../../vr-studio/world.js';
 import {toPhysicsDescriptors,validatePhysicsProfile} from './vr-physics-bridge.js';
 import {validateGameplayRules} from './gameplay-rules.js';
+import {validateEventGraphTargets} from './event-graph.js';
 
 export const PLAYABLE_FORMAT='pixelforge.playable-world.v1';
 export const PLAYABLE_MAX_BYTES=160000;
@@ -54,6 +55,7 @@ export function validatePlayableWorld(input){
     throw Error('A walkable world needs a fixed floor.');
   const gameplay=input.gameplay===undefined?null:
     validateGameplayRules(input.gameplay,input.source.sha256);
+  if(gameplay?.graph)validateEventGraphTargets(gameplay.graph,objects);
   return {format:PLAYABLE_FORMAT,title:input.title,
     source:{format:input.source.format,sha256:input.source.sha256},
     capabilities:{...CAPABILITIES},gravity:input.gravity,spawn:[...input.spawn],objects,
@@ -96,7 +98,19 @@ export function createSamplePlayableWorld(){
         {id:'pickup-2',name:'Parallax Crystal',position:[4.6,1.1,0],radius:1.55,color:'#c4a2ff'}
       ],
       triggers:[{id:'trigger-1',name:'Gateway',position:[1,2.1,-4],radius:2,message:'The old path is open. Find the final gateway!'}],
-      goal:{id:'goal-1',name:'Finish Line',position:[6,1.4,-6],radius:1.8,message:'WORLD COMPLETE! You restored the Forge frequency.'}
+      goal:{id:'goal-1',name:'Finish Line',position:[6,1.4,-6],radius:1.8,message:'WORLD COMPLETE! You restored the Forge frequency.'},
+      graph:{
+        format:'pixelforge.event-graph.v1',
+        nodes:[
+          {id:'switch-1',kind:'switch',name:'Pillar Switch',position:[4.9,1.2,1.7],radius:1.6,
+            message:'The pillar gate released!',requires:{mode:'all',ids:[]}},
+          {id:'secret-1',kind:'secret',name:'Hidden Frequency',position:[-5,1.2,-5],radius:1.5,
+            message:'You found the hidden alternative route!',requires:{mode:'all',ids:[]}}
+        ],
+        doors:[{id:'door-1',objectId:'placed-2',name:'Pillar Gate',
+          message:'The pillar gate is now open!',requires:{mode:'any',ids:['switch-1','secret-1']}}],
+        goalRequires:{mode:'any',ids:['switch-1','secret-1']}
+      }
     },
     objects:[
       {id:'obj-1',name:'Training Floor',kind:'floor',color:'#314f68',body:'fixed',friction:.85,restitution:.1,position:[0,-.15,0],scale:[18,.3,18],yaw:0},
