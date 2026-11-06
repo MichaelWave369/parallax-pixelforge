@@ -24,3 +24,30 @@
 @media(max-width:800px){.forgeLayout{display:block;padding:0 9px}.forgeSidebar{position:static;min-height:0;margin-bottom:9px}.forgeMenu{grid-template-columns:repeat(3,1fr)}.forgeMenu button{font-size:10px}.forgeIdentity{margin-bottom:8px}.forgeSidebar>.forgeActionLink,.forgeFine{display:none}.forgeWorkspace{grid-template-columns:1fr}.forgeBrushes{grid-template-columns:repeat(6,1fr)}.forgeToolInfo{display:none}.forgeToolPanel p{margin-bottom:7px}.forgeMain{margin-bottom:9px}.forgeRight{display:grid;grid-template-columns:repeat(2,1fr)}.forgeMast{height:100px}.forgeBrand strong{font-size:clamp(19px,5vw,31px)}}
 @media(max-width:600px){.forgeMast{height:88px;padding:0 12px}.forgeOrbLogo{height:46px;width:46px;font-size:30px}.forgeBrand>span{font-size:8px}.forgeBrand small{font-size:8px}.forgeSun{width:75px;height:75px;font-size:35px;left:88%;opacity:.5}.forgeProject{padding:10px}.forgeProjectArt{width:61px;height:61px}.forgeProject h1{font-size:18px}.forgeProjectState{display:none}.forgeToolbar .forgeSmallLabel{display:none}.forgeBrushes{grid-template-columns:repeat(4,1fr)}.forgeBottom,.forgeRight{grid-template-columns:1fr}.forgeCanvasFoot{font-size:8px}.forgeFooter{display:grid;line-height:1.6}.forgePhysicsControls label{margin-left:0}.forgeMenu{grid-template-columns:repeat(2,1fr)}}
 @media(prefers-reduced-motion:reduce){.forgePage *{scroll-behavior:auto}}
+
+/* Rung 2: read-only VR World → physics sidecar tools. */
+.forgeVrBridge{margin-top:15px;padding:15px;border:1px solid #43639a;border-radius:11px;background:linear-gradient(125deg,#101b37,#1a153b)}
+.forgeVrBridgeTitle{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.forgeVrBridge h3{font-size:17px;margin:5px 0 2px;color:#f8f2ff}
+.forgeVrBridge p{font-size:12px;color:#a7bce3;line-height:1.55}
+.forgeVrButtons{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.forgeVrButtons button{border:1px solid #6175a9;border-radius:8px;background:#20294f;color:#dceafd;padding:10px 14px;font-size:11px;font-weight:850}
+.forgeVrButtons button:hover,.forgeVrButtons button.forgeVrActive{background:#3d3769;border-color:#e7b0ff;color:#fff}
+.forgeVrEditor{margin-top:14px;border-top:1px solid #364874;padding-top:11px}
+.forgeVrSceneInfo{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px;margin-bottom:10px;font-size:12px}
+.forgeVrSceneInfo span{font:10px ui-monospace,monospace;color:#7de7d7}
+.forgeVrEditorGrid{display:grid;grid-template-columns:minmax(135px,210px) 1fr;gap:10px}
+.forgeVrObjectList{display:grid;align-content:start;gap:5px;max-height:320px;overflow-y:auto;min-width:0}
+.forgeVrObjectList button{display:grid;gap:4px;text-align:left;background:#131d3d;border:1px solid #3d4775;color:#e6e8ff;border-radius:8px;padding:9px;min-width:0;overflow-wrap:anywhere}
+.forgeVrObjectList button.active{border-color:#f4c66e;background:#39304d}
+.forgeVrObjectList strong{font-size:11px}.forgeVrObjectList small{font-size:9px;color:#a7c9ec}
+.forgeVrInspector{background:#10192f;border-radius:9px;padding:12px;border:1px solid #304469;min-width:0}
+.forgeVrInspector h4{font-size:12px;margin:7px 0 10px;color:#ffe6a0}
+.forgeVrInspector p{font-size:11px;margin:6px 0 11px;color:#b4c3e5}
+.forgeVrInspector label{display:grid;gap:6px;color:#a6daf4;font-size:11px;font-weight:750;margin:8px 0}
+.forgeVrInspector input:not([type="range"]),.forgeVrInspector select{width:100%;min-width:0;border:1px solid #4b5b8a;border-radius:7px;background:#182346;color:#fff;padding:8px 9px}
+.forgeVrInspector input[type="range"]{accent-color:#8ee0d8;width:100%}
+.forgeVrSliders{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.forgeVrAxes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.forgeVrNotice{font-size:10px!important;color:#edc58d!important;margin:13px 0 0!important}
+@media(max-width:650px){.forgeVrEditorGrid{grid-template-columns:1fr}.forgeVrObjectList{grid-template-columns:repeat(2,1fr);max-height:175px}.forgeVrSliders{grid-template-columns:1fr}}
