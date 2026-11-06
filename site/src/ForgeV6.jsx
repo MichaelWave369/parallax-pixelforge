@@ -1,7 +1,8 @@
 import React,{Suspense,lazy,useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {WIDTH,HEIGHT,TILE_TYPES,STORAGE_KEY,createSeedWorld,validateDemoWorld,paintTile,movePlayer,downloadJson} from './forge-world.js';
 import {VR_SCENE_STORAGE_KEY,MAX_SCENE_BYTES,MAX_PROFILE_BYTES,sampleVrWorld,parseVrScene,
-  fingerprintVrWorld,newPhysicsProfile,validatePhysicsProfile,editPhysicsObject,toPhysicsDescriptors} from './vr-physics-bridge.js';
+  fingerprintVrWorld,newPhysicsProfile,validatePhysicsProfile,editPhysicsObject,toPhysicsDescriptors,
+  placeOnSurface,removePlacedObject,PLACEMENT_TEMPLATES,MAX_PLACED_OBJECTS} from './vr-physics-bridge.js';
 import {applyGizmoTransform,DEFAULT_GIZMO_SNAP,GIZMO_SNAPS} from './vr-gizmo-contract.js';
 import './forge.css';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
@@ -60,14 +61,17 @@ export default function ForgeV6(){
   const [gizmoMode,setGizmoMode]=useState('translate');
   const [gizmoSnap,setGizmoSnap]=useState({...DEFAULT_GIZMO_SNAP});
   const [profileHistory,setProfileHistory]=useState({past:[],future:[]});
+  const [placementKind,setPlacementKind]=useState(null);
   const physicsRef=useRef(null);
   const fileRef=useRef(null);
   const vrFileRef=useRef(null);
   const profileFileRef=useRef(null);
   const physicsDescriptors=useMemo(()=>vrScene&&vrPhysicsProfile
     ?toPhysicsDescriptors(vrScene,vrPhysicsProfile,vrHash):null,[vrScene,vrPhysicsProfile,vrHash]);
-  const selectedVr=vrScene?.objects.find(o=>o.id===vrSelected)||null;
-  const selectedPhysics=vrPhysicsProfile?.objects.find(o=>o.id===vrSelected)||null;
+  const selectedVr=vrScene?.objects.find(o=>o.id===vrSelected)
+    ||vrPhysicsProfile?.placed?.find(o=>o.id===vrSelected)||null;
+  const selectedPhysics=[...(vrPhysicsProfile?.objects||[]),...(vrPhysicsProfile?.placed||[])]
+    .find(o=>o.id===vrSelected)||null;
   const doc=history.current;
   const edit=useCallback(next=>{
     setHistory(h=>({current:next(h.current),past:[...h.past.slice(-39),h.current],future:[]}));
@@ -125,7 +129,7 @@ export default function ForgeV6(){
     setVrScene(source);setVrHash(hash);setVrPhysicsProfile(draft);
     setVrSelected(draft.objects[0]?.id||source.objects[0]?.id||null);
     setWalkMode(false);setPaused(true);
-    setGizmoMode('translate');setProfileHistory({past:[],future:[]});
+    setGizmoMode('translate');setPlacementKind(null);setProfileHistory({past:[],future:[]});
     setMessage('VR scene '+source.title+' loaded into sandbox only. Original VR Studio scene remains unchanged.');
   }
   async function useVrLocalSave(){
@@ -149,7 +153,7 @@ export default function ForgeV6(){
       if(file.size>MAX_PROFILE_BYTES)throw Error('Physics profile exceeds 100 KB.');
       const loaded=validatePhysicsProfile(JSON.parse(await file.text()),vrScene,vrHash);
       setVrPhysicsProfile(loaded);setWalkMode(false);setPaused(true);
-      setProfileHistory({past:[],future:[]});
+      setProfileHistory({past:[],future:[]});setPlacementKind(null);
       setMessage('Scene-bound physics profile loaded. The source scene was not changed.');
     }catch(e){setMessage('Physics profile import rejected: '+e.message);}
   }
@@ -166,6 +170,35 @@ export default function ForgeV6(){
       const next=editPhysicsObject(vrPhysicsProfile,vrScene,vrHash,selectedPhysics.id,patch);
       return commitProfile(next);
     }catch(e){setMessage('Physics edit rejected: '+e.message);return false;}
+  }
+  function acceptSurfacePlacement(hit){
+    if(!vrScene||!vrPhysicsProfile||!paused||walkMode||!placementKind)return;
+    try{
+      const {id,profile}=placeOnSurface(vrPhysicsProfile,vrScene,vrHash,placementKind,hit,
+        gizmoSnap.translation);
+      commitProfile(profile);
+      setVrSelected(id);
+      setMessage('Placed '+placementKind+' '+id+' on '+hit.targetId+'. Stored only in the scene-bound physics sidecar.');
+    }catch(e){setMessage('Placement rejected: '+e.message);}
+  }
+  function removeSelectedConstruction(){
+    if(!vrScene||!vrPhysicsProfile||!vrSelected?.startsWith('placed-'))return;
+    try{
+      const next=removePlacedObject(vrPhysicsProfile,vrScene,vrHash,vrSelected);
+      if(commitProfile(next)){
+        setVrSelected(vrScene.objects[0]?.id||null);
+        setMessage('Removed sandbox prefab. Original VR scene unchanged.');
+      }
+    }catch(e){setMessage('Removal rejected: '+e.message);}
+  }
+  function togglePlacement(kind){
+    if(!vrScene||walkMode)return;
+    const next=placementKind===kind?null:kind;
+    if(next&&!paused){setPaused(true);physicsRef.current?.reset();}
+    setPlacementKind(next);
+    if(next)setGizmoMode('inspect');
+    setMessage(next?'Placement armed: '+PLACEMENT_TEMPLATES[next].label+'. Hover over a fixed collider top to preview, then click to place.':
+      'Placement mode ended.');
   }
   function acceptGizmoTransform(id,tool,transform){
     if(!vrScene||!vrPhysicsProfile||walkMode||!paused)return false;
@@ -188,7 +221,7 @@ export default function ForgeV6(){
   function chooseGizmoMode(next){
     if(walkMode)return;
     if(!paused){setPaused(true);physicsRef.current?.reset();}
-    setGizmoMode(next);
+    setPlacementKind(null);setGizmoMode(next);
   }
   function undoPhysics(){
     if(!profileHistory.past.length)return;
@@ -205,7 +238,7 @@ export default function ForgeV6(){
   function toggleWalkTest(){
     if(!vrScene)return;
     const next=!walkMode;
-    setWalkMode(next);setPaused(!next);
+    setPlacementKind(null);setWalkMode(next);setPaused(!next);
     setMessage(next?'Walk test active. WASD/arrow keys move the Rapier capsule.':'Walk test ended. Editor paused, source transforms restored.');
   }
   useEffect(()=>{
@@ -229,7 +262,7 @@ export default function ForgeV6(){
   function leaveVrScene(){
     setVrScene(null);setVrHash('');setVrPhysicsProfile(null);
     setVrSelected(null);setWalkMode(false);setPaused(false);
-    setProfileHistory({past:[],future:[]});setGizmoMode('translate');
+    setProfileHistory({past:[],future:[]});setGizmoMode('translate');setPlacementKind(null);
     setMessage('Returned to the standard Physics Lab. No VR Studio files were changed.');
   }
   const exportDemo=()=>downloadJson(doc,'pixelforge-v6-demo-world.json');
@@ -305,14 +338,24 @@ export default function ForgeV6(){
             </label>
             <button type="button" disabled={!profileHistory.past.length||walkMode} onClick={undoPhysics}>↶ Undo</button>
             <button type="button" disabled={!profileHistory.future.length||walkMode} onClick={redoPhysics}>↷ Redo</button>
-            <small>{walkMode?'WALK TEST':paused?'EDIT PAUSED':'SIMULATING · PAUSE TO EDIT'}</small>
+            <small>{walkMode?'WALK TEST':placementKind?'PLACEMENT ARMED':paused?'EDIT PAUSED':'SIMULATING · PAUSE TO EDIT'}</small>
           </div>}
           <Suspense fallback={<div className="forgeLoading">Loading 3D physics bundle…</div>}>
             <PhysicsStage ref={physicsRef} paused={paused} gravity={gravity} onStatus={setPhysicsStatus} onStats={setPhysicsStats}
               sceneObjects={physicsDescriptors} onObjectClick={selectVrObject} walkMode={walkMode}
               sceneKey={vrHash||null} selectedObjectId={vrSelected} gizmoMode={gizmoMode} gizmoSnap={gizmoSnap}
-              onTransformCommit={acceptGizmoTransform}/>
+              onTransformCommit={acceptGizmoTransform} placementKind={placementKind}
+              onPlacementRequest={acceptSurfacePlacement} onPlacementStatus={setMessage}/>
           </Suspense>
+          {vrScene&&<div className="forgeConstructionToolbar" role="group" aria-label="Place sandbox geometry">
+            <span>WORLD CONSTRUCTION</span>
+            {Object.entries(PLACEMENT_TEMPLATES).map(([kind,template])=>
+              <button type="button" key={kind} aria-pressed={placementKind===kind}
+                className={placementKind===kind?'active':''} disabled={walkMode||vrPhysicsProfile.placed.length>=MAX_PLACED_OBJECTS}
+                onClick={()=>togglePlacement(kind)}>+ {template.label}</button>)}
+            {placementKind&&<button type="button" onClick={()=>setPlacementKind(null)}>✕ Finish placing</button>}
+            <small>{vrPhysicsProfile.placed.length} / {MAX_PLACED_OBJECTS} sandbox objects</small>
+          </div>}
           <div className="forgePhysicsControls"><button type="button" onClick={()=>physicsRef.current?.spawn('box')} disabled={physicsStatus!=='ready'}>+ Drop Box</button><button type="button" onClick={()=>physicsRef.current?.spawn('ball')} disabled={physicsStatus!=='ready'}>+ Drop Ball</button><button type="button" onClick={()=>physicsRef.current?.reset()} disabled={physicsStatus!=='ready'}>↻ Reset Scene</button><label>Gravity: {gravity.toFixed(1)} m/s²<input type="range" min="-20" max="0" step=".5" value={gravity} onChange={e=>setGravity(Number(e.target.value))}/></label></div>
           <section className="forgeVrBridge" aria-label="VR Studio scene physics bridge">
             <div className="forgeVrBridgeTitle"><div><span className="forgeEyebrow">RUNG 2 / THE LIVING WORLD</span><h3>VR Studio scene → Rapier sandbox</h3></div>
@@ -326,9 +369,9 @@ export default function ForgeV6(){
             </div>
             <input ref={vrFileRef} hidden type="file" accept=".json,application/json" onChange={importVrFile}/>
             {vrScene&&<div className="forgeVrEditor">
-              <div className="forgeVrSceneInfo"><strong>{vrScene.title}</strong><span>{vrScene.objects.length} scene objects · Source SHA-256: {vrHash.slice(0,12)}…</span></div>
+              <div className="forgeVrSceneInfo"><strong>{vrScene.title}</strong><span>{vrScene.objects.length} source + {vrPhysicsProfile.placed.length} placed · Source SHA-256: {vrHash.slice(0,12)}…</span></div>
               <div className="forgeVrEditorGrid">
-                <div className="forgeVrObjectList" aria-label="VR scene objects">{vrScene.objects.map(o=><button type="button" key={o.id} className={vrSelected===o.id?'active':''} onClick={()=>selectVrObject(o.id)}>
+                <div className="forgeVrObjectList" aria-label="VR scene objects">{[...vrScene.objects,...vrPhysicsProfile.placed].map(o=><button type="button" key={o.id} className={vrSelected===o.id?'active':''} onClick={()=>selectVrObject(o.id)}>
                   <strong>{o.name}</strong><small>{o.id} · {o.kind}{o.kind==='asset-proxy'?' · proxy only':''}</small></button>)}</div>
                 <div className="forgeVrInspector">
                   {selectedVr&&<><h4>{selectedVr.name}</h4><p>{selectedVr.kind==='asset-proxy'?'Asset proxy: no mesh bytes or inferred GLB collider are imported.': 'Select the object in the scene or here. Edits rebuild the simulation preview.'}</p>
@@ -341,6 +384,7 @@ export default function ForgeV6(){
                     <h4>Draft position (meters)</h4><div className="forgeVrAxes">{['X','Y','Z'].map((label,axis)=><label key={label}>{label}<input type="number" step=".25" min="-100" max="100" key={selectedPhysics.id+'-position-'+axis+'-'+selectedPhysics.position[axis]} defaultValue={selectedPhysics.position[axis]} onBlur={e=>editVector('position',axis,e.target.value)}/></label>)}</div>
                     <h4>Draft scale</h4><div className="forgeVrAxes">{['X','Y','Z'].map((label,axis)=><label key={label}>{label}<input type="number" step=".1" min=".05" max="50" key={selectedPhysics.id+'-scale-'+axis+'-'+selectedPhysics.scale[axis]} defaultValue={selectedPhysics.scale[axis]} onBlur={e=>editVector('scale',axis,e.target.value)}/></label>)}</div>
                     <label>Yaw in degrees<input type="number" min="-360" max="360" step="5" key={selectedPhysics.id+'-yaw-'+selectedPhysics.yaw} defaultValue={selectedPhysics.yaw} onBlur={e=>{if(e.target.value.trim()!=='')editPhysics({yaw:Number(e.target.value)});}}/></label>
+                    {vrSelected?.startsWith('placed-')&&<button className="forgeDeletePrefab" type="button" onClick={removeSelectedConstruction}>Delete this sandbox object</button>}
                   </div>:<p>External asset geometry stays private. Proxy collision is intentionally unavailable.</p>}</>}
                 </div>
               </div>
@@ -350,7 +394,7 @@ export default function ForgeV6(){
                 <button type="button" onClick={()=>profileFileRef.current?.click()}>⇧ Import matching sidecar</button>
               </div>
               <input hidden ref={profileFileRef} type="file" accept=".json,application/json" onChange={importPhysicsFile}/>
-              <p className="forgeVrNotice">Rung 3: click an eligible object, pause simulation, then drag X/Y/Z move or scale handles, or the Y rotation ring. W/E/R select tools; Esc cancels an active drag. One drag commits one bounded sidecar edit with Undo/Redo. Collisions use cuboid proxies, not real GLB mesh triangles. Walk mode uses a Rapier capsule. This is a sandbox proof, not a runtime capability change, game-cartridge export, or validated Quest 3 behavior.</p>
+              <p className="forgeVrNotice">Rung 4: click + Block, + Platform, or + Pillar, hover over an upward fixed surface for a ghost preview, and click to place. Only the sidecar changes. Rung 3: click an eligible object, pause simulation, then drag X/Y/Z move or scale handles, or the Y rotation ring. W/E/R select tools; Esc cancels an active drag. One drag commits one bounded sidecar edit with Undo/Redo. Collisions use cuboid proxies, not real GLB mesh triangles. Walk mode uses a Rapier capsule. This is a sandbox proof, not a runtime capability change, game-cartridge export, or validated Quest 3 behavior.</p>
             </div>}
           </section>
         </section>}
