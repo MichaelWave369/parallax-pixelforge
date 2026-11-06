@@ -1,0 +1,180 @@
+import React,{Suspense,lazy,useCallback,useEffect,useRef,useState} from 'react';
+import {WIDTH,HEIGHT,TILE_TYPES,STORAGE_KEY,createSeedWorld,validateDemoWorld,paintTile,movePlayer,downloadJson} from './forge-world.js';
+import './forge.css';
+const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
+const BASE=import.meta.env.BASE_URL;
+const NAV=[
+  ['Studio','⌂'],['World Builder','▧'],['Game Logic','⌘'],['Physics','⚛'],['VFX Studio','✧'],
+  ['Assets','▣'],['Build & Export','⬡'],['Playtest','▹'],['VR / XR','◈']
+];
+const LIBRARY=[
+  ['Project Hub','▣','World Builder'],['Scenes','▧','World Builder'],['Assets','⬡','Assets'],
+  ['Characters','♙','Game Logic'],['NPCs & AI','♧','Game Logic'],['Items & Loot','◇','Game Logic'],
+  ['Maps & Worlds','◫','World Builder'],['Dialogue & Quests','☷','Game Logic'],
+  ['Events & Triggers','ϟ','Game Logic'],['Audio & Music','♫','VFX Studio'],
+  ['Library / Commons','♧','Assets']
+];
+const TILES=[
+ ['grass','Grass','▧'],['tree','Trees','♠'],['water','Water','≈'],['path','Path','▫'],
+ ['stone','Stone','▲'],['wall','Wall','▥'],['portal','Portal','◈'],['treasure','Treasure','◆'],
+ ['house','Building','⌂'],['spike','Hazard','⚠'],['flower','Flowers','✿']
+];
+const LINK_PANELS={
+ 'Game Logic':{title:'Game Logic & Runtime',text:'Keep real game rules in the existing PixelForge Runtime Composer. This v6 shell does not silently replace those contracts.',links:[['Open Runtime Composer', 'studio/'],['Explore Layer Studio','layer-studio/']]},
+ 'VFX Studio':{title:'VFX Studio / Integration lane',text:'The neon interface is a design direction; a reusable particle VFX authoring system is not implemented in this first rung. Build and inspect visual assets with the existing editors.',links:[['Open Layer Effects','layer-studio/'],['Inspect 3D Assets','external-preview/']]},
+ 'Assets':{title:'Asset Forge & Library',text:'Your governed GLB inspection, provenance records, and private Unreal library remain in their established tools. This demo never copies private asset bytes into the public portal.',links:[['GLB Inspector','external-preview/'],['VR Asset Library','vr-studio/'],['Creator Asset Tools','studio/']]},
+ 'Build & Export':{title:'Build & Export',text:'Export the separate v6 demo tile world as validated JSON below, or use the existing studio for cartridge, playable HTML and release packaging.',links:[['Existing Creator Exports','studio/'],['VR World Exports','vr-studio/']]},
+ 'VR / XR':{title:'VR / XR Studio',text:'Experimental WebXR remains in the existing VR Studio. No Quest 3 performance, hand tracking or headset physics claim is being made for this v6 browser prototype.',links:[['Enter Experimental VR Studio','vr-studio/'],['GLB Inspector','external-preview/']]}
+};
+function Tile({type,player,grid,index,onClick,mode}) {
+  const name=TILES.find(t=>t[0]===type)?.[1]||type;
+  return <button type="button" className={'forgeTile forgeTile-'+type+(player?' forgePlayerHere':'')+(grid?' forgeShowGrid':'')}
+    onClick={()=>onClick(index)} title={name+' · '+(index%WIDTH)+','+Math.floor(index/WIDTH)}
+    aria-label={name+' tile, '+(index%WIDTH)+','+Math.floor(index/WIDTH)+(mode==='play'?', explore':', paint')}>
+      <span className="forgeTileGlyph">{({tree:'♠',portal:'◈',treasure:'◆',house:'⌂',spike:'▲',flower:'✦'})[type]||''}</span>
+      {player&&<span className="forgePlayer" aria-label="Player">●</span>}
+    </button>;
+}
+function ActionLink({path,children}){return <a className="forgeActionLink" href={BASE+path}>{children}<span>↗</span></a>;}
+export default function ForgeV6(){
+  const [workspace,setWorkspace]=useState('World Builder');
+  const [history,setHistory]=useState(()=>({current:createSeedWorld(),past:[],future:[]}));
+  const [brush,setBrush]=useState('grass');
+  const [grid,setGrid]=useState(true);
+  const [mode,setMode]=useState('edit');
+  const [player,setPlayer]=useState({x:2,y:14});
+  const [message,setMessage]=useState('Welcome to the Forge. Edit the sample world or enter Play Preview.');
+  const [paused,setPaused]=useState(false);
+  const [gravity,setGravity]=useState(-9.81);
+  const [physicsStatus,setPhysicsStatus]=useState('standby');
+  const [physicsStats,setPhysicsStats]=useState({fps:0,bodies:0});
+  const [saved,setSaved]=useState(false);
+  const physicsRef=useRef(null);
+  const fileRef=useRef(null);
+  const doc=history.current;
+  const edit=useCallback(next=>{
+    setHistory(h=>({current:next(h.current),past:[...h.past.slice(-39),h.current],future:[]}));
+    setSaved(false);
+  },[]);
+  const undo=()=>setHistory(h=>h.past.length?{current:h.past[h.past.length-1],past:h.past.slice(0,-1),future:[h.current,...h.future]}:h);
+  const redo=()=>setHistory(h=>h.future.length?{current:h.future[0],past:[...h.past,h.current],future:h.future.slice(1)}:h);
+  function paint(index){
+    if(mode==='play'){
+      const x=index%WIDTH,y=Math.floor(index/WIDTH);
+      const t=doc.tiles[index];
+      setMessage(t==='treasure'?'You found a shimmering artifact!':t==='portal'?'Portal spotted. The full quest runtime lives in the original Studio.':t==='spike'?'Hazard ahead.':t==='house'?'A building in Mt. Shasta Roadside.':'Tile: '+t+' at '+x+', '+y);
+      return;
+    }
+    if(doc.tiles[index]===brush)return;
+    edit(current=>paintTile(current,index,brush));
+  }
+  useEffect(()=>{
+    if(mode!=='play')return;
+    const handler=e=>{
+      if(/input|textarea|select/i.test(e.target?.tagName||''))return;
+      const key=e.key.toLowerCase();
+      const moves={arrowup:[0,-1],w:[0,-1],arrowdown:[0,1],s:[0,1],arrowleft:[-1,0],a:[-1,0],arrowright:[1,0],d:[1,0]};
+      if(!moves[key])return;
+      e.preventDefault();
+      setPlayer(p=>movePlayer(doc,p,...moves[key]));
+    };
+    window.addEventListener('keydown',handler);
+    return()=>window.removeEventListener('keydown',handler);
+  },[mode,doc]);
+  function setSection(name){
+    if(name!=='Physics')setPhysicsStatus('standby');
+    setWorkspace(name==='Studio'?'World Builder':name);
+    if(name==='Playtest'){setMode('play');setMessage('Play Preview: use WASD or arrow keys to walk around the demo map.');}
+  }
+  function save(){
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(doc));setSaved(true);setMessage('Saved the v6 demo world in this browser. Existing v5 saves were not touched.');}
+    catch(e){setMessage('Local save failed: '+e.message);}
+  }
+  function load(){
+    try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw){setMessage('No v6 demo save found in this browser.');return;}
+      const next=validateDemoWorld(JSON.parse(raw));edit(()=>next);setSaved(true);setMessage('Loaded your v6 demo save.');}
+    catch(e){setMessage('Load rejected: '+e.message);}
+  }
+  async function importFile(e){
+    const file=e.target.files?.[0];e.target.value='';if(!file)return;
+    try{if(file.size>1024*1024)throw new Error('Import limit is 1 MB.');
+      const next=validateDemoWorld(JSON.parse(await file.text()));edit(()=>next);setMessage('Validated v6 demo world imported.');}
+    catch(err){setMessage('Import rejected: '+err.message);}
+  }
+  const exportDemo=()=>downloadJson(doc,'pixelforge-v6-demo-world.json');
+  const showMap=workspace==='World Builder'||workspace==='Playtest';
+  const physics=workspace==='Physics';
+  const stats=[['SCENES','1'],['TILES',String(doc.tiles.length)],['KINDS',String(new Set(doc.tiles).size)],['BODIES',physics?String(physicsStats.bodies):'–']];
+  return <div className="forgePage">
+    <header className="forgeMast">
+      <div className="forgeOrbLogo">Φ</div>
+      <div className="forgeBrand"><span>PHI369 LABS / THE CREATOR'S FORGE</span><strong>PARALLAX <em>PIXELFORGE</em></strong><small>RETRO GAME CREATOR STUDIO</small></div>
+      <div className="forgeSun" aria-hidden="true">Φ</div>
+      <div className="forgeSkyline" aria-hidden="true"/>
+      <div className="forgeMastRight"><b>v6.0 / FORGE PREVIEW</b><span>EDIT&nbsp; · &nbsp;BUILD&nbsp; · &nbsp;PLAY&nbsp; · &nbsp;EXPORT&nbsp; · &nbsp;XR</span></div>
+    </header>
+    <nav className="forgeNav" aria-label="PixelForge v6 workspaces">
+      {NAV.map(([label,glyph])=><button key={label} onClick={()=>setSection(label)} className={workspace===label||(label==='Studio'&&workspace==='World Builder')?'active':''} type="button"><span>{glyph}</span>{label}</button>)}
+      <a href={BASE} className="forgeBack">Portal ↗</a>
+    </nav>
+    <div className="forgeLayout">
+      <aside className="forgeSidebar forgePanel">
+        <div className="forgeIdentity"><div className="forgeLogoTile">⬡</div><div><b>PixelForge</b><strong>v6.0</strong><small>PARALLAX STUDIO</small></div></div>
+        <div className="forgeMenu">
+          {LIBRARY.map(([label,glyph,target])=><button key={label} type="button" className={workspace===target?'active':''} onClick={()=>setSection(target)}><span>{glyph}</span>{label}</button>)}
+        </div>
+        <ActionLink path="studio/">ΦPACK Workshop</ActionLink>
+        <ActionLink path="vr-studio/">Existing VR Studio</ActionLink>
+        <p className="forgeFine">V6 is an isolated preview workspace. Existing creator tools, project files and local asset permissions remain unchanged.</p>
+      </aside>
+      <main className="forgeMain">
+        <section className="forgeProject forgePanel">
+          <div className="forgeProjectArt" aria-hidden="true"><span>✦</span></div>
+          <div className="forgeProjectCopy"><span className="forgeEyebrow">PROJECT / DEMONSTRATION WORLD</span><h1>{doc.title}</h1><p>{doc.scene} · overworld</p><div className="forgeTags"><span>DEMO</span><span>RPG</span><span>PIXEL</span><span>LOCAL FIRST</span></div></div>
+          <div className="forgeProjectState"><span className="forgePill">● {saved?'Saved locally':'Unsaved / editing'}</span><small>Separate from v5 saves</small></div>
+        </section>
+        <section className="forgeToolbar forgePanel" aria-label="Workspace tools">
+          <span className="forgeSmallLabel">{workspace.toUpperCase()}</span>
+          {showMap&&<><button className={mode==='edit'?'selected':''} onClick={()=>setMode('edit')} type="button">✎ Editor</button><button className={mode==='play'?'selected':''} onClick={()=>{setMode('play');setMessage('Use WASD or arrow keys to explore.');}} type="button">▶ Play Preview</button><button onClick={undo} disabled={!history.past.length} type="button">↶ Undo</button><button onClick={redo} disabled={!history.future.length} type="button">↷ Redo</button><button onClick={()=>setGrid(v=>!v)} type="button">▦ Grid {grid?'On':'Off'}</button></>}
+          {physics&&<><button className="selected" type="button" onClick={()=>setPaused(v=>!v)}>{paused?'▶ Resume':'Ⅱ Pause'}</button><button type="button" onClick={()=>physicsRef.current?.reset()}>↻ Reset</button></>}
+          <div className="forgeToolbarSpacer"/>
+          <button type="button" onClick={save}>▣ Save Local</button><button type="button" onClick={load}>↻ Load Local</button><button type="button" onClick={exportDemo}>⇩ Export JSON</button>
+          <button type="button" onClick={()=>fileRef.current?.click()}>⇧ Import</button>
+          <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={importFile}/>
+        </section>
+        {showMap&&<section className="forgeWorkspace forgePanel">
+          <div className="forgeToolPanel"><h2>Tools / Tileset</h2><p>Choose a tile then click the map to paint.</p>
+            <div className="forgeBrushes">{TILES.map(([type,label,glyph])=><button type="button" key={type} aria-pressed={brush===type} onClick={()=>{setBrush(type);setMode('edit');}} className={brush===type?'active':''} title={label}><span className={'forgeBrush forgeTile-'+type}>{glyph}</span><small>{label}</small></button>)}</div>
+            <div className="forgeToolInfo"><b>BRUSH</b><span>{TILES.find(t=>t[0]===brush)?.[1]}</span><b>CANVAS</b><span>{WIDTH} × {HEIGHT} tiles</span><b>MODE</b><span>{mode==='play'?'Play Preview':'Paint / Edit'}</span></div>
+          </div>
+          <div className="forgeWorldCanvas">
+            <div className="forgeCanvasLabel">EDITOR: {mode==='edit'?'PAINT':'PLAY'} · {doc.scene} · {WIDTH}×{HEIGHT}</div>
+            <div className="forgeMapScroll"><div className="forgeMap" style={{gridTemplateColumns:'repeat('+WIDTH+',1fr)'}}>
+              {doc.tiles.map((type,i)=><Tile key={i} type={type} index={i} grid={grid} onClick={paint} mode={mode} player={mode==='play'&&i===player.y*WIDTH+player.x}/>)}
+            </div></div>
+            <div className="forgeCanvasFoot"><span>▦ Grid {grid?'visible':'hidden'}</span><span>SELECTED: {brush.toUpperCase()}</span><span>{mode==='play'?'WASD / ARROWS TO MOVE':'CLICK TILE TO PAINT'}</span></div>
+          </div>
+        </section>}
+        {physics&&<section className="forgePhysicsArea forgePanel">
+          <div className="forgeViewportTitle"><div><span className="forgeEyebrow">PHYSICS LAB / WORKING PROTOTYPE</span><h2>Three.js + Rapier rigid-body playground</h2></div><span className="forgePill">{physicsStatus==='ready'?'● SIMULATION READY':physicsStatus==='error'?'UNAVAILABLE':'INITIALIZING'}</span></div>
+          <Suspense fallback={<div className="forgeLoading">Loading 3D physics bundle…</div>}>
+            <PhysicsStage ref={physicsRef} paused={paused} gravity={gravity} onStatus={setPhysicsStatus} onStats={setPhysicsStats}/>
+          </Suspense>
+          <div className="forgePhysicsControls"><button type="button" onClick={()=>physicsRef.current?.spawn('box')} disabled={physicsStatus!=='ready'}>+ Drop Box</button><button type="button" onClick={()=>physicsRef.current?.spawn('ball')} disabled={physicsStatus!=='ready'}>+ Drop Ball</button><button type="button" onClick={()=>physicsRef.current?.reset()} disabled={physicsStatus!=='ready'}>↻ Reset Scene</button><label>Gravity: {gravity.toFixed(1)} m/s²<input type="range" min="-20" max="0" step=".5" value={gravity} onChange={e=>setGravity(Number(e.target.value))}/></label></div>
+        </section>}
+        {!showMap&&!physics&&<section className="forgeBridge forgePanel"><span className="forgeEyebrow">BRIDGED WORKSPACE / GRADUAL MIGRATION</span><h2>{LINK_PANELS[workspace]?.title||workspace}</h2><p>{LINK_PANELS[workspace]?.text||'This workflow remains in the existing PixelForge toolchain.'}</p><div className="forgeBridgeLinks">{(LINK_PANELS[workspace]?.links||[]).map(([label,path])=><ActionLink key={label} path={path}>{label}</ActionLink>)}</div>{workspace==='Build & Export'&&<button onClick={exportDemo} type="button" className="forgePrimary">⇩ Export current demo world JSON</button>}</section>}
+        <section className="forgeBottom">
+          <div className="forgeTimeline forgePanel"><h2>Scene Timeline / Events <span>PREVIEW</span></h2><div className="forgeTrack"><span>▶</span><span className="forgeTrackLine"/><i/><i/><i/></div><p>Animation timeline authoring is planned. Map edits and physics are functional in this rung.</p></div>
+          <div className="forgeLog forgePanel"><h2>Console / Activity</h2><p>✓ v6 workspace loaded without changing v5 saves</p><p>✓ Demo grid: {WIDTH} × {HEIGHT}</p><p>{physicsStatus==='ready'?'✓ Rapier and Three.js initialized':'· Physics initializes when its workspace opens'}</p><p className="forgeMessage" role="status">{message}</p></div>
+        </section>
+      </main>
+      <aside className="forgeRight">
+        <section className="forgePanel forgeWidget"><h2>Runtime & Simulation</h2><div className="forgeStateRow"><span>⬡ Three.js Runtime</span><strong className={physicsStatus==='ready'?'on':''}>{physicsStatus==='ready'?'ON':'STANDBY'}</strong></div><div className="forgeStateRow"><span>⚛ Rapier Physics</span><strong className={physicsStatus==='ready'?'on':''}>{physicsStatus==='ready'?'ON':'STANDBY'}</strong></div><div className="forgeStateRow"><span>✧ VFX Authoring</span><strong>PLANNED</strong></div><div className="forgeStateRow"><span>◈ WebXR / Quest 3</span><strong>EXPERIMENTAL</strong></div><button className="forgePrimary" type="button" onClick={()=>setSection(physics?'World Builder':'Physics')}>{physics?'▧ WORLD BUILDER':'▶ OPEN PHYSICS LAB'}</button><div className="forgeSmallLinks"><ActionLink path="studio/">Original Studio</ActionLink><ActionLink path="vr-studio/">VR Preview</ActionLink></div></section>
+        <section className="forgePanel forgeWidget"><h2>Quick Actions</h2><div className="forgeQuick"><button onClick={exportDemo} type="button">⇩<span>Demo JSON</span></button><button onClick={save} type="button">▣<span>Save Local</span></button><button onClick={()=>setSection('Playtest')} type="button">▹<span>2D Preview</span></button><button onClick={()=>setSection('Physics')} type="button">⚛<span>Physics Lab</span></button></div></section>
+        <section className="forgePanel forgeWidget"><h2>Studio Metrics</h2><div className="forgeMetrics">{stats.map(([label,value])=><div key={label}><strong>{value}</strong><span>{label}</span></div>)}</div>{physics&&<p className="forgeFps">Measured FPS: <b>{physicsStats.fps||'measuring…'}</b> · Fixed simulation: 60 Hz</p>}</section>
+        <section className="forgePanel forgeWidget forgeSafety"><h2>World Data Boundary</h2><p>V6 demo format: <code>pixelforge.v6.demo-world.v1</code></p><p>Only the dedicated v6 browser-local key is touched. Existing v5 scenes and protected asset pipelines are preserved.</p></section>
+      </aside>
+    </div>
+    <footer className="forgeFooter"><span>© PHI369 LABS · PIXELFORGE V6 PREVIEW</span><span>LOCAL-FIRST · FUNCTIONAL PHYSICS · WORKSPACE MIGRATION IN PROGRESS</span></footer>
+  </div>;
+}
