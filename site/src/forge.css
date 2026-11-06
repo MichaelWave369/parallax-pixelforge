@@ -63,3 +63,19 @@
 .forgeGizmoToolbar select{border:1px solid #6875a8;border-radius:7px;padding:8px;background:#0e1938;color:#ebecff;font-size:11px}
 .forgeGizmoToolbar small{color:#a1eddb;font-weight:900;font-size:9px;letter-spacing:.05em;margin-left:auto}
 @media(max-width:700px){.forgeGizmoToolbar small{width:100%;text-align:right;margin-left:0}.forgeGizmoToolbar button{padding:8px;font-size:10px}}
+
+/* Rung 4: direct scene construction; leave the existing VR World inspector intact. */
+.forgeConstructionToolbar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;
+ padding:10px 12px;margin:0 0 10px;border:1px solid #3f747c;border-radius:9px;
+ background:linear-gradient(100deg,#102b3c,#1a234a)}
+.forgeConstructionToolbar>span{font-size:10px;font-weight:950;color:#83eee1;letter-spacing:.13em;margin-right:8px}
+.forgeConstructionToolbar button{border:1px solid #468a9b;color:#def9ee;
+ padding:9px 12px;border-radius:8px;background:#183c54;font-size:11px;font-weight:900}
+.forgeConstructionToolbar button.active{background:#245d51;border-color:#8bffd2;box-shadow:0 0 14px #6de6cb77}
+.forgeConstructionToolbar button:hover:not(:disabled){background:#306a70}
+.forgeConstructionToolbar button:disabled{opacity:.43;cursor:not-allowed}
+.forgeConstructionToolbar small{margin-left:auto;color:#c8dfdf;font-size:10px}
+.forgeDeletePrefab{border:1px solid #d9738a;border-radius:8px;padding:10px;
+ color:#ffd7df;background:#44243f;font-weight:850;font-size:11px}
+.forgeDeletePrefab:hover{background:#63334a}
+@media(max-width:660px){.forgeConstructionToolbar>span,.forgeConstructionToolbar small{width:100%;margin-left:0}}
