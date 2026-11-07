@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "vite build && node scripts/assemble.mjs && node scripts/verify.mjs",
+    "build": "vite build && node scripts/build-publisher.mjs && node scripts/assemble.mjs && node scripts/verify.mjs",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --test scripts/assemble.test.mjs scripts/forge-world.test.mjs scripts/vr-physics-bridge.test.mjs scripts/vr-gizmo-contract.test.mjs scripts/vr-construction.test.mjs scripts/playable-world.test.mjs scripts/gameplay-rules.test.mjs scripts/event-graph.test.mjs scripts/player-playability.test.mjs scripts/playtest-save.test.mjs scripts/gamepad-checkpoints.test.mjs scripts/ghost-run.test.mjs scripts/playtest-inspector.test.mjs"
+    "test": "node --test scripts/assemble.test.mjs scripts/forge-world.test.mjs scripts/vr-physics-bridge.test.mjs scripts/vr-gizmo-contract.test.mjs scripts/vr-construction.test.mjs scripts/playable-world.test.mjs scripts/gameplay-rules.test.mjs scripts/event-graph.test.mjs scripts/player-playability.test.mjs scripts/playtest-save.test.mjs scripts/gamepad-checkpoints.test.mjs scripts/ghost-run.test.mjs scripts/playtest-inspector.test.mjs scripts/offline-publisher.test.mjs"
   },
   "dependencies": {
     "react": "19.2.0",
