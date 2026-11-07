@@ -64,6 +64,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
   const [extrasDraft,setExtrasDraft]=useState(null);
   const [hasLocalSave,setHasLocalSave]=useState(false);
   const [pendingSaveOverwrite,setPendingSaveOverwrite]=useState(false);
+  const [pendingSaveDelete,setPendingSaveDelete]=useState(false);
   const [traceFrames,setTraceFrames]=useState(()=>boot?.frames||[]);
   const [replayCursor,setReplayCursor]=useState(boot?boot.frames.length-1:-1);
   const [checkpointChoice,setCheckpointChoice]=useState('latest');
@@ -235,7 +236,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
     try{
       if(file.size>PLAYABLE_MAX_BYTES)throw Error('Playable world file exceeds 160 KB.');
       const validated=parsePlayableWorld(await file.text());
-      resetRules();setPendingSaveOverwrite(false);lastPosition.current=[...validated.spawn];
+      resetRules();setPendingSaveOverwrite(false);setPendingSaveDelete(false);lastPosition.current=[...validated.spawn];
       setGhostRun(null);setShowGhost(false);setGhostReplaySerial(0);
       setReleaseDraft(null);setExtrasDraft(null);
       setRespawnAt([...validated.spawn]);setWorldDigest('');
@@ -251,13 +252,13 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
     }catch(e){setStatus('Offline publishing refused: '+e.message);}
   }
   function reset(){
-    resetRules();setPendingSaveOverwrite(false);lastPosition.current=[...world.spawn];setRespawnAt([...world.spawn]);
+    resetRules();setPendingSaveOverwrite(false);setPendingSaveDelete(false);lastPosition.current=[...world.spawn];setRespawnAt([...world.spawn]);
     setSession(n=>n+1);setPaused(false);
     setStatus('World restarted at its declared spawn point. Collectibles and checkpoints reset.');
   }
   function demo(){
     const sample=createSamplePlayableWorld();
-    resetRules();setPendingSaveOverwrite(false);lastPosition.current=[...sample.spawn];setRespawnAt([...sample.spawn]);
+    resetRules();setPendingSaveOverwrite(false);setPendingSaveDelete(false);lastPosition.current=[...sample.spawn];setRespawnAt([...sample.spawn]);
     setGhostRun(null);setShowGhost(false);setGhostReplaySerial(0);
     setReleaseDraft(null);setExtrasDraft(null);
     setWorldDigest('');setWorld(sample);setSession(n=>n+1);setPaused(false);
@@ -308,10 +309,16 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
       restoreRun(parsePlaytestSave(raw,world,worldDigest),'Loaded world-bound save and recreated objective/door state.');
     }catch(error){setStatus('Resume refused: '+error.message);}
   }
-  function deleteLocal(){
+  function deleteLocal(confirmed=false){
     try{
       if(!worldDigest)throw Error('World digest is not ready.');
+      if(!confirmed){
+        setPendingSaveDelete(true);
+        setStatus('Confirm deletion of this world’s browser save. Export a backup first if you need it.');
+        return;
+      }
       localStorage.removeItem(playtestStorageKey(worldDigest));
+      setPendingSaveDelete(false);setPendingSaveOverwrite(false);
       setHasLocalSave(false);setStatus('Deleted only this world’s browser-local playtest save.');
     }catch(error){setStatus('Delete failed: '+error.message);}
   }
@@ -541,9 +548,13 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
               </button>
               <button type="button" disabled={!worldDigest} onClick={exportSave}>⇩ Export Save JSON</button>
               <button type="button" disabled={!worldDigest} onClick={()=>saveChooser.current?.click()}>⇧ Import Matching Save</button>
-              <button type="button" className="pixWorldDeleteSave" disabled={!worldDigest||!hasLocalSave} onClick={deleteLocal}>
-                Delete This World's Local Save
-              </button>
+              <button type="button" className="pixWorldDeleteSave" disabled={!worldDigest||!hasLocalSave}
+                onClick={()=>deleteLocal(false)}>Delete This World's Local Save</button>
+              {pendingSaveDelete&&<>
+                <p className="pixWorldOverwriteWarning" role="alert">Delete this world's browser save permanently? Export a JSON backup first. This action cannot be undone.</p>
+                <button type="button" className="pixWorldDeleteSave" onClick={()=>deleteLocal(true)}>Confirm Delete Local Save</button>
+                <button type="button" onClick={()=>{setPendingSaveDelete(false);setStatus('Deletion canceled. Saved progress preserved.');}}>Cancel Deletion</button>
+              </>
             </div>
             <input hidden ref={saveChooser} type="file" accept=".json,application/json" onChange={importSave}/>
             <p>Restart begins a fresh run without deleting your saved slot. Choose any previously activated checkpoint, then roll back later events, doors and pickups. Controller Y performs the selected respawn.</p>
