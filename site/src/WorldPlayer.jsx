@@ -550,7 +550,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
                 <p className="pixWorldOverwriteWarning" role="alert">Delete this world's browser save permanently? Export a JSON backup first. This action cannot be undone.</p>
                 <button type="button" className="pixWorldDeleteSave" onClick={()=>deleteLocal(true)}>Confirm Delete Local Save</button>
                 <button type="button" onClick={()=>{setPendingSaveDelete(false);setStatus('Deletion canceled. Saved progress preserved.');}}>Cancel Deletion</button>
-              </>
+              </>}
             </div>
             <input hidden ref={saveChooser} type="file" accept=".json,application/json" onChange={importSave}/>
             <p>Restart begins a fresh run without deleting your saved slot. Choose any previously activated checkpoint, then roll back later events, doors and pickups. Controller Y performs the selected respawn.</p>
