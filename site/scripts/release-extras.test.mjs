@@ -48,7 +48,7 @@ test('reject SVG, GIF, script, wrong MIME bytes, noncanonical data and excessive
   assert.throws(()=>validateReleaseExtras({...base,cover:{...fake,
     dataUrl:'https://example.invalid/cover.png'}}),/PNG, JPEG or WebP/);
   const invalid=cover('image/png','\x89PNG\r\n\x1a\n'+'x'.repeat(3));
-  assert.throws(()=>validateReleaseExtras({...base,cover:{...invalid,dataUrl:invalid.dataUrl+'AAA'}}),/base64/);
+  assert.throws(()=>validateReleaseExtras({...base,cover:{...invalid,dataUrl:invalid.dataUrl+'AAA'}}),/base64|PNG, JPEG or WebP/);
   assert.throws(()=>validateReleaseExtras({...base,cover:{...invalid,alt:' '}}),/Cover description/);
   assert.throws(()=>validateReleaseExtras({...base,cover:{...invalid,executable:'yes'}}),/unsupported/);
   assert.throws(()=>validateReleaseExtras({...base,cover:cover('image/png','\x89PNG\r\n\x1a\n'+'a'.repeat(COVER_MAX_BYTES))}),/bounded|320 KB/);
