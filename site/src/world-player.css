@@ -123,3 +123,29 @@
  font:11px ui-sans-serif,system-ui}
 .pixWorldCheckpointChoice select:disabled{opacity:.45}
 @media(max-width:460px){.pixWorldControllerKeys{grid-template-columns:1fr}}
+
+/* Rung 11 · opt-in world-bound ghost recording and route analytics */
+.pixWorldGhostPanel{border-color:#448e99!important;background:linear-gradient(155deg,#123b4a,#18213c)!important}
+.pixWorldGhostStatus{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+ border:1px solid #41697e;background:#102c3f;padding:9px 10px;border-radius:8px;
+ margin:10px 0;font:850 9px ui-monospace,monospace;color:#b4e7ec}
+.pixWorldGhostStatus span:first-child{color:#80f1e5}
+.pixWorldGhostPanel .pixWorldActions button:disabled{opacity:.45;cursor:not-allowed}
+.pixWorldGhostPanel .pixWorldActions .pixWorldDeleteSave{border-color:#995e74;
+ background:#352a3e;color:#ffcadc}
+.pixWorldGhostAnalytics{border:1px solid #4c8c97;border-radius:9px;background:#152f45;
+ padding:11px;margin:11px 0;color:#b9edeb}
+.pixWorldGhostAnalytics h4{font-size:10px;color:#ffdea7;letter-spacing:.06em;margin:10px 0}
+.pixWorldGhostAnalytics h4:first-child{margin-top:0}
+.pixWorldGhostNumbers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.pixWorldGhostNumbers div{padding:9px 5px;border:1px solid #436784;border-radius:6px;
+ background:#17263e;display:grid;gap:4px;text-align:center;min-width:0}
+.pixWorldGhostNumbers b{font:900 14px ui-monospace,monospace;color:#a3f4e5;overflow-wrap:anywhere}
+.pixWorldGhostNumbers span{font-size:9px;color:#bacbdc}
+.pixWorldGhostAnalytics p{margin:5px 0!important;color:#aed1e1!important}
+.pixWorldRecordBadge{align-self:flex-start;margin-left:auto;background:#5c1e36d9;
+ border:1px solid #ff9bac;box-shadow:0 0 16px #e7668b55;
+ border-radius:8px;padding:9px 12px;color:#ffbec6;
+ font:900 11px ui-monospace,monospace;letter-spacing:.05em}
+@media(max-width:480px){.pixWorldGhostNumbers{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pixWorldRecordBadge{font-size:9px;padding:6px}}
