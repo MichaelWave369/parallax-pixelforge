@@ -3,6 +3,11 @@ import {downloadJson} from './forge-world.js';
 import {PLAYABLE_MAX_BYTES,createSamplePlayableWorld,parsePlayableWorld,validatePlayableWorld} from './playable-world.js';
 import {advanceGameplaySession,newGameplaySession} from './gameplay-rules.js';
 import {dependenciesMet} from './event-graph.js';
+import {
+  PLAYTEST_MAX_BYTES,digestPlayableWorld,playtestStorageKey,
+  appendPlaytestFrame,replayPlaytestTrace,createPlaytestSave,parsePlaytestSave,
+  lastPlaytestCheckpoint
+} from './playtest-save.js';
 import './world-player.css';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
 const BASE=import.meta.env.BASE_URL;
@@ -14,16 +19,34 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
   const [paused,setPaused]=useState(false);
   const [fps,setFps]=useState({fps:0,bodies:0});
   const [session,setSession]=useState(0);
+  const [respawnAt,setRespawnAt]=useState(()=>[...(initialWorld?.spawn||[0,2.2,0])]);
+  const [worldDigest,setWorldDigest]=useState('');
+  const [hasLocalSave,setHasLocalSave]=useState(false);
+  const [traceFrames,setTraceFrames]=useState([]);
+  const [replayCursor,setReplayCursor]=useState(-1);
   const [gameSession,setGameSession]=useState(newGameplaySession);
   const [activity,setActivity]=useState([]);
   const [motion,setMotion]=useState({grounded:false,speed:0,sprinting:false,
     position:initialWorld?.spawn||[0,2.2,0]});
   const [virtualControls,setVirtualControls]=useState({right:0,forward:0,sprint:false,jumpSerial:0});
   const gameRef=useRef(gameSession),lastPosition=useRef(initialWorld?.spawn||[0,2.2,0]);
-  const chooser=useRef(null),stage=useRef(null);
+  const traceRef=useRef([]);
+  const chooser=useRef(null),saveChooser=useRef(null),stage=useRef(null);
+  useEffect(()=>{
+    let active=true;
+    setWorldDigest('');setHasLocalSave(false);
+    digestPlayableWorld(world).then(hash=>{
+      if(!active)return;
+      setWorldDigest(hash);
+      try{setHasLocalSave(localStorage.getItem(playtestStorageKey(hash))!==null);}
+      catch{setHasLocalSave(false);}
+    }).catch(error=>{if(active)setStatus('Local save unavailable: '+error.message);});
+    return()=>{active=false;};
+  },[world]);
   const resetRules=()=>{
     const fresh=newGameplaySession();gameRef.current=fresh;
     setGameSession(fresh);setActivity([]);
+    traceRef.current=[];setTraceFrames([]);setReplayCursor(-1);
     setVirtualControls({right:0,forward:0,sprint:false,jumpSerial:0});
   };
   const onMotionStatus=useCallback(data=>setMotion(data),[]);
@@ -44,6 +67,8 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
     try{
       const result=advanceGameplaySession(world.gameplay,gameRef.current,position,{interact});
       if(result.events.length){
+        const frames=appendPlaytestFrame(traceRef.current,position,interact,result.events);
+        traceRef.current=frames;setTraceFrames(frames);setReplayCursor(frames.length-1);
         gameRef.current=result.session;
         setGameSession(result.session);
         setActivity(previous=>[...result.events.map(e=>({type:e.type,id:e.id,text:e.text})),...previous].slice(0,8));
@@ -73,21 +98,87 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
       if(file.size>PLAYABLE_MAX_BYTES)throw Error('Playable world file exceeds 160 KB.');
       const validated=parsePlayableWorld(await file.text());
       resetRules();lastPosition.current=[...validated.spawn];
+      setRespawnAt([...validated.spawn]);setWorldDigest('');
       setWorld(validated);setSession(n=>n+1);setRuntime('loading');setPaused(false);
       setStatus('Loaded portable world: '+validated.title+'. No scripts executed.');
     }catch(error){setStatus('Import rejected: '+error.message);}
   }
   function reset(){
-    resetRules();lastPosition.current=[...world.spawn];
+    resetRules();lastPosition.current=[...world.spawn];setRespawnAt([...world.spawn]);
     setSession(n=>n+1);setPaused(false);
     setStatus('World restarted at its declared spawn point. Collectibles and checkpoints reset.');
   }
   function demo(){
     const sample=createSamplePlayableWorld();
-    resetRules();lastPosition.current=[...sample.spawn];
-    setWorld(sample);setSession(n=>n+1);setPaused(false);
+    resetRules();lastPosition.current=[...sample.spawn];setRespawnAt([...sample.spawn]);
+    setWorldDigest('');setWorld(sample);setSession(n=>n+1);setPaused(false);
     setRuntime('loading');setStatus('Loaded the public starter world.');
   }
+  function restoreRun(save,message){
+    const replay=replayPlaytestTrace(world,save.frames);
+    const progress=replay.progress;
+    gameRef.current=progress;setGameSession(progress);
+    const frames=save.frames.map(x=>({...x,position:[...x.position],event_ids:[...x.event_ids]}));
+    traceRef.current=frames;setTraceFrames(frames);setReplayCursor(frames.length-1);
+    setActivity(replay.timeline.flatMap(item=>item.events).slice(-8).reverse());
+    const spawn=[...save.position];
+    setRespawnAt(spawn);lastPosition.current=spawn;
+    setMotion({grounded:false,speed:0,sprinting:false,position:spawn});
+    setVirtualControls({right:0,forward:0,sprint:false,jumpSerial:0});
+    setSession(n=>n+1);setRuntime('loading');setPaused(false);
+    setStatus(message);
+  }
+  function buildSave(){
+    if(!worldDigest)throw Error('Waiting for validated world SHA-256 digest.');
+    return createPlaytestSave(world,worldDigest,lastPosition.current,traceRef.current);
+  }
+  function saveLocal(){
+    try{
+      const save=buildSave();
+      localStorage.setItem(playtestStorageKey(worldDigest),JSON.stringify(save));
+      setHasLocalSave(true);setStatus('Saved this world locally. No account, upload, or source file was modified.');
+    }catch(error){setStatus('Local save failed: '+error.message);}
+  }
+  function loadLocal(){
+    try{
+      if(!worldDigest)throw Error('World digest is not ready.');
+      const raw=localStorage.getItem(playtestStorageKey(worldDigest));
+      if(raw===null)throw Error('No browser-local save exists for this world.');
+      restoreRun(parsePlaytestSave(raw,world,worldDigest),'Loaded world-bound save and recreated objective/door state.');
+    }catch(error){setStatus('Resume refused: '+error.message);}
+  }
+  function deleteLocal(){
+    try{
+      if(!worldDigest)throw Error('World digest is not ready.');
+      localStorage.removeItem(playtestStorageKey(worldDigest));
+      setHasLocalSave(false);setStatus('Deleted only this world’s browser-local playtest save.');
+    }catch(error){setStatus('Delete failed: '+error.message);}
+  }
+  function exportSave(){
+    try{downloadJson(buildSave(),'pixelforge-playtest-save.v1.json');
+      setStatus('Downloaded a portable playtest save. Share the matching playable-world JSON separately.');}
+    catch(error){setStatus('Save export refused: '+error.message);}
+  }
+  async function importSave(event){
+    const file=event.target.files?.[0];event.target.value='';if(!file)return;
+    try{
+      if(file.size>PLAYTEST_MAX_BYTES)throw Error('Save file exceeds 64 KB.');
+      if(!worldDigest)throw Error('World digest is not ready.');
+      const save=parsePlaytestSave(await file.text(),world,worldDigest);
+      restoreRun(save,'Imported matching save. Press Save Browser to keep it in this browser.');
+    }catch(error){setStatus('Save import rejected: '+error.message);}
+  }
+  function respawnCheckpoint(){
+    if(!world.gameplay)return;
+    try{
+      const cp=lastPlaytestCheckpoint(world,traceRef.current);
+      if(!cp)throw Error('Visit a checkpoint first.');
+      restoreRun({position:cp.position,frames:cp.frames},'Returned to '+cp.id+' with later game events rolled back.');
+    }catch(error){setStatus('Checkpoint respawn refused: '+error.message);}
+  }
+  const timeline=useMemo(()=>replayPlaytestTrace(world,traceFrames).timeline,[world,traceFrames]);
+  const checkpoint=useMemo(()=>lastPlaytestCheckpoint(world,traceFrames),[world,traceFrames]);
+  const selectedReplay=replayCursor>=0?timeline[replayCursor]:null;
   const playable=world.objects.filter(o=>o.body!=='none').length;
   const rules=world.gameplay||null;
   const objectives=rules?rules.collectibles.length+rules.triggers.length+
@@ -121,7 +212,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
           <div className="pixWorldViewportWrap">
             <Suspense fallback={<div className="pixWorldLoading">Loading Three.js + Rapier world runtime…</div>}>
               <PhysicsStage key={sceneKey} ref={stage} paused={paused} gravity={world.gravity} sceneObjects={world.objects}
-                sceneKey={sceneKey} playerSpawn={world.spawn} walkMode={true}
+                sceneKey={sceneKey} playerSpawn={respawnAt} walkMode={true}
                 gameplay={rules} gameplayProgress={gameSession} onPlayerPosition={onPlayerPosition}
                 onMotionStatus={onMotionStatus} virtualControls={virtualControls}
                 onStats={setFps} onStatus={setRuntime}/>
@@ -208,6 +299,49 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
             <div className="pixWorldMovementHints"><span><kbd>Shift</kbd> Sprint</span><span><kbd>Space</kbd> Jump</span>
               <span><kbd>E</kbd> Interact with switch</span></div>
             <p>Camera-relative movement accelerates and brakes smoothly. Jump is ground-gated by Rapier; doors dissolve after their collision bodies are removed. Touch-friendly buttons are available in the viewport.</p>
+          </section>
+          <section className="pixWorldSavePanel">
+            <h3>RUNG 9 / SAVE & CHECKPOINTS</h3>
+            <p>One browser-local save slot per exact playable world. Saves capture position, quest progress, door states and a verifiable event trace.</p>
+            <div className="pixWorldSaveBadge">
+              <span>{worldDigest?'WORLD SHA-256 · '+worldDigest.slice(0,14)+'…':'VALIDATING WORLD DIGEST…'}</span>
+              <strong>{hasLocalSave?'LOCAL SAVE FOUND':'NO LOCAL SAVE'}</strong>
+            </div>
+            <div className="pixWorldActions">
+              <button type="button" disabled={!worldDigest} onClick={saveLocal}>▣ Save Browser Progress</button>
+              <button type="button" disabled={!worldDigest||!hasLocalSave} onClick={loadLocal}>▶ Resume Browser Save</button>
+              <button type="button" disabled={!checkpoint} onClick={respawnCheckpoint}>
+                ◉ Respawn at {checkpoint?.id||'Checkpoint'}
+              </button>
+              <button type="button" disabled={!worldDigest} onClick={exportSave}>⇩ Export Save JSON</button>
+              <button type="button" disabled={!worldDigest} onClick={()=>saveChooser.current?.click()}>⇧ Import Matching Save</button>
+              <button type="button" className="pixWorldDeleteSave" disabled={!worldDigest||!hasLocalSave} onClick={deleteLocal}>
+                Delete This World's Local Save
+              </button>
+            </div>
+            <input hidden ref={saveChooser} type="file" accept=".json,application/json" onChange={importSave}/>
+            <p>Restart begins a fresh run without deleting your saved slot. Checkpoint respawn rolls back later events, including doors and pickups.</p>
+          </section>
+          <section className="pixWorldReplayPanel">
+            <h3>EVENT TRACE / REPLAY</h3>
+            <p>Inspect reproducible gameplay events step by step. This is a rule-event replay, not a recorded video or physics-motion rewind.</p>
+            <div className="pixWorldReplayControls">
+              <button type="button" disabled={!timeline.length||replayCursor<=0}
+                onClick={()=>setReplayCursor(i=>Math.max(0,i-1))}>← Previous</button>
+              <span>{timeline.length?Math.max(0,replayCursor+1)+' / '+timeline.length:'NO EVENTS YET'}</span>
+              <button type="button" disabled={!timeline.length||replayCursor>=timeline.length-1}
+                onClick={()=>setReplayCursor(i=>Math.min(timeline.length-1,i+1))}>Next →</button>
+            </div>
+            {selectedReplay?<div className="pixWorldReplayStep">
+              <small>STEP {selectedReplay.index+1} · {selectedReplay.interact?'INTERACT':'PROXIMITY'} ·
+                X {selectedReplay.position[0].toFixed(1)} · Y {selectedReplay.position[1].toFixed(1)} · Z {selectedReplay.position[2].toFixed(1)}</small>
+              {selectedReplay.events.map(event=><p key={event.type+'-'+event.id}>● {event.type.toUpperCase()}: {event.text}</p>)}
+            </div>:<p>Collect a spark or activate a checkpoint to record your first event step.</p>}
+            {timeline.length>0&&<div className="pixWorldReplayTimeline" role="group" aria-label="Event replay steps">
+              {timeline.map((frame,i)=><button type="button" key={i}
+                aria-pressed={replayCursor===i} onClick={()=>setReplayCursor(i)}
+                className={replayCursor===i?'active':''} title={frame.events.map(e=>e.text).join(' · ')}>{i+1}</button>)}
+            </div>}
           </section>
           <section><h3>WORLD LIBRARY</h3><div className="pixWorldActions">
             <button type="button" onClick={()=>chooser.current?.click()}>⇧ Import Playable JSON</button>
