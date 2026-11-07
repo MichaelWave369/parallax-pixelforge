@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile,stat} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {RUNTIME_PACKAGES,validateBundledNotices} from '../src/license-notices.js';
 
 const out=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../dist');
 async function mustExist(relative) {
@@ -37,6 +38,15 @@ assert.match(publisher,/<script type="application\/json" id="pixelforge-embedded
   'Missing inert world-data publishing slot');
 assert.match(publisher,/<script type="application\/json" id="pixelforge-embedded-release">__PIXELFORGE_RELEASE_JSON__<\/script>/,
   'Missing safe release metadata slot');
+assert.match(publisher,/<script type="application\/json" id="pixelforge-embedded-extras">__PIXELFORGE_EXTRAS_JSON__<\/script>/,
+  'Missing safe cover and credits slot');
+const licenseBlock=publisher.match(/<script type="application\/json" id="pixelforge-embedded-notices">([\s\S]*?)<\/script>/);
+assert.ok(licenseBlock,'Missing offline third-party license notices');
+const notices=validateBundledNotices(JSON.parse(licenseBlock[1]));
+assert.deepEqual(notices.packages.map(x=>x.name),RUNTIME_PACKAGES.map(x=>x.name),
+  'Bundled player must include original full engine and dependency license files');
+assert.ok(notices.packages.every(x=>x.text.trim().length>300),
+  'Bundled dependency license text missing or abbreviated');
 assert.match(publisher,/connect-src 'none'/,'Offline player must disable network access');
 assert.match(publisher,/script-src 'unsafe-inline' 'wasm-unsafe-eval'/,
   'Offline player should allow local WASM but not arbitrary remote scripts');

@@ -1,0 +1,35 @@
+.pixExtrasEditor{border:1px solid #607d92;border-radius:11px;padding:15px;margin:12px 0;
+ background:linear-gradient(145deg,#142940,#1e2442);color:#e8f8f5}
+.pixExtrasHeader,.pixExtrasCreditsHead{display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:9px;border-bottom:1px solid #466075;padding-bottom:10px;margin-bottom:12px}
+.pixExtrasHeader strong,.pixExtrasCreditsHead strong{color:#9ef6dd;font:900 11px ui-monospace,monospace;letter-spacing:.05em}
+.pixExtrasHeader span{color:#abc8dd;font-size:10px}
+.pixExtrasCoverRow{display:flex;align-items:start;gap:13px;margin:10px 0}
+.pixExtrasCoverPreview,.pixExtrasCoverEmpty{width:130px;aspect-ratio:4/5;flex:0 0 auto;
+ border:1px solid #567e90;border-radius:8px;object-fit:cover;background:#081d31}
+.pixExtrasCoverEmpty{display:grid;align-content:center;justify-items:center;
+ font-size:38px;color:#86d7c7}
+.pixExtrasCoverEmpty span{font:850 10px ui-monospace,monospace;color:#8eb7c9}
+.pixExtrasCoverOptions{display:grid;align-content:start;gap:8px;min-width:0;flex:1}
+.pixExtrasEditor button{border:1px solid #6eabb0;border-radius:7px;background:#235063;
+ color:#e5fff5;padding:8px 10px;cursor:pointer;font:800 11px ui-sans-serif,system-ui}
+.pixExtrasEditor button:disabled{opacity:.4;cursor:not-allowed}
+.pixExtrasEditor .pixExtrasRights{display:flex;align-items:start;gap:8px;
+ font-size:10px;color:#dcebdc;line-height:1.5}
+.pixExtrasEditor input[type=checkbox]{accent-color:#77e3c6;flex:0 0 auto}
+.pixExtrasCoverOptions small{color:#a5c4d1;font-size:10px;line-height:1.55}
+.pixExtrasAltLabel,.pixExtrasNotice,.pixExtrasCreditRow label{display:grid;gap:6px;
+ font-size:11px;color:#b5e8e2;font-weight:850}
+.pixExtrasEditor input:not([type=checkbox]):not([type=file]),.pixExtrasEditor textarea{
+ width:100%;box-sizing:border-box;min-width:0;border:1px solid #55758c;background:#122c42;
+ color:#f4fff7;padding:9px;border-radius:7px;font:12px ui-sans-serif,system-ui}
+.pixExtrasCreditsHead{margin-top:15px}
+.pixExtrasCreditsList{display:grid;gap:8px}
+.pixExtrasCreditRow{display:grid;grid-template-columns:1fr 1.5fr auto;gap:7px;align-items:end}
+.pixExtrasCreditRow button{height:34px}
+.pixExtrasEditor p{color:#a8c7da!important;line-height:1.6!important;font-size:10px!important}
+.pixExtrasEditor .pixExtrasMessage{color:#fbdb9a!important}
+.pixExtrasNotice{margin:14px 0 10px}
+@media(max-width:540px){.pixExtrasCoverRow{flex-wrap:wrap}
+ .pixExtrasCreditRow{grid-template-columns:1fr 1fr auto}
+ .pixExtrasCoverPreview,.pixExtrasCoverEmpty{width:105px}}

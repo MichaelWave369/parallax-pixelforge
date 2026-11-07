@@ -3,6 +3,7 @@ import {downloadJson} from './forge-world.js';
 import {downloadOfflineWorld} from './offline-publisher.js';
 import {defaultReleaseMetadata} from './release-metadata.js';
 import ReleaseMetadataEditor from './ReleaseMetadataEditor.jsx';
+import ReleaseExtrasEditor from './ReleaseExtrasEditor.jsx';
 import {PLAYABLE_MAX_BYTES,createSamplePlayableWorld,parsePlayableWorld,validatePlayableWorld} from './playable-world.js';
 import {advanceGameplaySession,newGameplaySession} from './gameplay-rules.js';
 import {dependenciesMet} from './event-graph.js';
@@ -49,6 +50,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
   const [respawnAt,setRespawnAt]=useState(()=>[...(initialWorld?.spawn||[0,2.2,0])]);
   const [worldDigest,setWorldDigest]=useState('');
   const [releaseDraft,setReleaseDraft]=useState(null);
+  const [extrasDraft,setExtrasDraft]=useState(null);
   const [hasLocalSave,setHasLocalSave]=useState(false);
   const [traceFrames,setTraceFrames]=useState([]);
   const [replayCursor,setReplayCursor]=useState(-1);
@@ -223,7 +225,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
       const validated=parsePlayableWorld(await file.text());
       resetRules();lastPosition.current=[...validated.spawn];
       setGhostRun(null);setShowGhost(false);setGhostReplaySerial(0);
-      setReleaseDraft(null);
+      setReleaseDraft(null);setExtrasDraft(null);
       setRespawnAt([...validated.spawn]);setWorldDigest('');
       setWorld(validated);setSession(n=>n+1);setRuntime('loading');setPaused(false);
       setStatus('Loaded portable world: '+validated.title+'. No scripts executed.');
@@ -232,7 +234,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
   async function publishCurrentWorld(){
     try{
       setStatus('Preparing the trusted offline adventure package…');
-      const result=await downloadOfflineWorld(world,releaseDraft??defaultReleaseMetadata(world.title));
+      const result=await downloadOfflineWorld(world,releaseDraft??defaultReleaseMetadata(world.title),extrasDraft);
       setStatus('Published '+result.filename+' ('+Math.round(result.bytes/1024)+' KiB). Open the HTML locally in a WebGL2 browser.');
     }catch(e){setStatus('Offline publishing refused: '+e.message);}
   }
@@ -245,7 +247,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
     const sample=createSamplePlayableWorld();
     resetRules();lastPosition.current=[...sample.spawn];setRespawnAt([...sample.spawn]);
     setGhostRun(null);setShowGhost(false);setGhostReplaySerial(0);
-    setReleaseDraft(null);
+    setReleaseDraft(null);setExtrasDraft(null);
     setWorldDigest('');setWorld(sample);setSession(n=>n+1);setPaused(false);
     setRuntime('loading');setStatus('Loaded the public starter world.');
   }
@@ -593,6 +595,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
             <h3>RUNG 13 / OFFLINE WORLD PUBLISHING</h3>
             <p>Publish this exact validated world as a <strong>single HTML file</strong>, with its own Three.js + Rapier player, styles and game rules included. No Forge editor, CDN, server or installation is required to open the file.</p>
             <ReleaseMetadataEditor value={releaseDraft} onChange={setReleaseDraft} worldTitle={world.title}/>
+            <ReleaseExtrasEditor value={extrasDraft} onChange={setExtrasDraft}/>
             <div className="pixWorldPublishFacts">
               <span>Runtime</span><b>EMBEDDED / OFFLINE</b>
               <span>Code from world file</span><b>NONE</b>
