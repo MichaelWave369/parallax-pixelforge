@@ -18,12 +18,30 @@ import PlaytestInspector from './PlaytestInspector.jsx';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
 const BASE=import.meta.env.BASE_URL;
 
-export default function WorldPlayer({initialWorld=null,onExit=null,standalone=false}){
+export default function WorldPlayer({initialWorld=null,onExit=null,standalone=false,
+  release=null,publishedSettings=null}){
   const [world,setWorld]=useState(()=>initialWorld?validatePlayableWorld(initialWorld):createSamplePlayableWorld());
   const [status,setStatus]=useState(standalone?'Offline adventure ready. All world assets are embedded locally.':
     initialWorld?'Previewing your current Forge construction.':'Loaded public PixelForge starter course.');
   const [runtime,setRuntime]=useState('loading');
   const [paused,setPaused]=useState(false);
+  const [fullscreenActive,setFullscreenActive]=useState(false);
+  useEffect(()=>{
+    if(!standalone)return;
+    const changed=()=>setFullscreenActive(Boolean(document.fullscreenElement));
+    changed();
+    document.addEventListener('fullscreenchange',changed);
+    return()=>document.removeEventListener('fullscreenchange',changed);
+  },[standalone]);
+  async function toggleFullscreen(){
+    try{
+      if(document.fullscreenElement)await document.exitFullscreen();
+      else{
+        if(!document.documentElement.requestFullscreen)throw Error('This browser does not support fullscreen.');
+        await document.documentElement.requestFullscreen();
+      }
+    }catch(error){setStatus('Fullscreen unavailable: '+error.message);}
+  }
   const [fps,setFps]=useState({fps:0,bodies:0});
   const [session,setSession]=useState(0);
   const [respawnAt,setRespawnAt]=useState(()=>[...(initialWorld?.spawn||[0,2.2,0])]);
@@ -327,17 +345,29 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
   const nearSwitch=rules?.graph?.nodes.find(n=>n.kind==='switch'&&!activeIds.has(n.id)&&
     dependenciesMet(n.requires,activeIds)&&
     Math.hypot(...motion.position.map((v,i)=>v-n.position[i]))<=n.radius);
-  return <div className="pixWorldPlayer">
+  return <div className={'pixWorldPlayer'+(standalone?' pixWorldPublished':'')}>
     <header className="pixWorldTop">
-      <div className="pixWorldBrand"><span className="pixWorldLogo">Φ</span><div><small>PHI369 LABS · PIXELFORGE v6</small><h1>WORLD <em>PLAYER</em></h1></div></div>
+      <div className="pixWorldBrand"><span className="pixWorldLogo">Φ</span><div>
+        <small>{standalone?release?.creator||'PIXELFORGE PUBLISHED GAME':'PHI369 LABS · PIXELFORGE v6'}</small>
+        <h1>{standalone?release?.title||world.title:<>WORLD <em>PLAYER</em></>}</h1>
+        {standalone&&<div className="pixWorldPublishedMeta">{release?.tagline} · v{release?.version||'1.0.0'}</div>}
+      </div></div>
       <div className="pixWorldTopRight"><span className="pixWorldBadge">{runtime==='ready'?'● RAPIER LIVE':runtime==='error'?'RENDERER UNAVAILABLE':'LOADING WORLD'}</span>
-        {!standalone&&(onExit?<button type="button" onClick={onExit}>← Back to Forge</button>:<a href={BASE+'?forge=1'}>← Creator Forge</a>)}
+        {standalone?<div className="pixWorldPublishedHeader">
+          <button type="button" aria-label={fullscreenActive?'Exit fullscreen':'Enter fullscreen'}
+            onClick={()=>void toggleFullscreen()}>{fullscreenActive?'⛶ Exit Fullscreen':'⛶ Fullscreen'}</button>
+          {onExit&&<button type="button" onClick={onExit}>← Title Screen</button>}
+        </div>:(onExit?<button type="button" onClick={onExit}>← Back to Forge</button>:<a href={BASE+'?forge=1'}>← Creator Forge</a>)}
         {!standalone&&<a href={BASE}>Portal ↗</a>}</div>
     </header>
     <main className="pixWorldMain">
       <section className="pixWorldOverview">
-        <div><div className="pixWorldEyebrow">PLAYABLE-WORLD.V1 / BROWSER-LOCAL RUNTIME · {rules?'GAMEPLAY RULES ACTIVE':'EXPLORATION MODE'}</div>
-          <h2>{world.title}</h2><p>Explore a portable 3D scene using real rigid-body collisions. Data-only worlds can be imported without executable scripts, remote fetching or special permissions.</p></div>
+        <div><div className="pixWorldEyebrow">{standalone?'OFFLINE PUBLISHED GAME · NETWORK DISABLED':
+          'PLAYABLE-WORLD.V1 / BROWSER-LOCAL RUNTIME · '+(rules?'GAMEPLAY RULES ACTIVE':'EXPLORATION MODE')}</div>
+          <h2>{standalone?release?.title||world.title:world.title}</h2>
+          <p>{standalone?'Explore this locally published adventure. Your progress stays in your browser; the original creator project is not included.':
+            'Explore a portable 3D scene using real rigid-body collisions. Data-only worlds can be imported without executable scripts, remote fetching or special permissions.'}</p>
+        </div>
         <div className="pixWorldCounts"><div><strong>{world.objects.length}</strong><span>OBJECTS</span></div><div><strong>{playable}</strong><span>COLLIDERS</span></div><div><strong>{fps.fps||'…'}</strong><span>FPS</span></div></div>
       </section>
       <div className="pixWorldLayout">
@@ -445,7 +475,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
             </div>
             <p>Controller inputs release on disconnect. Unsupported mappings remain inactive; keyboard and touch controls still work.</p>
           </section>
-          <section><h3>PLAYER CONTROLS</h3><div className="pixWorldActions">
+          <section className="pixWorldPlayerControls"><h3>PLAYER CONTROLS</h3><div className="pixWorldActions">
             <button type="button" onClick={()=>setPaused(v=>!v)}>{paused?'▶ Resume World':'Ⅱ Pause World'}</button>
             <button type="button" onClick={reset}>↻ Restart / Respawn</button>
           </div>
