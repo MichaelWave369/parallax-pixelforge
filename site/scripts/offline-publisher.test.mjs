@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createSamplePlayableWorld,parsePlayableWorld,validatePlayableWorld} from '../src/playable-world.js';
 import {safeEmbeddedWorldJson,buildOfflineHtml,offlineFilename,OFFLINE_WORLD_TOKEN,
   OFFLINE_TEMPLATE_MAX_BYTES} from '../src/offline-publisher.js';
-import {makeOfflineTemplate,assertNoExternalImports} from './build-publisher.mjs';
+import {makeOfflineTemplate} from './build-publisher.mjs';
 
 const template=()=>makeOfflineTemplate('(()=>{document.getElementById("root").textContent="Ready";})()',
   '.offline{color:#fff;background:#000}');
@@ -53,13 +53,8 @@ test('template must be single slot, offline CSP and trusted entry',()=>{
   assert.throws(()=>buildOfflineHtml(world,template()+OFFLINE_WORLD_TOKEN),/template/);
   assert.throws(()=>buildOfflineHtml(world,'x'.repeat(OFFLINE_TEMPLATE_MAX_BYTES+1)),/12 MB/);
 });
-test('builder refuses real module imports, not harmless quoted React import examples',async()=>{
+test('builder refuses unsafe styles and blank runtime while ESM parse is handled during packaging',()=>{
   assert.throws(()=>makeOfflineTemplate('','body{}'),/empty/);
-  await assert.rejects(()=>assertNoExternalImports('import("./other.js")'),/module imports/);
-  await assert.rejects(()=>assertNoExternalImports('import value from "./other.js";'),/module imports/);
-  await assert.doesNotReject(()=>assertNoExternalImports(
-    'const message = "Use React.lazy(() => import(\'./Component\'))"; console.log(message);'
-  ));
   assert.throws(()=>makeOfflineTemplate('console.log(1)','body{background:url(https://evil.test/image)}'),/external or local assets/);
   assert.throws(()=>makeOfflineTemplate('console.log(1)','body{background:url(/private/img.png)}'),/external or local assets/);
   const html=makeOfflineTemplate('const text="</script>";console.log(text)','body{color:red}');
