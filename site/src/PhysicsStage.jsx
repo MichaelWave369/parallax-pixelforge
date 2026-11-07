@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import RAPIER from '@dimforge/rapier3d-compat';
+import {PLAYER_MOTION,horizontalMotion,canJump,doorDissolvePose} from './player-playability.js';
 
 const FIXED_STEP=1/60;
 const MAX_BODIES=250;
@@ -10,7 +11,8 @@ const PALETTE=[0x50e4cf,0xfcb75b,0xb28bff,0xf675bd,0x62aaff];
 function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=null,onObjectClick,walkMode=false,
     selectedObjectId=null,gizmoMode='inspect',gizmoSnap=null,onTransformCommit=null,sceneKey=null,
     placementKind=null,onPlacementRequest=null,onPlacementStatus=null,playerSpawn=null,
-    gameplay=null,gameplayProgress=null,onPlayerPosition=null},ref) {
+    gameplay=null,gameplayProgress=null,onPlayerPosition=null,
+    onMotionStatus=null,virtualControls=null},ref) {
   const mountRef=useRef(null),apiRef=useRef(null),pausedRef=useRef(paused),gravityRef=useRef(gravity);
   const statsRef=useRef(onStats),statusRef=useRef(onStatus);
   const sceneObjectsRef=useRef(sceneObjects),selectionRef=useRef(onObjectClick),walkRef=useRef(walkMode);
@@ -19,6 +21,8 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
   const placementKindRef=useRef(placementKind),placementRef=useRef(onPlacementRequest),placementStatusRef=useRef(onPlacementStatus);
   const playerSpawnRef=useRef(playerSpawn);
   const gameplayRef=useRef(gameplay),progressRef=useRef(gameplayProgress),positionCallbackRef=useRef(onPlayerPosition);
+  const motionCallbackRef=useRef(onMotionStatus),virtualRef=useRef(virtualControls);
+  const jumpQueueRef=useRef(false),jumpSerialRef=useRef(virtualControls?.jumpSerial||0);
   const [error,setError]=useState('');
   useEffect(()=>{pausedRef.current=paused;apiRef.current?.syncGizmo();},[paused]);
   useEffect(()=>{gravityRef.current=gravity;},[gravity]);
@@ -34,6 +38,12 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
   useEffect(()=>{gameplayRef.current=gameplay;apiRef.current?.buildGameplayMarkers?.();},[gameplay]);
   useEffect(()=>{progressRef.current=gameplayProgress;apiRef.current?.syncGameplayMarkers?.();},[gameplayProgress]);
   useEffect(()=>{positionCallbackRef.current=onPlayerPosition;},[onPlayerPosition]);
+  useEffect(()=>{motionCallbackRef.current=onMotionStatus;},[onMotionStatus]);
+  useEffect(()=>{
+    virtualRef.current=virtualControls;
+    const serial=virtualControls?.jumpSerial||0;
+    if(serial!==jumpSerialRef.current){jumpSerialRef.current=serial;jumpQueueRef.current=true;}
+  },[virtualControls]);
   useEffect(()=>{
     gizmoOptionsRef.current={selectedObjectId,gizmoMode,gizmoSnap};
     apiRef.current?.syncGizmo();
@@ -64,7 +74,11 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
         // Declared doors were validated as fixed solid objects at JSON import.
         // Removing this Rapier body also removes its attached collider.
         world.removeRigidBody(record.body);
-        record.mesh.visible=false;
+        // Collision vanishes immediately. Visual dissolves over a bounded .75 s,
+        // avoiding the old abrupt pop while keeping passage unblocked.
+        record.mesh.material.transparent=true;
+        record.mesh.material.depthWrite=false;
+        record.opening=true;record.elapsed=0;
         record.opened=true;
       }
     };
@@ -153,13 +167,21 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     const held=new Set();
     const onKeyDown=e=>{
       if(e.key==='Escape'&&apiRef.current?.cancelTransform?.()){e.preventDefault();return;}
-      if(!walkRef.current||/^(input|textarea|select)$/i.test(e.target?.tagName||''))return;
+      if(!walkRef.current||/^(input|textarea|select|button)$/i.test(e.target?.tagName||''))return;
       const k=e.key.toLowerCase();
-      if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){held.add(k);e.preventDefault();}
+      if(k===' '||k==='spacebar'){
+        if(!e.repeat)jumpQueueRef.current=true;
+        e.preventDefault();return;
+      }
+      if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift'].includes(k)){
+        held.add(k);if(k!=='shift')e.preventDefault();
+      }
     };
     const onKeyUp=e=>held.delete(e.key.toLowerCase());
+    const onBlur=()=>{held.clear();jumpQueueRef.current=false;};
     window.addEventListener('keydown',onKeyDown);
     window.addEventListener('keyup',onKeyUp);
+    window.addEventListener('blur',onBlur);
     const clearDynamic=()=>{
       for(const item of dynamic){scene.remove(item.mesh);item.mesh.geometry.dispose();item.mesh.material.dispose();}
       dynamic=[];player=null;
@@ -224,7 +246,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
           else {
             environment.push(mesh);
             if(gameplayRef.current?.graph?.doors.some(d=>d.objectId===o.id))
-              doorBodies.set(o.id,{body,mesh,opened:false});
+              doorBodies.set(o.id,{body,mesh,opened:false,opening:false,elapsed:0,baseY:o.position[1]});
           }
         }
         function addWalkAvatar(authored){
@@ -245,6 +267,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
           if(gizmo)gizmo.detach();
           clearGameplayMarkers();
           doorBodies.clear();
+          held.clear();jumpQueueRef.current=false;
           disposeOutline();
           clearDynamic();
           if(world)world.free();
@@ -416,7 +439,9 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
           canvas.removeEventListener('pointerleave',onPointerLeave);
           canvas.removeEventListener('click',onClick);
         };
+        const cameraDirection=new THREE.Vector3();
         let last=performance.now(),accumulator=0,frames=0,elapsed=0;
+        let motionState={grounded:false,speed:0,sprinting:false};
         const animate=(now)=>{
           const dt=Math.min((now-last)/1000,.1);last=now;
           if(!pausedRef.current){
@@ -425,10 +450,27 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
             let steps=0;
             while(accumulator>=FIXED_STEP&&steps<6) {
               if(player){
-                const vx=Number(held.has('d')||held.has('arrowright'))-Number(held.has('a')||held.has('arrowleft'));
-                const vz=Number(held.has('s')||held.has('arrowdown'))-Number(held.has('w')||held.has('arrowup'));
-                const n=Math.hypot(vx,vz)||1,v=player.body.linvel();
-                player.body.setLinvel({x:3.7*vx/n,y:v.y,z:3.7*vz/n},true);
+                const input=virtualRef.current||{};
+                const right=Number(held.has('d')||held.has('arrowright'))-
+                  Number(held.has('a')||held.has('arrowleft'))+(input.right||0);
+                const forward=Number(held.has('w')||held.has('arrowup'))-
+                  Number(held.has('s')||held.has('arrowdown'))+(input.forward||0);
+                const sprinting=held.has('shift')||input.sprint===true;
+                const velocity=player.body.linvel();
+                camera.getWorldDirection(cameraDirection);
+                const [vx,vz]=horizontalMotion({
+                  forward:[cameraDirection.x,cameraDirection.z],input:[right,forward],
+                  previous:[velocity.x,velocity.z],dt:FIXED_STEP,sprint:sprinting
+                });
+                const p=player.body.translation();
+                const ray=new RAPIER.Ray(p,{x:0,y:-1,z:0});
+                const hit=world.castRayAndGetNormal(ray,PLAYER_MOTION.groundProbe,true,
+                  undefined,undefined,undefined,player.body);
+                const grounded=Boolean(hit&&hit.normal.y>.55&&velocity.y<=.35);
+                const jump=canJump(jumpQueueRef.current,grounded,pausedRef.current);
+                if(jumpQueueRef.current)jumpQueueRef.current=false;
+                player.body.setLinvel({x:vx,y:jump?PLAYER_MOTION.jumpSpeed:velocity.y,z:vz},true);
+                motionState={grounded:grounded&&!jump,speed:Math.hypot(vx,vz),sprinting};
               }
               world.step();accumulator-=FIXED_STEP;steps++;
             }
@@ -439,12 +481,33 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
             mesh.position.set(p.x,p.y,p.z);
             mesh.quaternion.set(q.x,q.y,q.z,q.w);
           }
-          if(player&&!pausedRef.current&&positionCallbackRef.current){
+          if(player&&!pausedRef.current){
+            const pos=player.body.translation();
+            if(pos.y<PLAYER_MOTION.fallResetY){
+              const origin=playerSpawnRef.current||[0,2.2,0];
+              player.body.setTranslation({x:origin[0],y:origin[1],z:origin[2]},true);
+              player.body.setLinvel({x:0,y:0,z:0},true);
+              jumpQueueRef.current=false;
+            }
             positionReportElapsed+=dt;
             if(positionReportElapsed>=.10){
               positionReportElapsed=0;
-              const pos=player.body.translation();
-              positionCallbackRef.current([pos.x,pos.y,pos.z]);
+              const p=player.body.translation();
+              positionCallbackRef.current?.([p.x,p.y,p.z]);
+              motionCallbackRef.current?.({...motionState,position:[p.x,p.y,p.z]});
+            }
+          }
+          if(!pausedRef.current){
+            for(const entry of doorBodies.values()){
+              if(!entry.opening)continue;
+              entry.elapsed+=dt;
+              const pose=doorDissolvePose(entry.elapsed);
+              entry.mesh.position.y=entry.baseY+pose.lift;
+              entry.mesh.scale.y=pose.scaleY;
+              entry.mesh.material.opacity=pose.opacity;
+              entry.mesh.material.emissive.setHex(0x5ce9c7);
+              entry.mesh.material.emissiveIntensity=pose.emissive;
+              if(pose.done){entry.opening=false;entry.mesh.visible=false;}
             }
           }
           for(const item of gameplayMeshes){
@@ -476,6 +539,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
       apiRef.current=null;
       window.removeEventListener('keydown',onKeyDown);
       window.removeEventListener('keyup',onKeyUp);
+      window.removeEventListener('blur',onBlur);
       if(renderer)renderer.setAnimationLoop(null);
       if(resizeObserver)resizeObserver.disconnect();
       if(gizmo){gizmo.detach();scene?.remove(gizmo.getHelper());gizmo.dispose();}
@@ -492,7 +556,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     };
   },[]);
   return <div className="forgePhysicsCanvas" ref={mountRef} aria-label="Interactive 3D Rapier physics simulation. Drag to orbit, scroll to zoom.">
-    {error?<div className="forgePhysicsError" role="alert">{error}</div>:<div className="forgeCanvasOverlay">DRAG TO ORBIT · W/E/R GIZMOS · CLICK GHOST TO PLACE ON FIXED TOP · ESC CANCEL</div>}
+    {error?<div className="forgePhysicsError" role="alert">{error}</div>:<div className="forgeCanvasOverlay">DRAG TO ORBIT · WASD CAMERA-RELATIVE · SHIFT SPRINT · SPACE JUMP · E SWITCH</div>}
   </div>;
 }
 export default forwardRef(PhysicsStage);
