@@ -136,6 +136,9 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
       }
     }
   },[creditsOpen,started]);
+  useEffect(()=>{
+    if(newRunConfirmation&&!started)menuRefs.current[8]?.focus();
+  },[newRunConfirmation,started]);
   const palette={'--pixReleaseAccent':release.accent};
   if(started){
     return <div className={'pixPublishedFrame'+(settings.reducedMotion?' pixPublishedReducedMotion':'')+
@@ -185,37 +188,86 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
         <p className="pixPublishedCreator">{release.creator.toUpperCase()} PRESENTS</p>
         <h1>{release.title}</h1>
         <p className="pixPublishedTagline">{release.tagline}</p>
-        <div className="pixPublishedLaunchActions">
-          <button type="button" className="pixPublishedStart"
-            ref={element=>{menuRefs.current[0]=element;}}
-            onFocus={()=>{selectedIndex.current=0;}} onClick={()=>setStarted(true)}>
-            ▶ START ADVENTURE
-          </button>
-          <button type="button" className="pixPublishedCreditsButton"
-            ref={element=>{menuRefs.current[1]=element;}}
-            onFocus={()=>{selectedIndex.current=1;}} onClick={()=>setCreditsOpen(true)}>
-            ◇ CREDITS & LICENSES
-          </button>
-        </div>
+        <section className="pixPublishedSavePanel" aria-label="Saved adventure picker">
+          <h2>CONTINUE YOUR ADVENTURE</h2>
+          <p className="pixPublishedSaveStatus" role="status">{browserSave.reason}</p>
+          {browserSave.status==='ready'&&browserSave.summary&&<p className="pixPublishedSaveSummary">
+            Saved {new Date(browserSave.summary.savedAt).toLocaleString()} ·
+            {browserSave.summary.events} events · {browserSave.summary.pickups} pickups ·
+            {browserSave.summary.checkpoints} checkpoints
+            {browserSave.summary.won?' · WORLD COMPLETE':''}
+          </p>}
+          {browserSave.otherSlots>0&&<p className="pixPublishedSaveCaution">
+            {browserSave.otherSlots} other saved-world/revision slot(s) were found. They remain untouched and cannot be resumed in this world without exact compatibility.</p>}
+          <label className="pixPublishedSaveChoice">Save source
+            <select value={saveChoice} onChange={e=>setSaveChoice(e.target.value)}>
+              <option value="browser" disabled={browserSave.status!=='ready'}>
+                Browser save {browserSave.status==='ready'?'(verified)':'(not available)'}
+              </option>
+              <option value="imported" disabled={!importedSave}>Imported file {importedSave?'(verified, temporary)':'(none yet)'}</option>
+            </select>
+          </label>
+          {saveMessage&&<p className="pixPublishedSaveMessage" role="status">{saveMessage}</p>}
+          <input ref={savePicker} hidden type="file" accept=".json,application/json" onChange={importSave}/>
+          <div className="pixPublishedLaunchActions">
+            <button type="button" className="pixPublishedStart" disabled={!selectedSave}
+              ref={element=>{menuRefs.current[0]=element;}}
+              onFocus={()=>{selectedIndex.current=0;}}
+              onClick={()=>{if(selectedSave)beginAdventure(selectedSave);}}>
+              ▶ CONTINUE SELECTED SAVE
+            </button>
+            <button type="button" className="pixPublishedNewButton"
+              ref={element=>{menuRefs.current[1]=element;}}
+              onFocus={()=>{selectedIndex.current=1;}} onClick={startFresh}>
+              ◆ NEW ADVENTURE
+            </button>
+            <button type="button" className="pixPublishedCreditsButton"
+              ref={element=>{menuRefs.current[2]=element;}}
+              onFocus={()=>{selectedIndex.current=2;}} onClick={()=>savePicker.current?.click()}>
+              ⇧ IMPORT SAVE FILE
+            </button>
+            <button type="button" className="pixPublishedCreditsButton" disabled={browserSave.status!=='ready'}
+              ref={element=>{menuRefs.current[3]=element;}}
+              onFocus={()=>{selectedIndex.current=3;}} onClick={exportBrowserSave}>
+              ⇩ BACK UP BROWSER SAVE
+            </button>
+            <button type="button" className="pixPublishedCreditsButton"
+              ref={element=>{menuRefs.current[4]=element;}}
+              onFocus={()=>{selectedIndex.current=4;}} onClick={()=>setCreditsOpen(true)}>
+              ◇ CREDITS & LICENSES
+            </button>
+          </div>
+          {newRunConfirmation&&<div className="pixPublishedNewConfirm" role="group" aria-label="Confirm a new adventure">
+            <p>Your existing browser save will NOT be deleted or overwritten. The new game begins at the original spawn. Saving progress later will require explicit confirmation before replacing the existing slot.</p>
+            <button type="button" ref={element=>{menuRefs.current[8]=element;}}
+              onFocus={()=>{selectedIndex.current=8;}} onClick={()=>beginAdventure(null)}>
+              Confirm New Adventure (Keep Saved Slot)
+            </button>
+            <button type="button" ref={element=>{menuRefs.current[9]=element;}}
+              onFocus={()=>{selectedIndex.current=9;}} onClick={()=>setNewRunConfirmation(false)}>
+              Cancel
+            </button>
+          </div>}
+        </section>
         <section className="pixPublishedSettings" aria-label="Launch settings">
           <h2>LAUNCH SETTINGS</h2>
           <label><input type="checkbox" checked={settings.touchControls}
-            ref={element=>{menuRefs.current[2]=element;}}
-            onFocus={()=>{selectedIndex.current=2;}}
+            ref={element=>{menuRefs.current[5]=element;}}
+            onFocus={()=>{selectedIndex.current=5;}}
             onChange={e=>setFlag('touchControls',e.target.checked)}/>
             <span><b>Show on-screen movement controls</b>
               <small>Useful for touchscreens; keyboard and controller always work</small></span>
           </label>
           <label><input type="checkbox" checked={settings.showPlaytestTools}
-            ref={element=>{menuRefs.current[3]=element;}}
-            onFocus={()=>{selectedIndex.current=3;}}
+            ref={element=>{menuRefs.current[6]=element;}}
+            onFocus={()=>{selectedIndex.current=6;}}
             onChange={e=>setFlag('showPlaytestTools',e.target.checked)}/>
             <span><b>Show advanced playtest tools</b>
               <small>Ghost recording, Inspector, save import/export and diagnostics</small></span>
           </label>
           <label><input type="checkbox" checked={settings.reducedMotion}
-            ref={element=>{menuRefs.current[4]=element;}}
-            onFocus={()=>{selectedIndex.current=4;}}
+            ref={element=>{menuRefs.current[7]=element;}}
+            onFocus={()=>{selectedIndex.current=7;}}
             onChange={e=>setFlag('reducedMotion',e.target.checked)}/>
             <span><b>Reduce decorative motion</b>
               <small>Disables non-essential interface animation, not physics simulation</small></span>
