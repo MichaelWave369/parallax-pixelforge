@@ -16,12 +16,29 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
   const [session,setSession]=useState(0);
   const [gameSession,setGameSession]=useState(newGameplaySession);
   const [activity,setActivity]=useState([]);
+  const [motion,setMotion]=useState({grounded:false,speed:0,sprinting:false,
+    position:initialWorld?.spawn||[0,2.2,0]});
+  const [virtualControls,setVirtualControls]=useState({right:0,forward:0,sprint:false,jumpSerial:0});
   const gameRef=useRef(gameSession),lastPosition=useRef(initialWorld?.spawn||[0,2.2,0]);
   const chooser=useRef(null),stage=useRef(null);
   const resetRules=()=>{
     const fresh=newGameplaySession();gameRef.current=fresh;
     setGameSession(fresh);setActivity([]);
+    setVirtualControls({right:0,forward:0,sprint:false,jumpSerial:0});
   };
+  const onMotionStatus=useCallback(data=>setMotion(data),[]);
+  function startHold(axis,value,event){
+    if(paused)return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    setVirtualControls(c=>({...c,[axis]:value}));
+  }
+  function stopHold(axis){
+    setVirtualControls(c=>c[axis]===0?c:{...c,[axis]:0});
+  }
+  function jump(){
+    if(!paused)setVirtualControls(c=>({...c,jumpSerial:c.jumpSerial+1}));
+  }
   const evaluate=useCallback((position,interact=false)=>{
     if(!world.gameplay||paused)return;
     try{
@@ -82,6 +99,9 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
     dependenciesMet(rules.graph.goalRequires,activeIds):
     gameSession.collected.length===(rules?.collectibles.length||0)&&
     gameSession.triggered.length===(rules?.triggers.length||0);
+  const nearSwitch=rules?.graph?.nodes.find(n=>n.kind==='switch'&&!activeIds.has(n.id)&&
+    dependenciesMet(n.requires,activeIds)&&
+    Math.hypot(...motion.position.map((v,i)=>v-n.position[i]))<=n.radius);
   return <div className="pixWorldPlayer">
     <header className="pixWorldTop">
       <div className="pixWorldBrand"><span className="pixWorldLogo">Φ</span><div><small>PHI369 LABS · PIXELFORGE v6</small><h1>WORLD <em>PLAYER</em></h1></div></div>
@@ -97,16 +117,57 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
       </section>
       <div className="pixWorldLayout">
         <section className="pixWorldScreen">
-          <div className="pixWorldScreenHeader"><b>WORLD VIEWPORT</b><span>WASD / ARROWS MOVE · DRAG TO ORBIT · SCROLL TO ZOOM</span></div>
-          <Suspense fallback={<div className="pixWorldLoading">Loading Three.js + Rapier world runtime…</div>}>
-            <PhysicsStage key={sceneKey} ref={stage} paused={paused} gravity={world.gravity} sceneObjects={world.objects}
-              sceneKey={sceneKey} playerSpawn={world.spawn} walkMode={true}
-              gameplay={rules} gameplayProgress={gameSession} onPlayerPosition={onPlayerPosition}
-              onStats={setFps} onStatus={setRuntime}/>
-          </Suspense>
+          <div className="pixWorldScreenHeader"><b>WORLD VIEWPORT</b><span>WASD MOVE · SHIFT SPRINT · SPACE JUMP · E SWITCH · MOUSE ORBIT</span></div>
+          <div className="pixWorldViewportWrap">
+            <Suspense fallback={<div className="pixWorldLoading">Loading Three.js + Rapier world runtime…</div>}>
+              <PhysicsStage key={sceneKey} ref={stage} paused={paused} gravity={world.gravity} sceneObjects={world.objects}
+                sceneKey={sceneKey} playerSpawn={world.spawn} walkMode={true}
+                gameplay={rules} gameplayProgress={gameSession} onPlayerPosition={onPlayerPosition}
+                onMotionStatus={onMotionStatus} virtualControls={virtualControls}
+                onStats={setFps} onStatus={setRuntime}/>
+            </Suspense>
+            <div className="pixWorldOverlay" aria-label="Touch-friendly movement and interaction overlay">
+              <div className="pixWorldCenterPrompt">
+                {paused?<span>Ⅱ SIMULATION PAUSED</span>:
+                  nearSwitch?<span>⌘ {nearSwitch.name} · PRESS E OR TAP INTERACT</span>:null}
+              </div>
+              {activity.length>0&&<div className="pixWorldEventToast" role="status">
+                {activity[0].type==='win'?'★ ':activity[0].type==='door'?'▣ ':'◆ '}{activity[0].text}
+              </div>}
+              <div className="pixWorldOverlayBottom">
+                <div className="pixWorldTouchPad" role="group" aria-label="Hold to move">
+                  <button type="button" className="up" aria-label="Hold forward"
+                    onPointerDown={e=>startHold('forward',1,e)}
+                    onPointerUp={()=>stopHold('forward')} onPointerCancel={()=>stopHold('forward')}
+                    onLostPointerCapture={()=>stopHold('forward')}>▲</button>
+                  <button type="button" className="left" aria-label="Hold left"
+                    onPointerDown={e=>startHold('right',-1,e)}
+                    onPointerUp={()=>stopHold('right')} onPointerCancel={()=>stopHold('right')}
+                    onLostPointerCapture={()=>stopHold('right')}>◀</button>
+                  <button type="button" className="down" aria-label="Hold backward"
+                    onPointerDown={e=>startHold('forward',-1,e)}
+                    onPointerUp={()=>stopHold('forward')} onPointerCancel={()=>stopHold('forward')}
+                    onLostPointerCapture={()=>stopHold('forward')}>▼</button>
+                  <button type="button" className="right" aria-label="Hold right"
+                    onPointerDown={e=>startHold('right',1,e)}
+                    onPointerUp={()=>stopHold('right')} onPointerCancel={()=>stopHold('right')}
+                    onLostPointerCapture={()=>stopHold('right')}>▶</button>
+                </div>
+                <div className="pixWorldTouchActions" role="group" aria-label="Jump and interact">
+                  <button type="button" onClick={jump} disabled={paused}>↑ Jump</button>
+                  <button type="button" disabled={paused}
+                    onPointerDown={e=>startHold('sprint',true,e)}
+                    onPointerUp={()=>stopHold('sprint')} onPointerCancel={()=>stopHold('sprint')}
+                    onLostPointerCapture={()=>stopHold('sprint')}>» Sprint</button>
+                  <button type="button" disabled={paused||!nearSwitch}
+                    className={nearSwitch?'ready':''} onClick={()=>evaluate(lastPosition.current,true)}>⌘ Interact</button>
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="pixWorldScreenFooter">
             <span>COLLISION-BASED PLAY TEST</span><span>{paused?'PAUSED':'SIMULATING'}</span>
-            <span>60 HZ FIXED PHYSICS STEP</span>
+            <span>{motion.grounded?'● GROUNDED':'○ AIRBORNE'} · {motion.sprinting?'SPRINT':'WALK'} · {motion.speed.toFixed(1)} m/s</span>
           </div>
         </section>
         <aside className="pixWorldInspector">
@@ -144,7 +205,9 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
             <button type="button" onClick={reset}>↻ Restart / Respawn</button>
           </div>
             <div className="pixWorldKeys" aria-label="Move with W A S D or arrow keys"><span></span><kbd>W ↑</kbd><span></span><kbd>A ←</kbd><kbd>S ↓</kbd><kbd>D →</kbd></div>
-            <p>Your character is a Rapier capsule. Walk into secrets and checkpoints; press <b>E</b> near switches. Unlocking a door removes its fixed collider. No combat, advanced jumping, or VR controls yet.</p>
+            <div className="pixWorldMovementHints"><span><kbd>Shift</kbd> Sprint</span><span><kbd>Space</kbd> Jump</span>
+              <span><kbd>E</kbd> Interact with switch</span></div>
+            <p>Camera-relative movement accelerates and brakes smoothly. Jump is ground-gated by Rapier; doors dissolve after their collision bodies are removed. Touch-friendly buttons are available in the viewport.</p>
           </section>
           <section><h3>WORLD LIBRARY</h3><div className="pixWorldActions">
             <button type="button" onClick={()=>chooser.current?.click()}>⇧ Import Playable JSON</button>
