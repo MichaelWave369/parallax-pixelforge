@@ -76,7 +76,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
     }catch(e){
       recordingRef.current=false;setRecordGhost(false);
       setGhostSampleCount(ghostSamplesRef.current.length);
-      setStatus('Ghost capture stopped: '+e.message+'; use Stop & Preview if enough samples were captured.');
+      setStatus('Ghost capture reached a limit: '+e.message+'. Preview Captured Samples to keep the recorded route.');
     }
   },[]);
   function startGhostCapture(){
@@ -484,8 +484,12 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
             </div>
             <div className="pixWorldActions">
               {!recordGhost?
-                <button type="button" disabled={!worldDigest||runtime!=='ready'||paused}
-                  onClick={startGhostCapture}>● Start Recording New Run</button>:
+                <>
+                  <button type="button" disabled={!worldDigest||runtime!=='ready'||paused}
+                    onClick={startGhostCapture}>● Start Recording New Run</button>
+                  {ghostSampleCount>=2&&
+                    <button type="button" onClick={stopGhostCapture}>◇ Preview Captured Samples</button>}
+                </>:
                 <button type="button" onClick={stopGhostCapture}>■ Stop & Preview Ghost</button>}
               <button type="button" disabled={!ghostRun} onClick={playGhost}>▶ Replay Ghost from Start</button>
               <button type="button" disabled={!ghostRun} onClick={()=>setShowGhost(v=>!v)}>
