@@ -149,3 +149,16 @@
  font:900 11px ui-monospace,monospace;letter-spacing:.05em}
 @media(max-width:480px){.pixWorldGhostNumbers{grid-template-columns:repeat(2,minmax(0,1fr))}
  .pixWorldRecordBadge{font-size:9px;padding:6px}}
+
+/* Rung 13: offline release built as one HTML file with local, bounded data. */
+.pixWorldPublishPanel{border-color:#4ca08b!important;background:linear-gradient(148deg,#173f41,#1a2947)!important}
+.pixWorldPublishPanel h3{color:#dcffe6}
+.pixWorldPublishPanel strong{color:#c0ffe5}
+.pixWorldPublishFacts{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 12px;
+ padding:12px;margin:12px 0;border:1px solid #4e8885;border-radius:8px;
+ background:#102c36;font-size:10px}
+.pixWorldPublishFacts span{color:#b5d1e0}
+.pixWorldPublishFacts b{color:#a1f3d9;font:900 10px ui-monospace,monospace;text-align:right}
+.pixWorldPublishPanel .pixWorldActions button{border:1px solid #86d4b2;
+ background:#276758;color:#e5fff0;font-size:11px;font-weight:900}
+.pixWorldPublishPanel .pixWorldActions button:hover{background:#328574}
