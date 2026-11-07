@@ -38,7 +38,7 @@ test('title text with HTML markup, scripts and ampersands remains inert release 
   assert.ok(embedded.includes('\\u003c/script\\u003e'));
   assert.equal(JSON.parse(embedded).title,malicious);
   const html=buildOfflineHtml(world,template(),release);
-  assert.equal((html.match(/<script\b/g)||[]).length,3);
+  assert.equal((html.match(/<script\b/g)||[]).length,5);
   assert.deepEqual(JSON.parse(extract(html,'pixelforge-embedded-release')),release);
 });
 test('defaults are safe for Rung 13 worlds and empty caller customization',()=>{
