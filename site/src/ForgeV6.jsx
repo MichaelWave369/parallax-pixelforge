@@ -5,6 +5,7 @@ import {VR_SCENE_STORAGE_KEY,MAX_SCENE_BYTES,MAX_PROFILE_BYTES,sampleVrWorld,par
   placeOnSurface,removePlacedObject,PLACEMENT_TEMPLATES,MAX_PLACED_OBJECTS} from './vr-physics-bridge.js';
 import {applyGizmoTransform,DEFAULT_GIZMO_SNAP,GIZMO_SNAPS} from './vr-gizmo-contract.js';
 import {buildPlayableWorld} from './playable-world.js';
+import {downloadOfflineWorld} from './offline-publisher.js';
 import {MAX_PICKUPS,MAX_TRIGGERS,newGameplayRules,validateGameplayRules,
   addGameplayMarker,removeGameplayMarker,editGameplayMarker,markerPositionForObject} from './gameplay-rules.js';
 import {newEventGraph,addEventNode,addEventDoor,removeEventNode,updateEventNode,
@@ -33,7 +34,7 @@ const LINK_PANELS={
  'Game Logic':{title:'Game Logic & Runtime',text:'Keep real game rules in the existing PixelForge Runtime Composer. This v6 shell does not silently replace those contracts.',links:[['Open Runtime Composer', 'studio/'],['Explore Layer Studio','layer-studio/']]},
  'VFX Studio':{title:'VFX Studio / Integration lane',text:'The neon interface is a design direction; a reusable particle VFX authoring system is not implemented in this first rung. Build and inspect visual assets with the existing editors.',links:[['Open Layer Effects','layer-studio/'],['Inspect 3D Assets','external-preview/']]},
  'Assets':{title:'Asset Forge & Library',text:'Your governed GLB inspection, provenance records, and private Unreal library remain in their established tools. This demo never copies private asset bytes into the public portal.',links:[['GLB Inspector','external-preview/'],['VR Asset Library','vr-studio/'],['Creator Asset Tools','studio/']]},
- 'Build & Export':{title:'Build & Export',text:'Export the separate v6 demo tile world as validated JSON below, or use the existing studio for cartridge, playable HTML and release packaging.',links:[['Existing Creator Exports','studio/'],['VR World Exports','vr-studio/']]},
+ 'Build & Export':{title:'Build & Export',text:'Publish your validated 3D adventure as a self-contained offline HTML file, export portable JSON, or use the existing Creator Studio cartridge workflows.',links:[['Existing Creator Exports','studio/'],['VR World Exports','vr-studio/']]},
  'VR / XR':{title:'VR / XR Studio',text:'Experimental WebXR remains in the existing VR Studio. No Quest 3 performance, hand tracking or headset physics claim is being made for this v6 browser prototype.',links:[['Enter Experimental VR Studio','vr-studio/'],['GLB Inspector','external-preview/']]}
 };
 function Tile({type,player,grid,index,onClick,mode}) {
@@ -436,6 +437,14 @@ export default function ForgeV6(){
       setMessage('Exported playable-world.v1 JSON, ready for the standalone World Player.');
     }catch(e){setMessage('World export rejected: '+e.message);}
   }
+  async function publishPlayable(){
+    try{
+      if(!vrScene||!vrPhysicsProfile)throw Error('Load or build a validated VR scene and physics profile first.');
+      const playable=buildPlayableWorld(vrScene,vrPhysicsProfile,vrHash,gravity,gameplayForExport);
+      const result=await downloadOfflineWorld(playable);
+      setMessage('Published offline adventure: '+result.filename+'. It contains no private GLB mesh data or executable world scripts.');
+    }catch(e){setMessage('Offline publish refused: '+e.message);}
+  }
   function previewPlayable(){
     if(!vrScene||!vrPhysicsProfile)return;
     try{
@@ -578,6 +587,7 @@ export default function ForgeV6(){
                 <button type="button" onClick={()=>setSection('Game Logic')}>⌘ Author Game Rules</button>
                 <button type="button" onClick={previewPlayable}>▶ Play This World</button>
                 <button type="button" onClick={exportPlayable}>⇩ Export Playable World</button>
+                <button type="button" onClick={()=>void publishPlayable()}>⇩ Publish Offline Adventure (.html)</button>
                 <a href={BASE+'?play=1'}>Standalone World Player ↗</a>
               </div>
               <input hidden ref={profileFileRef} type="file" accept=".json,application/json" onChange={importPhysicsFile}/>
@@ -645,6 +655,7 @@ export default function ForgeV6(){
                 <button type="button" onClick={()=>gameplayFileRef.current?.click()}>⇧ Import Matching Rules</button>
                 <button type="button" onClick={previewPlayable}>▶ Play With Rules</button>
                 <button type="button" onClick={exportPlayable}>⇩ Export Playable World</button>
+                <button type="button" onClick={()=>void publishPlayable()}>⇩ Publish Offline HTML</button>
               </div>
               <input hidden ref={gameplayFileRef} type="file" accept=".json,application/json" onChange={importRules}/>
             </div>
@@ -725,7 +736,10 @@ export default function ForgeV6(){
             </section>
           </div>}
         </section>}
-        {!showMap&&!physics&&workspace!=='Game Logic'&&<section className="forgeBridge forgePanel"><span className="forgeEyebrow">BRIDGED WORKSPACE / GRADUAL MIGRATION</span><h2>{LINK_PANELS[workspace]?.title||workspace}</h2><p>{LINK_PANELS[workspace]?.text||'This workflow remains in the existing PixelForge toolchain.'}</p><div className="forgeBridgeLinks">{(LINK_PANELS[workspace]?.links||[]).map(([label,path])=><ActionLink key={label} path={path}>{label}</ActionLink>)}</div>{workspace==='Build & Export'&&<button onClick={exportDemo} type="button" className="forgePrimary">⇩ Export current demo world JSON</button>}</section>}
+        {!showMap&&!physics&&workspace!=='Game Logic'&&<section className="forgeBridge forgePanel"><span className="forgeEyebrow">BRIDGED WORKSPACE / GRADUAL MIGRATION</span><h2>{LINK_PANELS[workspace]?.title||workspace}</h2><p>{LINK_PANELS[workspace]?.text||'This workflow remains in the existing PixelForge toolchain.'}</p><div className="forgeBridgeLinks">{(LINK_PANELS[workspace]?.links||[]).map(([label,path])=><ActionLink key={label} path={path}>{label}</ActionLink>)}</div>{workspace==='Build & Export'&&<>
+  <button onClick={exportDemo} type="button" className="forgePrimary">⇩ Export current demo world JSON</button>
+  <button onClick={()=>void publishPlayable()} type="button" className="forgePrimary">⇩ Publish Current 3D World Offline (.html)</button>
+</>}</section>}
         <section className="forgeBottom">
           <div className="forgeTimeline forgePanel"><h2>Scene Timeline / Events <span>PREVIEW</span></h2><div className="forgeTrack"><span>▶</span><span className="forgeTrackLine"/><i/><i/><i/></div><p>Animation timeline authoring is planned. Map edits and physics are functional in this rung.</p></div>
           <div className="forgeLog forgePanel"><h2>Console / Activity</h2><p>✓ v6 workspace loaded without changing v5 saves</p><p>✓ Demo grid: {WIDTH} × {HEIGHT}</p><p>{physicsStatus==='ready'?'✓ Rapier and Three.js initialized':'· Physics initializes when its workspace opens'}</p>
