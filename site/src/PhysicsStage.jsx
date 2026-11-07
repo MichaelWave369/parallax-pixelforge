@@ -4,6 +4,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 import {PLAYER_MOTION,horizontalMotion,canJump,doorDissolvePose} from './player-playability.js';
+import {readStandardGamepad,neutralGamepad,gamepadRisingEdges,firstStandardGamepad} from './standard-gamepad.js';
 
 const FIXED_STEP=1/60;
 const MAX_BODIES=250;
@@ -12,7 +13,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     selectedObjectId=null,gizmoMode='inspect',gizmoSnap=null,onTransformCommit=null,sceneKey=null,
     placementKind=null,onPlacementRequest=null,onPlacementStatus=null,playerSpawn=null,
     gameplay=null,gameplayProgress=null,onPlayerPosition=null,
-    onMotionStatus=null,virtualControls=null},ref) {
+    onMotionStatus=null,virtualControls=null,onGamepadStatus=null,onGamepadAction=null},ref) {
   const mountRef=useRef(null),apiRef=useRef(null),pausedRef=useRef(paused),gravityRef=useRef(gravity);
   const statsRef=useRef(onStats),statusRef=useRef(onStatus);
   const sceneObjectsRef=useRef(sceneObjects),selectionRef=useRef(onObjectClick),walkRef=useRef(walkMode);
@@ -22,6 +23,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
   const playerSpawnRef=useRef(playerSpawn);
   const gameplayRef=useRef(gameplay),progressRef=useRef(gameplayProgress),positionCallbackRef=useRef(onPlayerPosition);
   const motionCallbackRef=useRef(onMotionStatus),virtualRef=useRef(virtualControls);
+  const gamepadStatusRef=useRef(onGamepadStatus),gamepadActionRef=useRef(onGamepadAction);
   const jumpQueueRef=useRef(false),jumpSerialRef=useRef(virtualControls?.jumpSerial||0);
   const [error,setError]=useState('');
   useEffect(()=>{pausedRef.current=paused;apiRef.current?.syncGizmo();},[paused]);
@@ -39,6 +41,8 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
   useEffect(()=>{progressRef.current=gameplayProgress;apiRef.current?.syncGameplayMarkers?.();},[gameplayProgress]);
   useEffect(()=>{positionCallbackRef.current=onPlayerPosition;},[onPlayerPosition]);
   useEffect(()=>{motionCallbackRef.current=onMotionStatus;},[onMotionStatus]);
+  useEffect(()=>{gamepadStatusRef.current=onGamepadStatus;gamepadActionRef.current=onGamepadAction;},
+    [onGamepadStatus,onGamepadAction]);
   useEffect(()=>{
     virtualRef.current=virtualControls;
     const serial=virtualControls?.jumpSerial||0;
@@ -447,10 +451,42 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
           canvas.removeEventListener('click',onClick);
         };
         const cameraDirection=new THREE.Vector3();
+        const cameraSpherical=new THREE.Spherical(),cameraOffset=new THREE.Vector3();
         let last=performance.now(),accumulator=0,frames=0,elapsed=0;
+        let previousPad=neutralGamepad(),currentPad=neutralGamepad(),lastPadStatus=null;
+        const pollGamepad=()=>{
+          let pad=null;
+          try{pad=firstStandardGamepad(navigator.getGamepads?.());}
+          catch{pad=null;}
+          currentPad=readStandardGamepad(pad);
+          if(currentPad.connected!==lastPadStatus){
+            lastPadStatus=currentPad.connected;
+            gamepadStatusRef.current?.(currentPad.connected);
+          }
+          const edges=gamepadRisingEdges(previousPad,currentPad);
+          previousPad=currentPad;
+          if(edges.pause)gamepadActionRef.current?.('pause');
+          if(!pausedRef.current){
+            if(edges.jump)jumpQueueRef.current=true;
+            if(edges.interact)gamepadActionRef.current?.('interact');
+            if(edges.checkpoint)gamepadActionRef.current?.('checkpoint');
+          }
+        };
         let motionState={grounded:false,speed:0,sprinting:false};
         const animate=(now)=>{
           const dt=Math.min((now-last)/1000,.1);last=now;
+          pollGamepad();
+          if(!pausedRef.current&&currentPad.connected&&(currentPad.turn||currentPad.look)){
+            cameraOffset.subVectors(camera.position,controls.target);
+            cameraSpherical.setFromVector3(cameraOffset);
+            cameraSpherical.theta-=currentPad.turn*dt*2.15;
+            cameraSpherical.phi=Math.max(.15,Math.min(Math.PI/2.02,
+              cameraSpherical.phi+currentPad.look*dt*1.45));
+            cameraSpherical.makeSafe();
+            cameraOffset.setFromSpherical(cameraSpherical);
+            camera.position.copy(controls.target).add(cameraOffset);
+            controls.update();
+          }
           if(!pausedRef.current){
             accumulator+=dt;
             if(world)world.gravity={x:0,y:gravityRef.current,z:0};
@@ -459,10 +495,10 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
               if(player){
                 const input=virtualRef.current||{};
                 const right=Number(held.has('d')||held.has('arrowright'))-
-                  Number(held.has('a')||held.has('arrowleft'))+(input.right||0);
+                  Number(held.has('a')||held.has('arrowleft'))+(input.right||0)+currentPad.right;
                 const forward=Number(held.has('w')||held.has('arrowup'))-
-                  Number(held.has('s')||held.has('arrowdown'))+(input.forward||0);
-                const sprinting=held.has('shift')||input.sprint===true;
+                  Number(held.has('s')||held.has('arrowdown'))+(input.forward||0)+currentPad.forward;
+                const sprinting=held.has('shift')||input.sprint===true||currentPad.sprint;
                 const velocity=player.body.linvel();
                 camera.getWorldDirection(cameraDirection);
                 const [vx,vz]=horizontalMotion({
