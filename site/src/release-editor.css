@@ -1,0 +1,14 @@
+.pixReleaseEditor{border:1px solid #648e97;border-radius:10px;padding:15px;
+ background:linear-gradient(125deg,#1b3347,#1e2547);color:#e7f6f3;min-width:0;margin:12px 0}
+.pixReleaseEditorHeader{display:flex;justify-content:space-between;align-items:center;gap:8px;
+ flex-wrap:wrap;border-bottom:1px solid #496481;padding-bottom:9px;margin-bottom:12px}
+.pixReleaseEditorHeader span{color:#91f3d8;font:900 10px ui-monospace,monospace;letter-spacing:.09em}
+.pixReleaseEditorHeader strong{color:#adbbd6;font:750 9px ui-monospace,monospace}
+.pixReleaseFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.pixReleaseFields label{display:grid;gap:6px;color:#b5efdf;font-size:11px;font-weight:850}
+.pixReleaseFields input{font:12px ui-sans-serif,system-ui;color:#f0f8f8;background:#10223c;
+ border:1px solid #55748b;border-radius:7px;padding:10px;min-width:0;width:100%;
+ box-sizing:border-box}
+.pixReleaseFields input[type=color]{padding:4px;max-width:80px;height:40px;cursor:pointer}
+.pixReleaseEditor p{font-size:10px!important;color:#a7c8d9!important;line-height:1.6!important;margin:12px 0 0!important}
+@media(max-width:580px){.pixReleaseFields{grid-template-columns:1fr}}

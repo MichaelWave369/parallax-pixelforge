@@ -4,10 +4,12 @@ import {createSamplePlayableWorld,parsePlayableWorld,validatePlayableWorld} from
 import {safeEmbeddedWorldJson,buildOfflineHtml,offlineFilename,OFFLINE_WORLD_TOKEN,
   OFFLINE_TEMPLATE_MAX_BYTES} from '../src/offline-publisher.js';
 import {makeOfflineTemplate} from './build-publisher.mjs';
+import {RELEASE_TOKEN,defaultReleaseMetadata} from '../src/release-metadata.js';
 
 const template=()=>makeOfflineTemplate('(()=>{document.getElementById("root").textContent="Ready";})()',
   '.offline{color:#fff;background:#000}');
 const embedded=html=>html.match(/<script type="application\/json" id="pixelforge-embedded-world">([\s\S]*?)<\/script>/)?.[1];
+const embeddedRelease=html=>html.match(/<script type="application\/json" id="pixelforge-embedded-release">([\s\S]*?)<\/script>/)?.[1];
 
 test('published HTML embeds exact validated world and trusted runtime in one file',()=>{
   const world=createSamplePlayableWorld(),html=buildOfflineHtml(world,template());
@@ -16,6 +18,8 @@ test('published HTML embeds exact validated world and trusted runtime in one fil
   assert.equal(html.includes('connect-src \'none\''),true);
   assert.equal(html.includes('script type="module"'),true);
   assert.deepEqual(parsePlayableWorld(embedded(html)),validatePlayableWorld(world));
+  assert.equal(html.includes(RELEASE_TOKEN),false);
+  assert.deepEqual(JSON.parse(embeddedRelease(html)),defaultReleaseMetadata(world.title));
 });
 test('untrusted world names and messages never terminate inert JSON script or open executable elements',()=>{
   const world=createSamplePlayableWorld();
@@ -26,7 +30,7 @@ test('untrusted world names and messages never terminate inert JSON script or op
   assert.equal(html.includes(payload),false);
   assert.ok(html.includes('\\u003cscript\\u003e'));
   assert.ok(html.includes('\\u003c/script\\u003e'));
-  assert.equal((html.match(/<script\b/g)||[]).length,2);
+  assert.equal((html.match(/<script\b/g)||[]).length,3);
   assert.deepEqual(parsePlayableWorld(embedded(html)),validatePlayableWorld(world));
 });
 test('standalone filename ignores path traversal, markup and unsafe characters',()=>{
@@ -51,6 +55,8 @@ test('template must be single slot, offline CSP and trusted entry',()=>{
   assert.throws(()=>buildOfflineHtml(world,template().replace('connect-src \'none\'','connect-src *')),/template/);
   assert.throws(()=>buildOfflineHtml(world,template().replace(OFFLINE_WORLD_TOKEN,'')),/template/);
   assert.throws(()=>buildOfflineHtml(world,template()+OFFLINE_WORLD_TOKEN),/template/);
+  assert.throws(()=>buildOfflineHtml(world,template().replace(RELEASE_TOKEN,'')),/template/);
+  assert.throws(()=>buildOfflineHtml(world,template()+RELEASE_TOKEN),/template/);
   assert.throws(()=>buildOfflineHtml(world,'x'.repeat(OFFLINE_TEMPLATE_MAX_BYTES+1)),/12 MB/);
 });
 test('builder refuses unsafe styles and blank runtime while ESM parse is handled during packaging',()=>{
@@ -59,7 +65,7 @@ test('builder refuses unsafe styles and blank runtime while ESM parse is handled
   assert.throws(()=>makeOfflineTemplate('console.log(1)','body{background:url(/private/img.png)}'),/external or local assets/);
   const html=makeOfflineTemplate('const text="</script>";console.log(text)','body{color:red}');
   assert.ok(html.includes('<\\/script'));
-  assert.equal((html.match(/<\/script>/g)||[]).length,2);
+  assert.equal((html.match(/<\/script>/g)||[]).length,3);
 });
 test('publishing and validation do not mutate creator world content',()=>{
   const world=createSamplePlayableWorld(),before=JSON.stringify(world);

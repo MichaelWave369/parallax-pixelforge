@@ -1,6 +1,8 @@
 import React,{Suspense,lazy,useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {downloadJson} from './forge-world.js';
 import {downloadOfflineWorld} from './offline-publisher.js';
+import {defaultReleaseMetadata} from './release-metadata.js';
+import ReleaseMetadataEditor from './ReleaseMetadataEditor.jsx';
 import {PLAYABLE_MAX_BYTES,createSamplePlayableWorld,parsePlayableWorld,validatePlayableWorld} from './playable-world.js';
 import {advanceGameplaySession,newGameplaySession} from './gameplay-rules.js';
 import {dependenciesMet} from './event-graph.js';
@@ -18,16 +20,35 @@ import PlaytestInspector from './PlaytestInspector.jsx';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
 const BASE=import.meta.env.BASE_URL;
 
-export default function WorldPlayer({initialWorld=null,onExit=null,standalone=false}){
+export default function WorldPlayer({initialWorld=null,onExit=null,standalone=false,
+  release=null,publishedSettings=null}){
   const [world,setWorld]=useState(()=>initialWorld?validatePlayableWorld(initialWorld):createSamplePlayableWorld());
   const [status,setStatus]=useState(standalone?'Offline adventure ready. All world assets are embedded locally.':
     initialWorld?'Previewing your current Forge construction.':'Loaded public PixelForge starter course.');
   const [runtime,setRuntime]=useState('loading');
   const [paused,setPaused]=useState(false);
+  const [fullscreenActive,setFullscreenActive]=useState(false);
+  useEffect(()=>{
+    if(!standalone)return;
+    const changed=()=>setFullscreenActive(Boolean(document.fullscreenElement));
+    changed();
+    document.addEventListener('fullscreenchange',changed);
+    return()=>document.removeEventListener('fullscreenchange',changed);
+  },[standalone]);
+  async function toggleFullscreen(){
+    try{
+      if(document.fullscreenElement)await document.exitFullscreen();
+      else{
+        if(!document.documentElement.requestFullscreen)throw Error('This browser does not support fullscreen.');
+        await document.documentElement.requestFullscreen();
+      }
+    }catch(error){setStatus('Fullscreen unavailable: '+error.message);}
+  }
   const [fps,setFps]=useState({fps:0,bodies:0});
   const [session,setSession]=useState(0);
   const [respawnAt,setRespawnAt]=useState(()=>[...(initialWorld?.spawn||[0,2.2,0])]);
   const [worldDigest,setWorldDigest]=useState('');
+  const [releaseDraft,setReleaseDraft]=useState(null);
   const [hasLocalSave,setHasLocalSave]=useState(false);
   const [traceFrames,setTraceFrames]=useState([]);
   const [replayCursor,setReplayCursor]=useState(-1);
@@ -202,6 +223,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
       const validated=parsePlayableWorld(await file.text());
       resetRules();lastPosition.current=[...validated.spawn];
       setGhostRun(null);setShowGhost(false);setGhostReplaySerial(0);
+      setReleaseDraft(null);
       setRespawnAt([...validated.spawn]);setWorldDigest('');
       setWorld(validated);setSession(n=>n+1);setRuntime('loading');setPaused(false);
       setStatus('Loaded portable world: '+validated.title+'. No scripts executed.');
@@ -210,7 +232,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
   async function publishCurrentWorld(){
     try{
       setStatus('Preparing the trusted offline adventure package…');
-      const result=await downloadOfflineWorld(world);
+      const result=await downloadOfflineWorld(world,releaseDraft??defaultReleaseMetadata(world.title));
       setStatus('Published '+result.filename+' ('+Math.round(result.bytes/1024)+' KiB). Open the HTML locally in a WebGL2 browser.');
     }catch(e){setStatus('Offline publishing refused: '+e.message);}
   }
@@ -223,6 +245,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
     const sample=createSamplePlayableWorld();
     resetRules();lastPosition.current=[...sample.spawn];setRespawnAt([...sample.spawn]);
     setGhostRun(null);setShowGhost(false);setGhostReplaySerial(0);
+    setReleaseDraft(null);
     setWorldDigest('');setWorld(sample);setSession(n=>n+1);setPaused(false);
     setRuntime('loading');setStatus('Loaded the public starter world.');
   }
@@ -327,17 +350,29 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
   const nearSwitch=rules?.graph?.nodes.find(n=>n.kind==='switch'&&!activeIds.has(n.id)&&
     dependenciesMet(n.requires,activeIds)&&
     Math.hypot(...motion.position.map((v,i)=>v-n.position[i]))<=n.radius);
-  return <div className="pixWorldPlayer">
+  return <div className={'pixWorldPlayer'+(standalone?' pixWorldPublished':'')}>
     <header className="pixWorldTop">
-      <div className="pixWorldBrand"><span className="pixWorldLogo">Φ</span><div><small>PHI369 LABS · PIXELFORGE v6</small><h1>WORLD <em>PLAYER</em></h1></div></div>
+      <div className="pixWorldBrand"><span className="pixWorldLogo">Φ</span><div>
+        <small>{standalone?release?.creator||'PIXELFORGE PUBLISHED GAME':'PHI369 LABS · PIXELFORGE v6'}</small>
+        <h1>{standalone?release?.title||world.title:<>WORLD <em>PLAYER</em></>}</h1>
+        {standalone&&<div className="pixWorldPublishedMeta">{release?.tagline} · v{release?.version||'1.0.0'}</div>}
+      </div></div>
       <div className="pixWorldTopRight"><span className="pixWorldBadge">{runtime==='ready'?'● RAPIER LIVE':runtime==='error'?'RENDERER UNAVAILABLE':'LOADING WORLD'}</span>
-        {!standalone&&(onExit?<button type="button" onClick={onExit}>← Back to Forge</button>:<a href={BASE+'?forge=1'}>← Creator Forge</a>)}
+        {standalone?<div className="pixWorldPublishedHeader">
+          <button type="button" aria-label={fullscreenActive?'Exit fullscreen':'Enter fullscreen'}
+            onClick={()=>void toggleFullscreen()}>{fullscreenActive?'⛶ Exit Fullscreen':'⛶ Fullscreen'}</button>
+          {onExit&&<button type="button" onClick={onExit}>← Title Screen</button>}
+        </div>:(onExit?<button type="button" onClick={onExit}>← Back to Forge</button>:<a href={BASE+'?forge=1'}>← Creator Forge</a>)}
         {!standalone&&<a href={BASE}>Portal ↗</a>}</div>
     </header>
     <main className="pixWorldMain">
       <section className="pixWorldOverview">
-        <div><div className="pixWorldEyebrow">PLAYABLE-WORLD.V1 / BROWSER-LOCAL RUNTIME · {rules?'GAMEPLAY RULES ACTIVE':'EXPLORATION MODE'}</div>
-          <h2>{world.title}</h2><p>Explore a portable 3D scene using real rigid-body collisions. Data-only worlds can be imported without executable scripts, remote fetching or special permissions.</p></div>
+        <div><div className="pixWorldEyebrow">{standalone?'OFFLINE PUBLISHED GAME · NETWORK DISABLED':
+          'PLAYABLE-WORLD.V1 / BROWSER-LOCAL RUNTIME · '+(rules?'GAMEPLAY RULES ACTIVE':'EXPLORATION MODE')}</div>
+          <h2>{standalone?release?.title||world.title:world.title}</h2>
+          <p>{standalone?'Explore this locally published adventure. Your progress stays in your browser; the original creator project is not included.':
+            'Explore a portable 3D scene using real rigid-body collisions. Data-only worlds can be imported without executable scripts, remote fetching or special permissions.'}</p>
+        </div>
         <div className="pixWorldCounts"><div><strong>{world.objects.length}</strong><span>OBJECTS</span></div><div><strong>{playable}</strong><span>COLLIDERS</span></div><div><strong>{fps.fps||'…'}</strong><span>FPS</span></div></div>
       </section>
       <div className="pixWorldLayout">
@@ -445,7 +480,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
             </div>
             <p>Controller inputs release on disconnect. Unsupported mappings remain inactive; keyboard and touch controls still work.</p>
           </section>
-          <section><h3>PLAYER CONTROLS</h3><div className="pixWorldActions">
+          <section className="pixWorldPlayerControls"><h3>PLAYER CONTROLS</h3><div className="pixWorldActions">
             <button type="button" onClick={()=>setPaused(v=>!v)}>{paused?'▶ Resume World':'Ⅱ Pause World'}</button>
             <button type="button" onClick={reset}>↻ Restart / Respawn</button>
           </div>
@@ -557,6 +592,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
           {!standalone&&<section className="pixWorldPublishPanel">
             <h3>RUNG 13 / OFFLINE WORLD PUBLISHING</h3>
             <p>Publish this exact validated world as a <strong>single HTML file</strong>, with its own Three.js + Rapier player, styles and game rules included. No Forge editor, CDN, server or installation is required to open the file.</p>
+            <ReleaseMetadataEditor value={releaseDraft} onChange={setReleaseDraft} worldTitle={world.title}/>
             <div className="pixWorldPublishFacts">
               <span>Runtime</span><b>EMBEDDED / OFFLINE</b>
               <span>Code from world file</span><b>NONE</b>

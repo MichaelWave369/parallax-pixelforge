@@ -1,0 +1,74 @@
+/* Published Rung 14 game identity, completely local and free of remote assets. */
+.pixPublishedLaunch,.pixPublishedFrame{--pixReleaseAccent:#70ecdb;min-height:100vh}
+.pixPublishedLaunch{position:relative;isolation:isolate;overflow:hidden;display:grid;place-items:center;
+ background:radial-gradient(ellipse at 55% 0%,#313862 0%,transparent 46%),
+ linear-gradient(155deg,#080e24 0%,#121a37 53%,#080e1c 100%);
+ color:#effffb;font-family:Inter,ui-sans-serif,system-ui,sans-serif;padding:40px 18px}
+.pixPublishedLaunch::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:-1;
+ background:repeating-linear-gradient(0deg,transparent,transparent 52px,#8ce5dc08 53px),
+ repeating-linear-gradient(90deg,transparent,transparent 70px,#8ce5dc08 71px);
+ mask-image:linear-gradient(to top,#000,transparent 84%)}
+.pixPublishedAtmosphere{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.pixPublishedRing{width:60vw;aspect-ratio:1;border:1px solid #72d9dd32;border-radius:50%;
+ position:absolute;left:48%;top:-35vw;box-shadow:0 0 110px #39e5ba12}
+.pixPublishedRing.two{width:42vw;left:57%;top:-23vw;border-color:#eaba7f40}
+.pixPublishedTower{width:130px;height:270px;position:absolute;bottom:-130px;
+ background:linear-gradient(120deg,#74dfd91c,#ffffff04);transform:skewY(-26deg) rotate(17deg);
+ border:1px solid #6ef1d324}
+.pixPublishedTower.a{left:6%}.pixPublishedTower.b{right:7%;bottom:-90px;height:390px;transform:skewY(22deg) rotate(-11deg)}
+.pixPublishedLaunchPanel{width:min(100%,760px);background:#0b162edb;border:1px solid #517482;
+ border-radius:19px;padding:clamp(20px,5vw,49px);box-shadow:0 35px 110px #0008,0 0 60px #52dbbe12;
+ text-align:center;backdrop-filter:blur(10px)}
+.pixPublishedTopline{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+ color:#86b4c9;font:850 10px ui-monospace,monospace;letter-spacing:.1em}
+.pixPublishedSeal{margin:24px auto 13px;width:70px;height:70px;display:grid;place-items:center;border-radius:50%;
+ font:400 48px Georgia,serif;color:var(--pixReleaseAccent);
+ border:1px solid var(--pixReleaseAccent);box-shadow:inset 0 0 24px #58ecc025,0 0 25px #58ecc025}
+.pixPublishedCreator{font:900 10px ui-monospace,monospace;letter-spacing:.19em;color:#f4ca96;
+ overflow-wrap:anywhere}
+.pixPublishedLaunch h1{font-size:clamp(34px,7vw,65px);font-weight:950;letter-spacing:-.06em;
+ line-height:1.08;margin:13px auto 16px;max-width:650px;text-wrap:balance;overflow-wrap:anywhere;
+ text-shadow:0 12px 30px #050a20}
+.pixPublishedTagline{font-size:clamp(13px,2.1vw,17px);line-height:1.6;color:#b8d7e0;
+ max-width:560px;margin:0 auto 30px;overflow-wrap:anywhere}
+.pixPublishedLaunchActions{display:grid;justify-items:center}
+.pixPublishedStart{background:var(--pixReleaseAccent);color:#091b27;border:0;border-radius:10px;
+ cursor:pointer;min-width:min(100%,320px);padding:17px 25px;font:950 15px ui-sans-serif,system-ui;
+ letter-spacing:.09em;box-shadow:0 0 25px #5dddb654;transition:transform .15s,filter .15s}
+.pixPublishedStart:hover{filter:brightness(1.14);transform:translateY(-2px)}
+.pixPublishedStart:focus-visible{outline:3px solid #ffe5ad;outline-offset:4px}
+.pixPublishedSettings{margin:35px auto 21px;max-width:530px;background:#10213ad1;border:1px solid #46627e;
+ text-align:left;border-radius:11px;padding:15px}
+.pixPublishedSettings h2{font:900 11px ui-monospace,monospace;letter-spacing:.15em;
+ color:#f0d29a;margin:0 0 13px}
+.pixPublishedSettings label{display:flex;align-items:center;gap:12px;padding:10px 0;
+ color:#f0f5fa;border-top:1px solid #2e4763;cursor:pointer}
+.pixPublishedSettings label input{accent-color:var(--pixReleaseAccent);height:18px;width:18px;flex:0 0 auto}
+.pixPublishedSettings label span{display:grid;gap:5px}
+.pixPublishedSettings label b{font-size:12px}
+.pixPublishedSettings label small{font-size:10px;color:#adc6d6;line-height:1.5}
+.pixPublishedControlHint{font:800 10px/1.9 ui-monospace,monospace;color:#8ebbc9}
+.pixPublishedCredits{font:800 9px ui-monospace,monospace;letter-spacing:.1em;color:#8fa9bd;margin-top:18px}
+.pixPublishedFrame .pixWorldPlayer{min-height:100vh;background:#080d1c}
+.pixPublishedFrame .pixWorldBrand h1{color:var(--pixReleaseAccent)}
+.pixPublishedFrame .pixWorldBadge{border-color:var(--pixReleaseAccent)}
+.pixPublishedFrame .pixWorldPublishedHeader{display:flex;align-items:center;gap:8px}
+.pixPublishedFrame .pixWorldPublishedHeader button{border:1px solid #6b9ba5;border-radius:7px;
+ background:#233a52;color:#e7f8f0;padding:10px 12px;cursor:pointer;font-size:11px;font-weight:850}
+.pixPublishedFrame .pixWorldPublishedHeader button:hover{background:#34536b}
+.pixPublishedFrame .pixWorldPublishedHeader button:focus-visible{outline:2px solid #ffe5ad;outline-offset:3px}
+.pixPublishedFrame .pixWorldPublishedMeta{font:750 10px ui-monospace,monospace;color:#b8d3d9;line-height:1.6;
+ margin-top:7px;overflow-wrap:anywhere}
+.pixPublishedFrame:not(.pixPublishedShowTools) .pixWorldInspector>section:not(.pixWorldQuest):not(.pixWorldPlayerControls){display:none}
+.pixPublishedFrame:not(.pixPublishedShowTools) .pixWorldActivity{display:none}
+.pixPublishedFrame:not(.pixPublishedShowTouch) .pixWorldTouchPad,
+.pixPublishedFrame:not(.pixPublishedShowTouch) .pixWorldTouchActions{display:none}
+.pixPublishedReducedMotion *,.pixPublishedReducedMotion *::before,.pixPublishedReducedMotion *::after{
+ animation:none!important;transition:none!important;scroll-behavior:auto!important}
+@media(max-width:720px){.pixPublishedLaunch{padding:16px 8px}
+ .pixPublishedTopline{font-size:9px}
+ .pixPublishedFrame .pixWorldPublishedHeader{flex-wrap:wrap}
+ .pixPublishedLaunchPanel{padding:24px 14px}
+ .pixPublishedControlHint{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.pixPublishedStart{transition:none}
+ .pixPublishedStart:hover{transform:none}}
