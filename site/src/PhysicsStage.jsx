@@ -167,8 +167,9 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     const held=new Set();
     const onKeyDown=e=>{
       if(e.key==='Escape'&&apiRef.current?.cancelTransform?.()){e.preventDefault();return;}
-      if(!walkRef.current||/^(input|textarea|select|button)$/i.test(e.target?.tagName||''))return;
+      if(!walkRef.current||/^(input|textarea|select)$/i.test(e.target?.tagName||''))return;
       const k=e.key.toLowerCase();
+      if((k===' '||k==='spacebar')&&/^(button)$/i.test(e.target?.tagName||''))return;
       if(k===' '||k==='spacebar'){
         if(!e.repeat)jumpQueueRef.current=true;
         e.preventDefault();return;
