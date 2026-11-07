@@ -1,5 +1,6 @@
 import React,{Suspense,lazy,useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {downloadJson} from './forge-world.js';
+import {downloadOfflineWorld} from './offline-publisher.js';
 import {PLAYABLE_MAX_BYTES,createSamplePlayableWorld,parsePlayableWorld,validatePlayableWorld} from './playable-world.js';
 import {advanceGameplaySession,newGameplaySession} from './gameplay-rules.js';
 import {dependenciesMet} from './event-graph.js';
@@ -17,9 +18,10 @@ import PlaytestInspector from './PlaytestInspector.jsx';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
 const BASE=import.meta.env.BASE_URL;
 
-export default function WorldPlayer({initialWorld=null,onExit=null}){
+export default function WorldPlayer({initialWorld=null,onExit=null,standalone=false}){
   const [world,setWorld]=useState(()=>initialWorld?validatePlayableWorld(initialWorld):createSamplePlayableWorld());
-  const [status,setStatus]=useState(initialWorld?'Previewing your current Forge construction.':'Loaded public PixelForge starter course.');
+  const [status,setStatus]=useState(standalone?'Offline adventure ready. All world assets are embedded locally.':
+    initialWorld?'Previewing your current Forge construction.':'Loaded public PixelForge starter course.');
   const [runtime,setRuntime]=useState('loading');
   const [paused,setPaused]=useState(false);
   const [fps,setFps]=useState({fps:0,bodies:0});
@@ -205,6 +207,13 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
       setStatus('Loaded portable world: '+validated.title+'. No scripts executed.');
     }catch(error){setStatus('Import rejected: '+error.message);}
   }
+  async function publishCurrentWorld(){
+    try{
+      setStatus('Preparing the trusted offline adventure package…');
+      const result=await downloadOfflineWorld(world);
+      setStatus('Published '+result.filename+' ('+Math.round(result.bytes/1024)+' KiB). Open the HTML locally in a WebGL2 browser.');
+    }catch(e){setStatus('Offline publishing refused: '+e.message);}
+  }
   function reset(){
     resetRules();lastPosition.current=[...world.spawn];setRespawnAt([...world.spawn]);
     setSession(n=>n+1);setPaused(false);
@@ -322,8 +331,8 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
     <header className="pixWorldTop">
       <div className="pixWorldBrand"><span className="pixWorldLogo">Φ</span><div><small>PHI369 LABS · PIXELFORGE v6</small><h1>WORLD <em>PLAYER</em></h1></div></div>
       <div className="pixWorldTopRight"><span className="pixWorldBadge">{runtime==='ready'?'● RAPIER LIVE':runtime==='error'?'RENDERER UNAVAILABLE':'LOADING WORLD'}</span>
-        {onExit?<button type="button" onClick={onExit}>← Back to Forge</button>:<a href={BASE+'?forge=1'}>← Creator Forge</a>}
-        <a href={BASE}>Portal ↗</a></div>
+        {!standalone&&(onExit?<button type="button" onClick={onExit}>← Back to Forge</button>:<a href={BASE+'?forge=1'}>← Creator Forge</a>)}
+        {!standalone&&<a href={BASE}>Portal ↗</a>}</div>
     </header>
     <main className="pixWorldMain">
       <section className="pixWorldOverview">
@@ -545,6 +554,22 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
                 className={replayCursor===i?'active':''} title={frame.events.map(e=>e.text).join(' · ')}>{i+1}</button>)}
             </div>}
           </section>
+          {!standalone&&<section className="pixWorldPublishPanel">
+            <h3>RUNG 13 / OFFLINE WORLD PUBLISHING</h3>
+            <p>Publish this exact validated world as a <strong>single HTML file</strong>, with its own Three.js + Rapier player, styles and game rules included. No Forge editor, CDN, server or installation is required to open the file.</p>
+            <div className="pixWorldPublishFacts">
+              <span>Runtime</span><b>EMBEDDED / OFFLINE</b>
+              <span>Code from world file</span><b>NONE</b>
+              <span>Network</span><b>DISABLED BY CSP</b>
+              <span>Creator asset vault</span><b>EXCLUDED</b>
+            </div>
+            <div className="pixWorldActions">
+              <button type="button" onClick={publishCurrentWorld}>
+                ⇩ Publish Offline Adventure (.html)
+              </button>
+            </div>
+            <p>The public website supplies the prebuilt trusted player during export. Once downloaded, the released HTML plays without website access. Browser WebGL2 and WASM support are still required; test the release on your target device before sharing.</p>
+          </section>}
           <section><h3>WORLD LIBRARY</h3><div className="pixWorldActions">
             <button type="button" onClick={()=>chooser.current?.click()}>⇧ Import Playable JSON</button>
             <button type="button" onClick={()=>downloadJson(world,'pixelforge-playable-world.v1.json')}>⇩ Export World JSON</button>
@@ -565,6 +590,8 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
       </section>}
       <p className="pixWorldStatus" role="status">{status}</p>
     </main>
-    <footer className="pixWorldFooter">PIXELFORGE V6 / WORLD PLAYER · READ-ONLY DATA CONTRACT · NO NETWORK AUTHORITY</footer>
+    <footer className="pixWorldFooter">{standalone?
+      'PIXELFORGE OFFLINE ADVENTURE · SELF-CONTAINED PLAYER · NETWORK DISABLED':
+      'PIXELFORGE V6 / WORLD PLAYER · READ-ONLY DATA CONTRACT · NO NETWORK AUTHORITY'}</footer>
   </div>;
 }
