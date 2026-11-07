@@ -215,7 +215,7 @@ $('export').addEventListener('click',()=>safe(()=>{
 $('phiosIdentityExport').addEventListener('click',()=>safe(()=>{
   // Never auto-mint an ID from the mutable title, scene ID or content hash.
   // The operator supplies/reuses the ID, and no world or storage is modified.
-  const manifest=buildPhiOSWorldIdentityManifest(world,$('phiosProjectId').value.trim());
+  const manifest=buildPhiOSWorldIdentityManifest(world,$('phiosProjectId').value);
   download('pixelforge-phios-project-identity.v0.1.json',encodePhiOSWorldIdentityManifest(manifest));
   status('PhiOS identity-only sidecar download requested. Check the saved file; no project data, approvals or install rights transferred.');
 }));
