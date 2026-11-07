@@ -1,6 +1,7 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import WorldPlayer from './WorldPlayer.jsx';
+import PublishedGameShell from './PublishedGameShell.jsx';
+import {resolveReleaseMetadata} from './release-metadata.js';
 import {parsePlayableWorld} from './playable-world.js';
 
 // Deliberately no fetch, router, editor, network imports, accounts, or CDN.
@@ -12,7 +13,11 @@ if(!mount||!source){
 }
 try{
   const world=parsePlayableWorld(source.textContent);
-  createRoot(mount).render(<WorldPlayer initialWorld={world} standalone/>);
+  const releaseNode=document.getElementById('pixelforge-embedded-release');
+  // Older Rung 13 releases without a release block still have safe defaults.
+  const release=resolveReleaseMetadata(releaseNode?JSON.parse(releaseNode.textContent):null,world.title);
+  document.title=release.title+' | PixelForge';
+  createRoot(mount).render(<PublishedGameShell world={world} release={release}/>);
 }catch(error){
   mount.textContent='World could not be opened: '+(error?.message||String(error));
 }
