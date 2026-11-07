@@ -13,6 +13,7 @@ import {
   lastPlaytestCheckpoint,listPlaytestCheckpoints,playtestCheckpointAt
 } from './playtest-save.js';
 import './world-player.css';
+import PlaytestInspector from './PlaytestInspector.jsx';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
 const BASE=import.meta.env.BASE_URL;
 
@@ -522,6 +523,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
             </div>}
             <p>Recordings are sampled at approximately 5 Hz, capped at 2,400 samples. They describe one avatar’s path, not the physics state or a full video. Save/export is always explicit.</p>
           </section>
+          <PlaytestInspector key={worldDigest||'pending'} worldDigest={worldDigest} currentGhost={ghostRun}/>
           <section className="pixWorldReplayPanel">
             <h3>EVENT TRACE / REPLAY</h3>
             <p>Inspect reproducible gameplay events step by step. This is a rule-event replay, not a recorded video or physics-motion rewind.</p>
