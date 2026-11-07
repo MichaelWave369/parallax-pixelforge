@@ -264,6 +264,15 @@
         <button id="reset" class="danger" type="button">Reset</button>
       </div>
       <p class="hint">Godot scene exports provide static cuboids. Project ZIP can also include exact local GLBs selected or rebound in this browser session, only after explicit confirmation. Review purchased-asset licenses before sharing. Physics, gameplay, VR qualification and Unreal/Unity/Bevy exporters remain pending.</p>
+      <section class="receipt" aria-label="PhiOS project identity sidecar">
+        <strong>PHIOS PROJECT IDENTITY · CANDIDATE</strong>
+        <p class="hint">Choose a stable, unique project ID and reuse it for future revisions of this world. The world JSON does not contain a persistent ID, so changing a title or scene is never used to invent one. Keep the exported identity file safely; it is not a backup of the world.</p>
+        <label>Operator-chosen project ID
+          <input id="phiosProjectId" maxlength="64" autocomplete="off" spellcheck="false" placeholder="my-vr-world-01" aria-label="Operator-chosen PhiOS project ID">
+        </label>
+        <button id="phiosIdentityExport" class="full" type="button">Export PhiOS identity-only JSON</button>
+        <p class="hint">Exports only the project ID, world title, source format and schema label. No scene objects, private assets, credentials or permissions. It is NOT an installed app, verified ownership, or an approved PhiOS adapter. The browser's download prompt is not proof the file was saved.</p>
+      </section>
       <p class="hint">Scene JSON contains transforms and asset hashes only, never purchased models or executable scripts. After a refresh, rebind your local GLB file by the same SHA-256 to display its mesh again.</p>
       <div class="receipt"><strong>QUALIFICATION BOUNDARY</strong>
         <p>Supported static GLB geometry can display embedded base-color PNG/JPEG textures. This is a simple UV-shaded preview, not full glTF/PBR parity. External images, animation, physics, interaction, multiplayer, licensing, headset comfort and frame-rate qualification remain unsupported.</p>
