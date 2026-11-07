@@ -18,6 +18,7 @@ import {
 } from './playtest-save.js';
 import './world-player.css';
 import PlaytestInspector from './PlaytestInspector.jsx';
+import {preparePublishedRun} from './published-session.js';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
 const BASE=import.meta.env.BASE_URL;
 
@@ -26,16 +27,11 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
   const [world,setWorld]=useState(()=>initialWorld?validatePlayableWorld(initialWorld):createSamplePlayableWorld());
   // Rung 16 restores the initial session BEFORE Rapier starts, so gates,
   // pickups and player spawn are correct on the first physics tick.
-  const boot=useMemo(()=>{
-    if(!initialSave)return null;
-    const replay=replayPlaytestTrace(initialWorld,initialSave.frames);
-    return {position:[...initialSave.position],progress:replay.progress,
-      frames:initialSave.frames.map(frame=>({
-        position:[...frame.position],interact:frame.interact,
-        event_ids:[...frame.event_ids]})),
-      activity:replay.timeline.flatMap(item=>item.events).slice(-8).reverse()};
-  },[initialSave,initialWorld]);
-  const [status,setStatus]=useState(standalone?'Offline adventure ready. All world assets are embedded locally.':
+  const boot=useMemo(()=>
+    initialSave?preparePublishedRun(initialWorld,initialSave):null,
+    [initialSave,initialWorld]);
+  const [status,setStatus]=useState(initialSave?'Verified saved adventure restored at its recorded position.':
+    standalone?'Offline adventure ready. All world assets are embedded locally.':
     initialWorld?'Previewing your current Forge construction.':'Loaded public PixelForge starter course.');
   const [runtime,setRuntime]=useState('loading');
   const [paused,setPaused]=useState(false);
