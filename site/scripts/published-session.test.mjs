@@ -36,7 +36,7 @@ test('fresh adventure requires no saved data and cannot forge a Continue state',
   assert.equal(typeof (await digestPlayableWorld(modified)),'string');
 });
 test('Continue supports rule-free explorer worlds and never edits source game geometry',async()=>{
-  const world=createSamplePlayableWorld();world.gameplay=null;
+  const world=createSamplePlayableWorld();delete world.gameplay;
   const digest=await digestPlayableWorld(world),before=JSON.stringify(world);
   const save=createPlaytestSave(world,digest,[1,3,2],[]);
   const run=preparePublishedRun(world,save);
