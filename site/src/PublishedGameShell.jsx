@@ -5,6 +5,9 @@ import {resolveReleaseExtras} from './release-extras.js';
 import {emptyBundledNotices,validateBundledNotices} from './license-notices.js';
 import {firstStandardGamepad} from './standard-gamepad.js';
 import {neutralTitlePad,readTitlePad,titlePadEdges,nextTitleFocus} from './title-gamepad.js';
+import {digestPlayableWorld,PLAYTEST_MAX_BYTES} from './playtest-save.js';
+import {inspectBrowserSave,importTitleSaveJson,requireFreshRunConfirmation} from './published-save-menu.js';
+import {downloadJson} from './forge-world.js';
 import './published-game.css';
 
 // The standalone game's title and credits never start physics or edit saves.
@@ -13,6 +16,58 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
   const extras=useMemo(()=>resolveReleaseExtras(rawExtras),[rawExtras]);
   const notices=useMemo(()=>validateBundledNotices(rawNotices??emptyBundledNotices()),[rawNotices]);
   const [started,setStarted]=useState(false);
+  const [launchSave,setLaunchSave]=useState(null);
+  const [browserSave,setBrowserSave]=useState({status:'checking',save:null,summary:null,reason:'Checking browser-local saved progress…',otherSlots:0});
+  const [worldDigest,setWorldDigest]=useState('');
+  const [importedSave,setImportedSave]=useState(null);
+  const [saveChoice,setSaveChoice]=useState('browser');
+  const [saveMessage,setSaveMessage]=useState('');
+  const [newRunConfirmation,setNewRunConfirmation]=useState(false);
+  const savePicker=useRef(null);
+  useEffect(()=>{
+    if(started)return;
+    let active=true;
+    setBrowserSave({status:'checking',save:null,summary:null,reason:'Checking browser-local saved progress…',otherSlots:0});
+    digestPlayableWorld(world).then(digest=>{
+      if(!active)return;
+      setWorldDigest(digest);
+      let storage=null;
+      try{storage=window.localStorage;}catch{/* File origin may prohibit local storage. */}
+      const result=inspectBrowserSave(world,digest,storage);
+      setBrowserSave(result);
+      setSaveMessage(result.status==='invalid'?result.reason:'');
+    }).catch(error=>{
+      if(active){
+        setWorldDigest('');
+        setBrowserSave({status:'unavailable',save:null,summary:null,otherSlots:0,
+          reason:'Cannot verify world digest for local saves: '+error.message});
+      }
+    });
+    return()=>{active=false;};
+  },[world,started]);
+  const selectedSave=saveChoice==='imported'?importedSave:browserSave.save;
+  function beginAdventure(save=null){
+    setLaunchSave(save);setNewRunConfirmation(false);setStarted(true);
+  }
+  function startFresh(){
+    if(requireFreshRunConfirmation(browserSave.status)){
+      setNewRunConfirmation(true);setSaveMessage('New Adventure starts at the beginning without deleting any browser save. Confirm to continue.');
+    }else beginAdventure(null);
+  }
+  async function importSave(event){
+    const file=event.target.files?.[0];event.target.value='';if(!file)return;
+    try{
+      if(!worldDigest)throw Error('World verification is not ready.');
+      if(file.size>PLAYTEST_MAX_BYTES)throw Error('Save file exceeds the 64 KB limit.');
+      const save=importTitleSaveJson(await file.text(),world,worldDigest);
+      setImportedSave(save);setSaveChoice('imported');setSaveMessage('Imported save verified for this exact world. It is held in memory only.');
+    }catch(error){setSaveMessage('Import rejected: '+error.message);}
+  }
+  function exportBrowserSave(){
+    if(browserSave.status!=='ready'||!browserSave.save)return;
+    downloadJson(browserSave.save,'pixelforge-save-backup.v1.json');
+    setSaveMessage('Downloaded a copy of the browser save; its original slot is unchanged.');
+  }
   const [creditsOpen,setCreditsOpen]=useState(false);
   const [gamepadConnected,setGamepadConnected]=useState(false);
   const [settings,setSettings]=useState({
@@ -26,6 +81,8 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
   const closeCredits=()=>{setCreditsOpen(false);selectedIndex.current=1;};
   const backToTitle=()=>{
     if(document.fullscreenElement)void document.exitFullscreen?.().catch(()=>{});
+    setImportedSave(null);setSaveChoice('browser');setLaunchSave(null);
+    setNewRunConfirmation(false);setSaveMessage('');
     setStarted(false);
   };
   useEffect(()=>{
@@ -47,29 +104,56 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
         if(creditsOpen){
           if(edges.back||edges.confirm)closeCredits();
         }else{
-          if(edges.up||edges.down){
-            const nextIndex=nextTitleFocus(selectedIndex.current,edges.down?1:-1,5);
-            selectedIndex.current=nextIndex;
-            menuRefs.current[nextIndex]?.focus();
+          if(edges.back&&newRunConfirmation){
+            setNewRunConfirmation(false);
+            menuRefs.current[1]?.focus();
           }
-          if(edges.confirm)menuRefs.current[selectedIndex.current]?.click();
+          if(edges.up||edges.down){
+            const available=menuRefs.current.map((el,i)=>el&&!el.disabled?i:-1)
+              .filter(i=>i>=0);
+            if(available.length){
+              const current=Math.max(0,available.indexOf(selectedIndex.current));
+              const nextIndex=nextTitleFocus(current,edges.down?1:-1,available.length);
+              selectedIndex.current=available[nextIndex];
+              menuRefs.current[selectedIndex.current]?.focus();
+            }
+          }
+          if(edges.confirm){
+            if(selectedIndex.current===10){
+              if(importedSave&&browserSave.status==='ready')
+                setSaveChoice(choice=>choice==='browser'?'imported':'browser');
+            }else{
+              const target=menuRefs.current[selectedIndex.current];
+              if(target&&!target.disabled)target.click();
+            }
+          }
         }
       }
       frame=requestAnimationFrame(tick);
     };
     frame=requestAnimationFrame(tick);
     return()=>{active=false;cancelAnimationFrame(frame);};
-  },[started,creditsOpen]);
+  },[started,creditsOpen,newRunConfirmation,importedSave,browserSave.status]);
   useEffect(()=>{
     if(creditsOpen)closeCreditsRef.current?.focus();
-    else if(!started)menuRefs.current[selectedIndex.current]?.focus();
+    else if(!started){
+      const chosen=menuRefs.current[selectedIndex.current];
+      if(chosen&&!chosen.disabled)chosen.focus();
+      else{
+        const first=menuRefs.current.find(el=>el&&!el.disabled);
+        first?.focus();
+      }
+    }
   },[creditsOpen,started]);
+  useEffect(()=>{
+    if(newRunConfirmation&&!started)menuRefs.current[8]?.focus();
+  },[newRunConfirmation,started]);
   const palette={'--pixReleaseAccent':release.accent};
   if(started){
     return <div className={'pixPublishedFrame'+(settings.reducedMotion?' pixPublishedReducedMotion':'')+
       (settings.touchControls?' pixPublishedShowTouch':'')+
       (settings.showPlaytestTools?' pixPublishedShowTools':'')} style={palette}>
-      <WorldPlayer key={world.title} initialWorld={world} standalone
+      <WorldPlayer key={world.title} initialWorld={world} standalone initialSave={launchSave}
         release={release} publishedSettings={settings} onExit={backToTitle}/>
     </div>;
   }
@@ -113,37 +197,89 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
         <p className="pixPublishedCreator">{release.creator.toUpperCase()} PRESENTS</p>
         <h1>{release.title}</h1>
         <p className="pixPublishedTagline">{release.tagline}</p>
-        <div className="pixPublishedLaunchActions">
-          <button type="button" className="pixPublishedStart"
-            ref={element=>{menuRefs.current[0]=element;}}
-            onFocus={()=>{selectedIndex.current=0;}} onClick={()=>setStarted(true)}>
-            ▶ START ADVENTURE
-          </button>
-          <button type="button" className="pixPublishedCreditsButton"
-            ref={element=>{menuRefs.current[1]=element;}}
-            onFocus={()=>{selectedIndex.current=1;}} onClick={()=>setCreditsOpen(true)}>
-            ◇ CREDITS & LICENSES
-          </button>
-        </div>
+        <section className="pixPublishedSavePanel" aria-label="Saved adventure picker">
+          <h2>CONTINUE YOUR ADVENTURE</h2>
+          <p className="pixPublishedSaveStatus" role="status">{browserSave.reason}</p>
+          {browserSave.status==='ready'&&browserSave.summary&&<p className="pixPublishedSaveSummary">
+            Saved {new Date(browserSave.summary.savedAt).toLocaleString()} ·
+            {browserSave.summary.events} events · {browserSave.summary.pickups} pickups ·
+            {browserSave.summary.checkpoints} checkpoints
+            {browserSave.summary.won?' · WORLD COMPLETE':''}
+          </p>}
+          {browserSave.otherSlots>0&&<p className="pixPublishedSaveCaution">
+            {browserSave.otherSlots} other saved-world/revision slot(s) were found. They remain untouched and cannot be resumed in this world without exact compatibility.</p>}
+          <label className="pixPublishedSaveChoice">Save source
+            <select value={saveChoice} onChange={e=>setSaveChoice(e.target.value)}
+              ref={element=>{menuRefs.current[10]=element;}}
+              onFocus={()=>{selectedIndex.current=10;}}>
+              <option value="browser" disabled={browserSave.status!=='ready'}>
+                Browser save {browserSave.status==='ready'?'(verified)':'(not available)'}
+              </option>
+              <option value="imported" disabled={!importedSave}>Imported file {importedSave?'(verified, temporary)':'(none yet)'}</option>
+            </select>
+          </label>
+          <small className="pixPublishedSaveHint">Select the desired source. With a controller, focus this selector and press A to switch between available saves.</small>
+          {saveMessage&&<p className="pixPublishedSaveMessage" role="status">{saveMessage}</p>}
+          <input ref={savePicker} hidden type="file" accept=".json,application/json" onChange={importSave}/>
+          <div className="pixPublishedLaunchActions">
+            <button type="button" className="pixPublishedStart" disabled={!selectedSave}
+              ref={element=>{menuRefs.current[0]=element;}}
+              onFocus={()=>{selectedIndex.current=0;}}
+              onClick={()=>{if(selectedSave)beginAdventure(selectedSave);}}>
+              ▶ CONTINUE SELECTED SAVE
+            </button>
+            <button type="button" className="pixPublishedNewButton"
+              ref={element=>{menuRefs.current[1]=element;}}
+              onFocus={()=>{selectedIndex.current=1;}} onClick={startFresh}>
+              ◆ NEW ADVENTURE
+            </button>
+            <button type="button" className="pixPublishedCreditsButton"
+              ref={element=>{menuRefs.current[2]=element;}}
+              onFocus={()=>{selectedIndex.current=2;}} onClick={()=>savePicker.current?.click()}>
+              ⇧ IMPORT SAVE FILE
+            </button>
+            <button type="button" className="pixPublishedCreditsButton" disabled={browserSave.status!=='ready'}
+              ref={element=>{menuRefs.current[3]=element;}}
+              onFocus={()=>{selectedIndex.current=3;}} onClick={exportBrowserSave}>
+              ⇩ BACK UP BROWSER SAVE
+            </button>
+            <button type="button" className="pixPublishedCreditsButton"
+              ref={element=>{menuRefs.current[4]=element;}}
+              onFocus={()=>{selectedIndex.current=4;}} onClick={()=>setCreditsOpen(true)}>
+              ◇ CREDITS & LICENSES
+            </button>
+          </div>
+          {newRunConfirmation&&<div className="pixPublishedNewConfirm" role="group" aria-label="Confirm a new adventure">
+            <p>Your existing browser save will NOT be deleted or overwritten. The new game begins at the original spawn. Saving progress later will require explicit confirmation before replacing the existing slot.</p>
+            <button type="button" ref={element=>{menuRefs.current[8]=element;}}
+              onFocus={()=>{selectedIndex.current=8;}} onClick={()=>beginAdventure(null)}>
+              Confirm New Adventure (Keep Saved Slot)
+            </button>
+            <button type="button" ref={element=>{menuRefs.current[9]=element;}}
+              onFocus={()=>{selectedIndex.current=9;}} onClick={()=>setNewRunConfirmation(false)}>
+              Cancel
+            </button>
+          </div>}
+        </section>
         <section className="pixPublishedSettings" aria-label="Launch settings">
           <h2>LAUNCH SETTINGS</h2>
           <label><input type="checkbox" checked={settings.touchControls}
-            ref={element=>{menuRefs.current[2]=element;}}
-            onFocus={()=>{selectedIndex.current=2;}}
+            ref={element=>{menuRefs.current[5]=element;}}
+            onFocus={()=>{selectedIndex.current=5;}}
             onChange={e=>setFlag('touchControls',e.target.checked)}/>
             <span><b>Show on-screen movement controls</b>
               <small>Useful for touchscreens; keyboard and controller always work</small></span>
           </label>
           <label><input type="checkbox" checked={settings.showPlaytestTools}
-            ref={element=>{menuRefs.current[3]=element;}}
-            onFocus={()=>{selectedIndex.current=3;}}
+            ref={element=>{menuRefs.current[6]=element;}}
+            onFocus={()=>{selectedIndex.current=6;}}
             onChange={e=>setFlag('showPlaytestTools',e.target.checked)}/>
             <span><b>Show advanced playtest tools</b>
               <small>Ghost recording, Inspector, save import/export and diagnostics</small></span>
           </label>
           <label><input type="checkbox" checked={settings.reducedMotion}
-            ref={element=>{menuRefs.current[4]=element;}}
-            onFocus={()=>{selectedIndex.current=4;}}
+            ref={element=>{menuRefs.current[7]=element;}}
+            onFocus={()=>{selectedIndex.current=7;}}
             onChange={e=>setFlag('reducedMotion',e.target.checked)}/>
             <span><b>Reduce decorative motion</b>
               <small>Disables non-essential interface animation, not physics simulation</small></span>
