@@ -18,13 +18,20 @@ import {
 } from './playtest-save.js';
 import './world-player.css';
 import PlaytestInspector from './PlaytestInspector.jsx';
+import {preparePublishedRun} from './published-session.js';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
 const BASE=import.meta.env.BASE_URL;
 
 export default function WorldPlayer({initialWorld=null,onExit=null,standalone=false,
-  release=null,publishedSettings=null}){
+  release=null,publishedSettings=null,initialSave=null}){
   const [world,setWorld]=useState(()=>initialWorld?validatePlayableWorld(initialWorld):createSamplePlayableWorld());
-  const [status,setStatus]=useState(standalone?'Offline adventure ready. All world assets are embedded locally.':
+  // Rung 16 restores the initial session BEFORE Rapier starts, so gates,
+  // pickups and player spawn are correct on the first physics tick.
+  const boot=useMemo(()=>
+    initialSave?preparePublishedRun(initialWorld,initialSave):null,
+    [initialSave,initialWorld]);
+  const [status,setStatus]=useState(initialSave?'Verified saved adventure restored at its recorded position.':
+    standalone?'Offline adventure ready. All world assets are embedded locally.':
     initialWorld?'Previewing your current Forge construction.':'Loaded public PixelForge starter course.');
   const [runtime,setRuntime]=useState('loading');
   const [paused,setPaused]=useState(false);
@@ -47,13 +54,15 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
   }
   const [fps,setFps]=useState({fps:0,bodies:0});
   const [session,setSession]=useState(0);
-  const [respawnAt,setRespawnAt]=useState(()=>[...(initialWorld?.spawn||[0,2.2,0])]);
+  const [respawnAt,setRespawnAt]=useState(()=>[...(boot?.position||initialWorld?.spawn||[0,2.2,0])]);
   const [worldDigest,setWorldDigest]=useState('');
   const [releaseDraft,setReleaseDraft]=useState(null);
   const [extrasDraft,setExtrasDraft]=useState(null);
   const [hasLocalSave,setHasLocalSave]=useState(false);
-  const [traceFrames,setTraceFrames]=useState([]);
-  const [replayCursor,setReplayCursor]=useState(-1);
+  const [pendingSaveOverwrite,setPendingSaveOverwrite]=useState(false);
+  const [pendingSaveDelete,setPendingSaveDelete]=useState(false);
+  const [traceFrames,setTraceFrames]=useState(()=>boot?.frames||[]);
+  const [replayCursor,setReplayCursor]=useState(boot?boot.frames.length-1:-1);
   const [checkpointChoice,setCheckpointChoice]=useState('latest');
   const [gamepadConnected,setGamepadConnected]=useState(false);
   const [recordGhost,setRecordGhost]=useState(false);
@@ -62,13 +71,13 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
   const [ghostReplaySerial,setGhostReplaySerial]=useState(0);
   const [ghostSampleCount,setGhostSampleCount]=useState(0);
   const [hasLocalGhost,setHasLocalGhost]=useState(false);
-  const [gameSession,setGameSession]=useState(newGameplaySession);
-  const [activity,setActivity]=useState([]);
+  const [gameSession,setGameSession]=useState(()=>boot?.progress||newGameplaySession());
+  const [activity,setActivity]=useState(()=>boot?.activity||[]);
   const [motion,setMotion]=useState({grounded:false,speed:0,sprinting:false,
-    position:initialWorld?.spawn||[0,2.2,0]});
+    position:boot?.position||initialWorld?.spawn||[0,2.2,0]});
   const [virtualControls,setVirtualControls]=useState({right:0,forward:0,sprint:false,jumpSerial:0});
-  const gameRef=useRef(gameSession),lastPosition=useRef(initialWorld?.spawn||[0,2.2,0]);
-  const traceRef=useRef([]);
+  const gameRef=useRef(gameSession),lastPosition=useRef(boot?.position||initialWorld?.spawn||[0,2.2,0]);
+  const traceRef=useRef(boot?.frames||[]);
   const recordingRef=useRef(false),ghostSamplesRef=useRef([]);
   const chooser=useRef(null),saveChooser=useRef(null),ghostChooser=useRef(null),stage=useRef(null);
   useEffect(()=>{
@@ -223,7 +232,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
     try{
       if(file.size>PLAYABLE_MAX_BYTES)throw Error('Playable world file exceeds 160 KB.');
       const validated=parsePlayableWorld(await file.text());
-      resetRules();lastPosition.current=[...validated.spawn];
+      resetRules();setPendingSaveOverwrite(false);setPendingSaveDelete(false);lastPosition.current=[...validated.spawn];
       setGhostRun(null);setShowGhost(false);setGhostReplaySerial(0);
       setReleaseDraft(null);setExtrasDraft(null);
       setRespawnAt([...validated.spawn]);setWorldDigest('');
@@ -239,13 +248,13 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
     }catch(e){setStatus('Offline publishing refused: '+e.message);}
   }
   function reset(){
-    resetRules();lastPosition.current=[...world.spawn];setRespawnAt([...world.spawn]);
+    resetRules();setPendingSaveOverwrite(false);setPendingSaveDelete(false);lastPosition.current=[...world.spawn];setRespawnAt([...world.spawn]);
     setSession(n=>n+1);setPaused(false);
     setStatus('World restarted at its declared spawn point. Collectibles and checkpoints reset.');
   }
   function demo(){
     const sample=createSamplePlayableWorld();
-    resetRules();lastPosition.current=[...sample.spawn];setRespawnAt([...sample.spawn]);
+    resetRules();setPendingSaveOverwrite(false);setPendingSaveDelete(false);lastPosition.current=[...sample.spawn];setRespawnAt([...sample.spawn]);
     setGhostRun(null);setShowGhost(false);setGhostReplaySerial(0);
     setReleaseDraft(null);setExtrasDraft(null);
     setWorldDigest('');setWorld(sample);setSession(n=>n+1);setPaused(false);
@@ -272,10 +281,19 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
     const current=stage.current?.getPlayerPosition?.()||lastPosition.current;
     return createPlaytestSave(world,worldDigest,current,traceRef.current);
   }
-  function saveLocal(){
+  function saveLocal(confirmed=false){
     try{
+      if(!worldDigest)throw Error('World digest is not ready.');
+      // Re-check storage itself; React state can be stale after another tab saves.
+      const key=playtestStorageKey(worldDigest);
+      if(localStorage.getItem(key)!==null&&!confirmed){
+        setPendingSaveOverwrite(true);
+        setStatus('A browser save already exists. Confirm explicitly to replace it, or export a backup first.');
+        return;
+      }
       const save=buildSave();
-      localStorage.setItem(playtestStorageKey(worldDigest),JSON.stringify(save));
+      localStorage.setItem(key,JSON.stringify(save));
+      setPendingSaveOverwrite(false);
       setHasLocalSave(true);setStatus('Saved this world locally. No account, upload, or source file was modified.');
     }catch(error){setStatus('Local save failed: '+error.message);}
   }
@@ -287,10 +305,16 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
       restoreRun(parsePlaytestSave(raw,world,worldDigest),'Loaded world-bound save and recreated objective/door state.');
     }catch(error){setStatus('Resume refused: '+error.message);}
   }
-  function deleteLocal(){
+  function deleteLocal(confirmed=false){
     try{
       if(!worldDigest)throw Error('World digest is not ready.');
+      if(!confirmed){
+        setPendingSaveDelete(true);
+        setStatus('Confirm deletion of this world’s browser save. Export a backup first if you need it.');
+        return;
+      }
       localStorage.removeItem(playtestStorageKey(worldDigest));
+      setPendingSaveDelete(false);setPendingSaveOverwrite(false);
       setHasLocalSave(false);setStatus('Deleted only this world’s browser-local playtest save.');
     }catch(error){setStatus('Delete failed: '+error.message);}
   }
@@ -508,16 +532,25 @@ export default function WorldPlayer({initialWorld=null,onExit=null,standalone=fa
               </select>
             </label>
             <div className="pixWorldActions">
-              <button type="button" disabled={!worldDigest} onClick={saveLocal}>▣ Save Browser Progress</button>
-              <button type="button" disabled={!worldDigest||!hasLocalSave} onClick={loadLocal}>▶ Resume Browser Save</button>
+              <button type="button" disabled={!worldDigest} onClick={()=>saveLocal(false)}>▣ Save Browser Progress</button>
+              {pendingSaveOverwrite&&<>
+        <p className="pixWorldOverwriteWarning" role="alert">This will replace the existing local save for this world. Export a backup first if you want to keep it.</p>
+        <button type="button" onClick={()=>saveLocal(true)}>Confirm Replace Browser Save</button>
+        <button type="button" onClick={()=>{setPendingSaveOverwrite(false);setStatus('Save replacement canceled. Original slot unchanged.');}}>Cancel Replacement</button>
+      </>}
+      <button type="button" disabled={!worldDigest||!hasLocalSave} onClick={loadLocal}>▶ Resume Browser Save</button>
               <button type="button" disabled={!checkpoint} onClick={respawnCheckpoint}>
                 ◉ Respawn at {checkpoint?.name||'Checkpoint'}
               </button>
               <button type="button" disabled={!worldDigest} onClick={exportSave}>⇩ Export Save JSON</button>
               <button type="button" disabled={!worldDigest} onClick={()=>saveChooser.current?.click()}>⇧ Import Matching Save</button>
-              <button type="button" className="pixWorldDeleteSave" disabled={!worldDigest||!hasLocalSave} onClick={deleteLocal}>
-                Delete This World's Local Save
-              </button>
+              <button type="button" className="pixWorldDeleteSave" disabled={!worldDigest||!hasLocalSave}
+                onClick={()=>deleteLocal(false)}>Delete This World's Local Save</button>
+              {pendingSaveDelete&&<>
+                <p className="pixWorldOverwriteWarning" role="alert">Delete this world's browser save permanently? Export a JSON backup first. This action cannot be undone.</p>
+                <button type="button" className="pixWorldDeleteSave" onClick={()=>deleteLocal(true)}>Confirm Delete Local Save</button>
+                <button type="button" onClick={()=>{setPendingSaveDelete(false);setStatus('Deletion canceled. Saved progress preserved.');}}>Cancel Deletion</button>
+              </>}
             </div>
             <input hidden ref={saveChooser} type="file" accept=".json,application/json" onChange={importSave}/>
             <p>Restart begins a fresh run without deleting your saved slot. Choose any previously activated checkpoint, then roll back later events, doors and pickups. Controller Y performs the selected respawn.</p>
