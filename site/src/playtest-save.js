@@ -120,20 +120,32 @@ export function parsePlaytestSave(raw,world,worldDigest){
     throw Error('Save file exceeds 64 KB limit.');
   return validatePlaytestSave(JSON.parse(raw),world,worldDigest);
 }
-export function lastPlaytestCheckpoint(world,frames){
+export function listPlaytestCheckpoints(world,frames){
   const {timeline}=replayPlaytestTrace(world,frames);
-  for(let i=timeline.length-1;i>=0;i--){
-    const frame=timeline[i];
-    const trigger=frame.events.find(event=>event.type==='trigger');
-    if(trigger){
-      return {
-        id:trigger.id,
-        frameIndex:frame.index,
-        position:[...frame.position],
-        frames:frames.slice(0,frame.index+1).map(checkFrame),
-        progress:frame.progress
-      };
-    }
-  }
-  return null;
+  const names=new Map((world.gameplay?.triggers||[]).map(x=>[x.id,x.name]));
+  return timeline.flatMap(frame=>frame.events
+    .filter(event=>event.type==='trigger')
+    .map(event=>({
+      id:event.id,name:names.get(event.id)||event.id,
+      frameIndex:frame.index,position:[...frame.position]
+    })));
+}
+export function playtestCheckpointAt(world,frames,frameIndex){
+  if(!Number.isSafeInteger(frameIndex)||frameIndex<0)
+    throw Error('Select an activated checkpoint in this run.');
+  const {timeline}=replayPlaytestTrace(world,frames);
+  const step=timeline[frameIndex];
+  const trigger=step?.events.find(event=>event.type==='trigger');
+  if(!trigger)throw Error('Selected event is not an activated checkpoint.');
+  return {
+    id:trigger.id,
+    frameIndex:step.index,
+    position:[...step.position],
+    frames:frames.slice(0,step.index+1).map(checkFrame),
+    progress:step.progress
+  };
+}
+export function lastPlaytestCheckpoint(world,frames){
+  const all=listPlaytestCheckpoints(world,frames);
+  return all.length?playtestCheckpointAt(world,frames,all[all.length-1].frameIndex):null;
 }

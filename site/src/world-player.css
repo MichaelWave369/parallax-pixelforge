@@ -104,3 +104,22 @@
  border-radius:6px;background:#263259;color:#cfddf2;font:850 10px ui-monospace,monospace;cursor:pointer}
 .pixWorldReplayTimeline button.active{background:#346b65;border-color:#8cffd1;color:#fffde8}
 .pixWorldReplayTimeline button:focus-visible{outline:2px solid #b1ffe7;outline-offset:2px}
+
+/* Rung 10: controller readiness and checkpoint selection (no auto-resume). */
+.pixWorldControllerPanel{border-color:#478e8b!important;background:linear-gradient(140deg,#172e49,#1b2542)!important}
+.pixWorldPadState{padding:9px 11px;border:1px solid #526b8e;border-radius:8px;
+ background:#1c2b4b;margin:0 0 10px}
+.pixWorldPadState span{font:850 10px ui-monospace,monospace;color:#a4b6d3}
+.pixWorldPadState .connected{color:#a3f9d7}
+.pixWorldControllerKeys{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:5px;margin:9px 0}
+.pixWorldControllerKeys span{padding:7px;border-radius:6px;background:#213a53;
+ color:#cee8f2;font-size:10px;line-height:1.4}
+.pixWorldControllerKeys b{color:#ffe0a4}
+.pixWorldCheckpointChoice{display:grid;gap:7px;font-size:11px;font-weight:850;
+ color:#9be9da;margin:8px 0 12px}
+.pixWorldCheckpointChoice select{min-width:0;width:100%;border:1px solid #67a5a5;
+ border-radius:8px;padding:10px;background:#112c46;color:#eaf9f5;
+ font:11px ui-sans-serif,system-ui}
+.pixWorldCheckpointChoice select:disabled{opacity:.45}
+@media(max-width:460px){.pixWorldControllerKeys{grid-template-columns:1fr}}

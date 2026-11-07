@@ -6,7 +6,7 @@ import {dependenciesMet} from './event-graph.js';
 import {
   PLAYTEST_MAX_BYTES,digestPlayableWorld,playtestStorageKey,
   appendPlaytestFrame,replayPlaytestTrace,createPlaytestSave,parsePlaytestSave,
-  lastPlaytestCheckpoint
+  lastPlaytestCheckpoint,listPlaytestCheckpoints,playtestCheckpointAt
 } from './playtest-save.js';
 import './world-player.css';
 const PhysicsStage=lazy(()=>import('./PhysicsStage.jsx'));
@@ -24,6 +24,8 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
   const [hasLocalSave,setHasLocalSave]=useState(false);
   const [traceFrames,setTraceFrames]=useState([]);
   const [replayCursor,setReplayCursor]=useState(-1);
+  const [checkpointChoice,setCheckpointChoice]=useState('latest');
+  const [gamepadConnected,setGamepadConnected]=useState(false);
   const [gameSession,setGameSession]=useState(newGameplaySession);
   const [activity,setActivity]=useState([]);
   const [motion,setMotion]=useState({grounded:false,speed:0,sprinting:false,
@@ -46,7 +48,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
   const resetRules=()=>{
     const fresh=newGameplaySession();gameRef.current=fresh;
     setGameSession(fresh);setActivity([]);
-    traceRef.current=[];setTraceFrames([]);setReplayCursor(-1);
+    traceRef.current=[];setTraceFrames([]);setReplayCursor(-1);setCheckpointChoice('latest');
     setVirtualControls({right:0,forward:0,sprint:false,jumpSerial:0});
   };
   const onMotionStatus=useCallback(data=>setMotion(data),[]);
@@ -69,6 +71,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
       if(result.events.length){
         const frames=appendPlaytestFrame(traceRef.current,position,interact,result.events);
         traceRef.current=frames;setTraceFrames(frames);setReplayCursor(frames.length-1);
+    setCheckpointChoice('latest');
         gameRef.current=result.session;
         setGameSession(result.session);
         setActivity(previous=>[...result.events.map(e=>({type:e.type,id:e.id,text:e.text})),...previous].slice(0,8));
@@ -172,13 +175,32 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
   function respawnCheckpoint(){
     if(!world.gameplay)return;
     try{
-      const cp=lastPlaytestCheckpoint(world,traceRef.current);
-      if(!cp)throw Error('Visit a checkpoint first.');
-      restoreRun({position:cp.position,frames:cp.frames},'Returned to '+cp.id+' with later game events rolled back.');
+      const available=listPlaytestCheckpoints(world,traceRef.current);
+      const index=checkpointChoice==='latest'?available.at(-1)?.frameIndex:Number(checkpointChoice);
+      if(index===undefined||!available.some(cp=>cp.frameIndex===index))
+        throw Error('Select a checkpoint already activated in this run.');
+      const cp=playtestCheckpointAt(world,traceRef.current,index);
+      restoreRun({position:cp.position,frames:cp.frames},
+        'Returned to '+cp.id+' with events after step '+(index+1)+' rolled back.');
     }catch(error){setStatus('Checkpoint respawn refused: '+error.message);}
   }
   const timeline=useMemo(()=>replayPlaytestTrace(world,traceFrames).timeline,[world,traceFrames]);
-  const checkpoint=useMemo(()=>lastPlaytestCheckpoint(world,traceFrames),[world,traceFrames]);
+  const checkpoints=useMemo(()=>listPlaytestCheckpoints(world,traceFrames),[world,traceFrames]);
+  const checkpoint=checkpointChoice==='latest'?checkpoints.at(-1):
+    checkpoints.find(cp=>String(cp.frameIndex)===checkpointChoice);
+  const onGamepadAction=useCallback(action=>{
+    if(action==='pause'){
+      setPaused(value=>!value);
+      setVirtualControls(c=>({...c,right:0,forward:0,sprint:false}));
+      return;
+    }
+    if(paused)return;
+    if(action==='interact'){
+      evaluate(stage.current?.getPlayerPosition?.()||lastPosition.current,true);
+    }else if(action==='checkpoint'){
+      respawnCheckpoint();
+    }
+  },[paused,evaluate,checkpointChoice,world,traceFrames]);
   const selectedReplay=replayCursor>=0?timeline[replayCursor]:null;
   const playable=world.objects.filter(o=>o.body!=='none').length;
   const rules=world.gameplay||null;
@@ -216,6 +238,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
                 sceneKey={sceneKey} playerSpawn={respawnAt} walkMode={true}
                 gameplay={rules} gameplayProgress={gameSession} onPlayerPosition={onPlayerPosition}
                 onMotionStatus={onMotionStatus} virtualControls={virtualControls}
+                onGamepadStatus={setGamepadConnected} onGamepadAction={onGamepadAction}
                 onStats={setFps} onStatus={setRuntime}/>
             </Suspense>
             <div className="pixWorldOverlay" aria-label="Touch-friendly movement and interaction overlay">
@@ -292,6 +315,20 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
             </div>}
             {gameSession.won&&<div className="pixWorldVictory" role="status">WORLD COMPLETE · {rules.goal.message}</div>}
           </section>}
+          <section className="pixWorldControllerPanel">
+            <h3>RUNG 10 / CONTROLLER INPUT</h3>
+            <div className="pixWorldPadState"><span className={gamepadConnected?'connected':''}>
+              {gamepadConnected?'● STANDARD GAMEPAD CONNECTED':'○ CONTROLLER NOT DETECTED'}</span>
+            </div>
+            <p>Connect an Xbox-compatible or other browser-supported <b>standard-mapped controller</b>, then press a button to activate browser detection.</p>
+            <div className="pixWorldControllerKeys">
+              <span><b>Left stick / D-pad</b> Move</span><span><b>Right stick</b> Orbit camera</span>
+              <span><b>A</b> Jump</span><span><b>X</b> Interact</span>
+              <span><b>RB / L3</b> Sprint</span><span><b>Y</b> Selected checkpoint</span>
+              <span><b>Start</b> Pause / Resume</span>
+            </div>
+            <p>Controller inputs release on disconnect. Unsupported mappings remain inactive; keyboard and touch controls still work.</p>
+          </section>
           <section><h3>PLAYER CONTROLS</h3><div className="pixWorldActions">
             <button type="button" onClick={()=>setPaused(v=>!v)}>{paused?'▶ Resume World':'Ⅱ Pause World'}</button>
             <button type="button" onClick={reset}>↻ Restart / Respawn</button>
@@ -308,11 +345,20 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
               <span>{worldDigest?'WORLD SHA-256 · '+worldDigest.slice(0,14)+'…':'VALIDATING WORLD DIGEST…'}</span>
               <strong>{hasLocalSave?'LOCAL SAVE FOUND':'NO LOCAL SAVE'}</strong>
             </div>
+            <label className="pixWorldCheckpointChoice">Checkpoint to restore
+              <select value={checkpointChoice} disabled={!checkpoints.length}
+                onChange={e=>setCheckpointChoice(e.target.value)}>
+                <option value="latest">Most recent activated checkpoint</option>
+                {checkpoints.map(cp=><option key={cp.frameIndex} value={String(cp.frameIndex)}>
+                  {cp.name} · Event {cp.frameIndex+1}
+                </option>)}
+              </select>
+            </label>
             <div className="pixWorldActions">
               <button type="button" disabled={!worldDigest} onClick={saveLocal}>▣ Save Browser Progress</button>
               <button type="button" disabled={!worldDigest||!hasLocalSave} onClick={loadLocal}>▶ Resume Browser Save</button>
               <button type="button" disabled={!checkpoint} onClick={respawnCheckpoint}>
-                ◉ Respawn at {checkpoint?.id||'Checkpoint'}
+                ◉ Respawn at {checkpoint?.name||'Checkpoint'}
               </button>
               <button type="button" disabled={!worldDigest} onClick={exportSave}>⇩ Export Save JSON</button>
               <button type="button" disabled={!worldDigest} onClick={()=>saveChooser.current?.click()}>⇧ Import Matching Save</button>
@@ -321,7 +367,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
               </button>
             </div>
             <input hidden ref={saveChooser} type="file" accept=".json,application/json" onChange={importSave}/>
-            <p>Restart begins a fresh run without deleting your saved slot. Checkpoint respawn rolls back later events, including doors and pickups.</p>
+            <p>Restart begins a fresh run without deleting your saved slot. Choose any previously activated checkpoint, then roll back later events, doors and pickups. Controller Y performs the selected respawn.</p>
           </section>
           <section className="pixWorldReplayPanel">
             <h3>EVENT TRACE / REPLAY</h3>
