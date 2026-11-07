@@ -5,6 +5,9 @@ import {resolveReleaseExtras} from './release-extras.js';
 import {emptyBundledNotices,validateBundledNotices} from './license-notices.js';
 import {firstStandardGamepad} from './standard-gamepad.js';
 import {neutralTitlePad,readTitlePad,titlePadEdges,nextTitleFocus} from './title-gamepad.js';
+import {digestPlayableWorld,PLAYTEST_MAX_BYTES} from './playtest-save.js';
+import {inspectBrowserSave,importTitleSaveJson,requireFreshRunConfirmation} from './published-save-menu.js';
+import {downloadJson} from './forge-world.js';
 import './published-game.css';
 
 // The standalone game's title and credits never start physics or edit saves.
@@ -13,6 +16,58 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
   const extras=useMemo(()=>resolveReleaseExtras(rawExtras),[rawExtras]);
   const notices=useMemo(()=>validateBundledNotices(rawNotices??emptyBundledNotices()),[rawNotices]);
   const [started,setStarted]=useState(false);
+  const [launchSave,setLaunchSave]=useState(null);
+  const [browserSave,setBrowserSave]=useState({status:'checking',save:null,summary:null,reason:'Checking browser-local saved progress…',otherSlots:0});
+  const [worldDigest,setWorldDigest]=useState('');
+  const [importedSave,setImportedSave]=useState(null);
+  const [saveChoice,setSaveChoice]=useState('browser');
+  const [saveMessage,setSaveMessage]=useState('');
+  const [newRunConfirmation,setNewRunConfirmation]=useState(false);
+  const savePicker=useRef(null);
+  useEffect(()=>{
+    if(started)return;
+    let active=true;
+    setBrowserSave({status:'checking',save:null,summary:null,reason:'Checking browser-local saved progress…',otherSlots:0});
+    digestPlayableWorld(world).then(digest=>{
+      if(!active)return;
+      setWorldDigest(digest);
+      let storage=null;
+      try{storage=window.localStorage;}catch{/* File origin may prohibit local storage. */}
+      const result=inspectBrowserSave(world,digest,storage);
+      setBrowserSave(result);
+      setSaveMessage(result.status==='invalid'?result.reason:'');
+    }).catch(error=>{
+      if(active){
+        setWorldDigest('');
+        setBrowserSave({status:'unavailable',save:null,summary:null,otherSlots:0,
+          reason:'Cannot verify world digest for local saves: '+error.message});
+      }
+    });
+    return()=>{active=false;};
+  },[world,started]);
+  const selectedSave=saveChoice==='imported'?importedSave:browserSave.save;
+  function beginAdventure(save=null){
+    setLaunchSave(save);setNewRunConfirmation(false);setStarted(true);
+  }
+  function startFresh(){
+    if(requireFreshRunConfirmation(browserSave.status)){
+      setNewRunConfirmation(true);setSaveMessage('New Adventure starts at the beginning without deleting any browser save. Confirm to continue.');
+    }else beginAdventure(null);
+  }
+  async function importSave(event){
+    const file=event.target.files?.[0];event.target.value='';if(!file)return;
+    try{
+      if(!worldDigest)throw Error('World verification is not ready.');
+      if(file.size>PLAYTEST_MAX_BYTES)throw Error('Save file exceeds the 64 KB limit.');
+      const save=importTitleSaveJson(await file.text(),world,worldDigest);
+      setImportedSave(save);setSaveChoice('imported');setSaveMessage('Imported save verified for this exact world. It is held in memory only.');
+    }catch(error){setSaveMessage('Import rejected: '+error.message);}
+  }
+  function exportBrowserSave(){
+    if(browserSave.status!=='ready'||!browserSave.save)return;
+    downloadJson(browserSave.save,'pixelforge-save-backup.v1.json');
+    setSaveMessage('Downloaded a copy of the browser save; its original slot is unchanged.');
+  }
   const [creditsOpen,setCreditsOpen]=useState(false);
   const [gamepadConnected,setGamepadConnected]=useState(false);
   const [settings,setSettings]=useState({
@@ -26,6 +81,8 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
   const closeCredits=()=>{setCreditsOpen(false);selectedIndex.current=1;};
   const backToTitle=()=>{
     if(document.fullscreenElement)void document.exitFullscreen?.().catch(()=>{});
+    setImportedSave(null);setSaveChoice('browser');setLaunchSave(null);
+    setNewRunConfirmation(false);setSaveMessage('');
     setStarted(false);
   };
   useEffect(()=>{
@@ -48,11 +105,19 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
           if(edges.back||edges.confirm)closeCredits();
         }else{
           if(edges.up||edges.down){
-            const nextIndex=nextTitleFocus(selectedIndex.current,edges.down?1:-1,5);
-            selectedIndex.current=nextIndex;
-            menuRefs.current[nextIndex]?.focus();
+            const available=menuRefs.current.map((el,i)=>el&&!el.disabled?i:-1)
+              .filter(i=>i>=0);
+            if(available.length){
+              const current=Math.max(0,available.indexOf(selectedIndex.current));
+              const nextIndex=nextTitleFocus(current,edges.down?1:-1,available.length);
+              selectedIndex.current=available[nextIndex];
+              menuRefs.current[selectedIndex.current]?.focus();
+            }
           }
-          if(edges.confirm)menuRefs.current[selectedIndex.current]?.click();
+          if(edges.confirm){
+            const target=menuRefs.current[selectedIndex.current];
+            if(target&&!target.disabled)target.click();
+          }
         }
       }
       frame=requestAnimationFrame(tick);
@@ -62,14 +127,21 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
   },[started,creditsOpen]);
   useEffect(()=>{
     if(creditsOpen)closeCreditsRef.current?.focus();
-    else if(!started)menuRefs.current[selectedIndex.current]?.focus();
+    else if(!started){
+      const chosen=menuRefs.current[selectedIndex.current];
+      if(chosen&&!chosen.disabled)chosen.focus();
+      else{
+        const first=menuRefs.current.find(el=>el&&!el.disabled);
+        first?.focus();
+      }
+    }
   },[creditsOpen,started]);
   const palette={'--pixReleaseAccent':release.accent};
   if(started){
     return <div className={'pixPublishedFrame'+(settings.reducedMotion?' pixPublishedReducedMotion':'')+
       (settings.touchControls?' pixPublishedShowTouch':'')+
       (settings.showPlaytestTools?' pixPublishedShowTools':'')} style={palette}>
-      <WorldPlayer key={world.title} initialWorld={world} standalone
+      <WorldPlayer key={world.title} initialWorld={world} standalone initialSave={launchSave}
         release={release} publishedSettings={settings} onExit={backToTitle}/>
     </div>;
   }
