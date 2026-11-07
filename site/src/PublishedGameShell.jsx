@@ -20,7 +20,7 @@ export default function PublishedGameShell({world,release:rawRelease}){
   };
   const palette={'--pixReleaseAccent':release.accent};
   if(started){
-    return <div className={'pixPublishedFrame'+(settings.reducedMotion?' pixPublishedReducedMotion':'')}
+    return <div className={'pixPublishedFrame'+(settings.reducedMotion?' pixPublishedReducedMotion':'')+(settings.touchControls?' pixPublishedShowTouch':'')+(settings.showPlaytestTools?' pixPublishedShowTools':'')}
       style={palette}>
       <WorldPlayer key={world.title} initialWorld={world} standalone
         release={release} publishedSettings={settings} onExit={backToTitle}/>
