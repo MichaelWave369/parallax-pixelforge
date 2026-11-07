@@ -38,6 +38,6 @@ export function doorDissolvePose(elapsed){
   if(!finite(elapsed))throw Error('Invalid door animation time.');
   const t=clamp(elapsed/DOOR_DISSOLVE_SECONDS,0,1);
   const ease=t*t*(3-2*t);
-  return {opacity:1-ease,scaleY:Math.max(.04,1-.96*ease),
+  return {opacity:1-ease,scaleY:t>=1?.04:Math.max(.04,1-.96*ease),
     lift:.45*ease,emissive:ease*.55,done:t>=1};
 }
