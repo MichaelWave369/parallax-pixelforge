@@ -4,7 +4,6 @@ import {execFileSync} from 'node:child_process';
 import {readFile,readdir,rm,writeFile,stat} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-import {init as initModuleLexer,parse as parseModuleImports} from 'es-module-lexer';
 
 const site=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.resolve(site,'../dist');
@@ -45,8 +44,11 @@ export function makeOfflineTemplate(js,css){
 // "import()". Dynamic and static code imports must both be absent; import.meta
 // alone is not an external module fetch.
 export async function assertNoExternalImports(js){
-  await initModuleLexer;
-  const [imports]=parseModuleImports(js);
+  // Site tests run before npm install; load build-only parser just before
+  // packaging, after dependencies have been installed by CI.
+  const {init,parse}=await import('es-module-lexer');
+  await init;
+  const [imports]=parse(js);
   const external=imports.filter(record=>record.d!==-2);
   if(external.length)
     throw Error('Offline runtime still contains module imports ('+external.length+').');
