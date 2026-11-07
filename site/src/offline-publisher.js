@@ -1,6 +1,7 @@
 // Rung 13: embed validated playable-world DATA into a trusted,
  // build-produced single-HTML offline player. World strings never become code.
 import {validatePlayableWorld,PLAYABLE_MAX_BYTES} from './playable-world.js';
+import {RELEASE_TOKEN,resolveReleaseMetadata,safeEmbeddedReleaseJson} from './release-metadata.js';
 
 export const OFFLINE_WORLD_TOKEN='__PIXELFORGE_WORLD_JSON__';
 export const OFFLINE_TEMPLATE_MAX_BYTES=12_000_000;
@@ -18,16 +19,21 @@ export function safeEmbeddedWorldJson(world){
     .replace(/>/g,'\\u003e').replace(/\u2028/g,'\\u2028')
     .replace(/\u2029/g,'\\u2029');
 }
-export function buildOfflineHtml(world,template){
+export function buildOfflineHtml(world,template,release=null){
   if(typeof template!=='string'||!template.trim()||
     bytes(template)>OFFLINE_TEMPLATE_MAX_BYTES)
     throw Error('Offline player template is missing or over the 12 MB limit.');
   if(!template.includes('<script type="application/json" id="pixelforge-embedded-world">')||
       !template.includes('connect-src \'none\'')||
       !template.includes('script type="module"')||
-      template.split(OFFLINE_WORLD_TOKEN).length!==2)
+      !template.includes('<script type="application/json" id="pixelforge-embedded-release">')||
+      template.split(OFFLINE_WORLD_TOKEN).length!==2||
+      template.split(RELEASE_TOKEN).length!==2)
     throw Error('Offline player template lacks the expected entry, CSP or single world slot.');
-  const packaged=template.replace(OFFLINE_WORLD_TOKEN,safeEmbeddedWorldJson(world));
+  const validated=validatePlayableWorld(world);
+  const packaged=template
+    .replace(OFFLINE_WORLD_TOKEN,safeEmbeddedWorldJson(validated))
+    .replace(RELEASE_TOKEN,safeEmbeddedReleaseJson(release,validated.title));
   if(bytes(packaged)>OFFLINE_HTML_MAX_BYTES)
     throw Error('Published adventure exceeds the 12.2 MB HTML output limit.');
   return packaged;
@@ -37,7 +43,7 @@ export function offlineFilename(title){
     .replace(/^-|-$/g,'').slice(0,55).replace(/-$/,'');
   return (slug||'pixelforge-world')+'-offline.html';
 }
-export async function downloadOfflineWorld(world){
+export async function downloadOfflineWorld(world,release=null){
   const validated=validatePlayableWorld(world);
   // Fetch only the build-owned template at the current PixelForge origin.
   // No CDN, user-supplied URL, plugin, remote compiler or privileged bridge.
@@ -51,15 +57,16 @@ export async function downloadOfflineWorld(world){
   if(length>OFFLINE_TEMPLATE_MAX_BYTES)
     throw Error('Offline player template is larger than the publish limit.');
   const template=await response.text();
-  const html=buildOfflineHtml(validated,template);
+  const metadata=resolveReleaseMetadata(release,validated.title);
+  const html=buildOfflineHtml(validated,template,metadata);
   const blob=new Blob([html],{type:'text/html;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   try{
     const anchor=document.createElement('a');
-    anchor.href=url;anchor.download=offlineFilename(validated.title);
+    anchor.href=url;anchor.download=offlineFilename(metadata.title);
     document.body.appendChild(anchor);anchor.click();anchor.remove();
   }finally{
     setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
-  return {filename:offlineFilename(validated.title),bytes:blob.size};
+  return {filename:offlineFilename(metadata.title),bytes:blob.size};
 }
