@@ -58,7 +58,8 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     [onPlacementRequest,onPlacementStatus]);
   useImperativeHandle(ref,()=>({
     spawn:shape=>apiRef.current?.spawn(shape),
-    reset:()=>apiRef.current?.reset()
+    reset:()=>apiRef.current?.reset(),
+    getPlayerPosition:()=>apiRef.current?.getPlayerPosition?.()
   }),[]);
   useEffect(()=>{
     let cancelled=false,renderer=null,controls=null,resizeObserver=null,world=null,scene=null;
@@ -346,6 +347,11 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
         apiRef.current={
           spawn:shape=>spawn(shape,false),
           reset:()=>makeWorld(false),
+          getPlayerPosition:()=>{
+            if(!player)return null;
+            const p=player.body.translation();
+            return [p.x,p.y,p.z];
+          },
           loadScene:frame=>makeWorld(frame!==false),
           syncGizmo,
           buildGameplayMarkers,

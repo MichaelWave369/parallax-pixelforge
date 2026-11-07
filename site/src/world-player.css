@@ -80,3 +80,27 @@
 @media(prefers-reduced-motion:reduce){
  .pixWorldTouchPad button,.pixWorldTouchActions button{transition:none}
 }
+
+/* Rung 9: bounded, source-world-bound browser save and deterministic event replay. */
+.pixWorldSavePanel{border-color:#6c9c90!important;background:linear-gradient(140deg,#173844,#18233b)!important}
+.pixWorldSaveBadge{display:flex;justify-content:space-between;align-items:center;gap:8px;
+ flex-wrap:wrap;padding:10px;margin:10px 0;border:1px solid #3e7481;border-radius:8px;
+ background:#102d39;font:850 9px ui-monospace,monospace;color:#a1ded7}
+.pixWorldSaveBadge strong{color:#ffda9a;letter-spacing:.05em}
+.pixWorldSavePanel .pixWorldActions button:disabled{opacity:.45;cursor:not-allowed}
+.pixWorldSavePanel .pixWorldActions .pixWorldDeleteSave{border-color:#996376;
+ background:#382839;color:#ffccd9}
+.pixWorldReplayPanel{border-color:#7669a5!important;background:linear-gradient(140deg,#292444,#14203c)!important}
+.pixWorldReplayControls{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pixWorldReplayControls button{border:1px solid #7c84b2;border-radius:7px;padding:9px 10px;
+ background:#292f5b;color:#e7eaff;font-size:10px;font-weight:850;cursor:pointer}
+.pixWorldReplayControls button:disabled{opacity:.35;cursor:not-allowed}
+.pixWorldReplayControls span{font:900 10px ui-monospace,monospace;color:#a6e7d6}
+.pixWorldReplayStep{margin-top:10px;padding:11px;border-radius:8px;border:1px solid #51628e;background:#161e3f}
+.pixWorldReplayStep small{color:#97eddd;font:850 9px ui-monospace,monospace;line-height:1.6}
+.pixWorldReplayStep p{color:#f5dfb0!important;margin:8px 0 0!important}
+.pixWorldReplayTimeline{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;max-height:140px;overflow-y:auto}
+.pixWorldReplayTimeline button{min-width:30px;height:30px;padding:4px;border:1px solid #586b98;
+ border-radius:6px;background:#263259;color:#cfddf2;font:850 10px ui-monospace,monospace;cursor:pointer}
+.pixWorldReplayTimeline button.active{background:#346b65;border-color:#8cffd1;color:#fffde8}
+.pixWorldReplayTimeline button:focus-visible{outline:2px solid #b1ffe7;outline-offset:2px}
