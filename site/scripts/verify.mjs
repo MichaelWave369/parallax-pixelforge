@@ -40,8 +40,12 @@ assert.match(publisher,/script-src 'unsafe-inline' 'wasm-unsafe-eval'/,
   'Offline player should allow local WASM but not arbitrary remote scripts');
 assert.match(publisher,/<script type="module">/,'Offline player module runtime not inlined');
 assert.ok(Buffer.byteLength(publisher,'utf8')<=12_000_000,'Offline HTML template exceeds 12 MB cap');
-assert.doesNotMatch(publisher,/<script[^>]+src=/i,'Offline player may not import external scripts');
-assert.doesNotMatch(publisher,/<link[^>]+stylesheet/i,'Offline player may not import external CSS');
+// Do not scan bundled JS strings for HTML-looking text. Check only actual
+// document markup before the inline module; React error strings mention
+// <link> and <script> but do not create network dependencies.
+const offlineShell=publisher.split('<script type="module">')[0];
+assert.doesNotMatch(offlineShell,/<script[^>]+src=/i,'Offline player may not import external scripts');
+assert.doesNotMatch(offlineShell,/<link[^>]+stylesheet/i,'Offline player may not import external CSS');
 for(const banned of ['local-assets','node_modules','.github','.env','site']) {
   try {await stat(path.join(out,banned));throw new Error('Private/developer path in published artifact: '+banned);}
   catch(error){if(error.code!=='ENOENT')throw error;}
