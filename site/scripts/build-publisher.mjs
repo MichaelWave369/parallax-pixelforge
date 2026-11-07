@@ -19,8 +19,15 @@ function protectRawScript(source){
 export function makeOfflineTemplate(js,css){
   if(typeof js!=='string'||!js.trim()||typeof css!=='string'||!css.trim())
     throw Error('Cannot publish an empty runtime or stylesheet.');
-  if(/\bimport\s*\(/.test(js)||/^\s*import\s/m.test(js)||/\bfrom\s*['"]\./.test(js))
-    throw Error('Offline runtime still contains module imports.');
+  const importPatterns=[/\bimport\s*\(/,/^\s*import\s/m,/\bfrom\s*['"]\./];
+  for(const pattern of importPatterns){
+    const hit=pattern.exec(js);
+    if(hit){
+      const context=js.slice(Math.max(0,hit.index-90),Math.min(js.length,hit.index+130))
+        .replace(/[\r\n]/g,' ');
+      throw Error('Offline runtime still contains module imports: '+context);
+    }
+  }
   if(/url\s*\(\s*(['"]?)(?:https?:|\/\/|\/|\.\/|\.\.\/)/i.test(css))
     throw Error('Standalone stylesheet references external or local assets.');
   const safeCss=css.replace(/<\/style/gi,'<\\/style');
