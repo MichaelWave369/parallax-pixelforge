@@ -4,6 +4,7 @@ import {execFileSync} from 'node:child_process';
 import {readFile,readdir,rm,writeFile,stat} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {init as initModuleLexer,parse as parseModuleImports} from 'es-module-lexer';
 
 const site=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.resolve(site,'../dist');
@@ -19,15 +20,6 @@ function protectRawScript(source){
 export function makeOfflineTemplate(js,css){
   if(typeof js!=='string'||!js.trim()||typeof css!=='string'||!css.trim())
     throw Error('Cannot publish an empty runtime or stylesheet.');
-  const importPatterns=[/\bimport\s*\(/,/^\s*import\s/m,/\bfrom\s*['"]\./];
-  for(const pattern of importPatterns){
-    const hit=pattern.exec(js);
-    if(hit){
-      const context=js.slice(Math.max(0,hit.index-90),Math.min(js.length,hit.index+130))
-        .replace(/[\r\n]/g,' ');
-      throw Error('Offline runtime still contains module imports: '+context);
-    }
-  }
   if(/url\s*\(\s*(['"]?)(?:https?:|\/\/|\/|\.\/|\.\.\/)/i.test(css))
     throw Error('Standalone stylesheet references external or local assets.');
   const safeCss=css.replace(/<\/style/gi,'<\\/style');
@@ -49,6 +41,16 @@ export function makeOfflineTemplate(js,css){
 </body>
 </html>`;
 }
+// Parse actual ESM syntax, not React/Three's string literals mentioning
+// "import()". Dynamic and static code imports must both be absent; import.meta
+// alone is not an external module fetch.
+export async function assertNoExternalImports(js){
+  await initModuleLexer;
+  const [imports]=parseModuleImports(js);
+  const external=imports.filter(record=>record.d!==-2);
+  if(external.length)
+    throw Error('Offline runtime still contains module imports ('+external.length+').');
+}
 export async function buildOfflineTemplate(){
   // Site main build has already emitted dist/index.html. This second build
   // writes to a temporary directory and will not touch existing Portal/Studios.
@@ -61,6 +63,7 @@ export async function buildOfflineTemplate(){
     readFile(path.join(scratch,'runtime.js'),'utf8'),
     readFile(path.join(scratch,'runtime.css'),'utf8')
   ]);
+  await assertNoExternalImports(js);
   const html=makeOfflineTemplate(js,css);
   if(Buffer.byteLength(html,'utf8')>maxTemplateBytes)
     throw Error('Offline player template exceeds the 12 MB safety budget.');
