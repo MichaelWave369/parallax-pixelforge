@@ -38,7 +38,7 @@ test('title text with HTML markup, scripts and ampersands remains inert release 
   assert.ok(embedded.includes('\\u003c/script\\u003e'));
   assert.equal(JSON.parse(embedded).title,malicious);
   const html=buildOfflineHtml(world,template(),release);
-  assert.equal((html.match(/<script\\b/g)||[]).length,3);
+  assert.equal((html.match(/<script\b/g)||[]).length,3);
   assert.deepEqual(JSON.parse(extract(html,'pixelforge-embedded-release')),release);
 });
 test('defaults are safe for Rung 13 worlds and empty caller customization',()=>{
@@ -57,7 +57,7 @@ test('strict release schema rejects executable fields, wrong version and unexpec
   assert.throws(()=>validateReleaseMetadata({...defaultRelease,format:'other'}),/Unsupported/);
   assert.throws(()=>validateReleaseMetadata({...defaultRelease,accent:'red'}),/hex color/);
   assert.throws(()=>validateReleaseMetadata({...defaultRelease,tagline:''}),/nonempty/);
-  assert.throws(()=>validateReleaseMetadata({...defaultRelease,creator:' X\\nY '}),/control/);
+  assert.throws(()=>validateReleaseMetadata({...defaultRelease,creator:' X\nY '}),/control/);
   assert.throws(()=>validateReleaseMetadata({...defaultRelease,title:'x'.repeat(101)}),/bounded/);
   assert.throws(()=>validateReleaseMetadata({...defaultRelease,tagline:'x'.repeat(161)}),/bounded/);
 });
