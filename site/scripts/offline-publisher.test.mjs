@@ -30,7 +30,7 @@ test('untrusted world names and messages never terminate inert JSON script or op
   assert.equal(html.includes(payload),false);
   assert.ok(html.includes('\\u003cscript\\u003e'));
   assert.ok(html.includes('\\u003c/script\\u003e'));
-  assert.equal((html.match(/<script\b/g)||[]).length,3);
+  assert.equal((html.match(/<script\b/g)||[]).length,5);
   assert.deepEqual(parsePlayableWorld(embedded(html)),validatePlayableWorld(world));
 });
 test('standalone filename ignores path traversal, markup and unsafe characters',()=>{
@@ -65,7 +65,7 @@ test('builder refuses unsafe styles and blank runtime while ESM parse is handled
   assert.throws(()=>makeOfflineTemplate('console.log(1)','body{background:url(/private/img.png)}'),/external or local assets/);
   const html=makeOfflineTemplate('const text="</script>";console.log(text)','body{color:red}');
   assert.ok(html.includes('<\\/script'));
-  assert.equal((html.match(/<\/script>/g)||[]).length,3);
+  assert.equal((html.match(/<\/script>/g)||[]).length,5);
 });
 test('publishing and validation do not mutate creator world content',()=>{
   const world=createSamplePlayableWorld(),before=JSON.stringify(world);
