@@ -4,12 +4,16 @@ import {execFileSync} from 'node:child_process';
 import {readFile,readdir,rm,writeFile,stat} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {collectRuntimeNotices} from './runtime-license-notices.mjs';
+import {emptyBundledNotices} from '../src/license-notices.js';
+import {escapeInertJson} from '../src/release-metadata.js';
 
 const site=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.resolve(site,'../dist');
 const scratch=path.join(output,'.publisher-work');
 const token='__PIXELFORGE_WORLD_JSON__';
 const releaseToken='__PIXELFORGE_RELEASE_JSON__';
+const extrasToken='__PIXELFORGE_EXTRAS_JSON__';
 const maxTemplateBytes=12_000_000;
 
 function protectRawScript(source){
@@ -17,7 +21,7 @@ function protectRawScript(source){
   // delimiters must still be escaped before insertion into an inline script.
   return source.replace(/<\/script/gi,'<\\/script');
 }
-export function makeOfflineTemplate(js,css){
+export function makeOfflineTemplate(js,css,notices=emptyBundledNotices()){
   if(typeof js!=='string'||!js.trim()||typeof css!=='string'||!css.trim())
     throw Error('Cannot publish an empty runtime or stylesheet.');
   if(/url\s*\(\s*(['"]?)(?:https?:|\/\/|\/|\.\/|\.\.\/)/i.test(css))
@@ -38,6 +42,8 @@ export function makeOfflineTemplate(js,css){
 <div id="root"></div>
 <script type="application/json" id="pixelforge-embedded-world">${token}</script>
 <script type="application/json" id="pixelforge-embedded-release">${releaseToken}</script>
+<script type="application/json" id="pixelforge-embedded-extras">${extrasToken}</script>
+<script type="application/json" id="pixelforge-embedded-notices">${escapeInertJson(notices)}</script>
 <script type="module">${protectRawScript(js)}</script>
 </body>
 </html>`;
@@ -68,7 +74,8 @@ export async function buildOfflineTemplate(){
     readFile(path.join(scratch,'runtime.css'),'utf8')
   ]);
   await assertNoExternalImports(js);
-  const html=makeOfflineTemplate(js,css);
+  const notices=await collectRuntimeNotices();
+  const html=makeOfflineTemplate(js,css,notices);
   if(Buffer.byteLength(html,'utf8')>maxTemplateBytes)
     throw Error('Offline player template exceeds the 12 MB safety budget.');
   await writeFile(path.join(output,'publisher-template.html'),html,'utf8');
