@@ -130,7 +130,8 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
   }
   function buildSave(){
     if(!worldDigest)throw Error('Waiting for validated world SHA-256 digest.');
-    return createPlaytestSave(world,worldDigest,lastPosition.current,traceRef.current);
+    const current=stage.current?.getPlayerPosition?.()||lastPosition.current;
+    return createPlaytestSave(world,worldDigest,current,traceRef.current);
   }
   function saveLocal(){
     try{
