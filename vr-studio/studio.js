@@ -1,4 +1,5 @@
 import {newWorld,parseWorld,validateWorld,addObject,editObject,removeObject,renameWorld,editWorldLighting,replaceWorldLighting,MAX_OBJECTS} from './world.js';
+import {buildPhiOSWorldIdentityManifest,encodePhiOSWorldIdentityManifest} from './phios-world-identity.js';
 import {exportSceneForEngine} from './engine-export.js';
 import {createGodotProjectPack,MAX_GODOT_PACK_BYTES} from './godot-package.js';
 import {exportUniversalGlb} from './universal-glb.js';
@@ -210,6 +211,13 @@ function download(name,raw,mime='application/json') {
 $('export').addEventListener('click',()=>safe(()=>{
   download('pixelforge-vr-world.v1.json',JSON.stringify(validateWorld(world),null,2)+'\n');
   status('Portable scene JSON exported. No assets or executable content included.');
+}));
+$('phiosIdentityExport').addEventListener('click',()=>safe(()=>{
+  // Never auto-mint an ID from the mutable title, scene ID or content hash.
+  // The operator supplies/reuses the ID, and no world or storage is modified.
+  const manifest=buildPhiOSWorldIdentityManifest(world,$('phiosProjectId').value.trim());
+  download('pixelforge-phios-project-identity.v0.1.json',encodePhiOSWorldIdentityManifest(manifest));
+  status('PhiOS identity-only sidecar download requested. Check the saved file; no project data, approvals or install rights transferred.');
 }));
 $('godotExport').addEventListener('click',()=>safe(()=>{
   const hasProxies=world.objects.some(object=>object.kind==='asset-proxy');
