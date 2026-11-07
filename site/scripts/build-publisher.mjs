@@ -9,6 +9,7 @@ const site=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.resolve(site,'../dist');
 const scratch=path.join(output,'.publisher-work');
 const token='__PIXELFORGE_WORLD_JSON__';
+const releaseToken='__PIXELFORGE_RELEASE_JSON__';
 const maxTemplateBytes=12_000_000;
 
 function protectRawScript(source){
@@ -36,6 +37,7 @@ export function makeOfflineTemplate(js,css){
 <body>
 <div id="root"></div>
 <script type="application/json" id="pixelforge-embedded-world">${token}</script>
+<script type="application/json" id="pixelforge-embedded-release">${releaseToken}</script>
 <script type="module">${protectRawScript(js)}</script>
 </body>
 </html>`;
