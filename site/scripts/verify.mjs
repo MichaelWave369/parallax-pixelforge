@@ -35,6 +35,8 @@ const publisher=await mustExist('publisher-template.html');
 assert.match(publisher,/<!doctype html>/i,'Missing offline HTML shell');
 assert.match(publisher,/<script type="application\/json" id="pixelforge-embedded-world">__PIXELFORGE_WORLD_JSON__<\/script>/,
   'Missing inert world-data publishing slot');
+assert.match(publisher,/<script type="application\/json" id="pixelforge-embedded-release">__PIXELFORGE_RELEASE_JSON__<\/script>/,
+  'Missing safe release metadata slot');
 assert.match(publisher,/connect-src 'none'/,'Offline player must disable network access');
 assert.match(publisher,/script-src 'unsafe-inline' 'wasm-unsafe-eval'/,
   'Offline player should allow local WASM but not arbitrary remote scripts');
