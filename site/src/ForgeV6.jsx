@@ -6,6 +6,8 @@ import {VR_SCENE_STORAGE_KEY,MAX_SCENE_BYTES,MAX_PROFILE_BYTES,sampleVrWorld,par
 import {applyGizmoTransform,DEFAULT_GIZMO_SNAP,GIZMO_SNAPS} from './vr-gizmo-contract.js';
 import {buildPlayableWorld} from './playable-world.js';
 import {downloadOfflineWorld} from './offline-publisher.js';
+import {defaultReleaseMetadata} from './release-metadata.js';
+import ReleaseMetadataEditor from './ReleaseMetadataEditor.jsx';
 import {MAX_PICKUPS,MAX_TRIGGERS,newGameplayRules,validateGameplayRules,
   addGameplayMarker,removeGameplayMarker,editGameplayMarker,markerPositionForObject} from './gameplay-rules.js';
 import {newEventGraph,addEventNode,addEventDoor,removeEventNode,updateEventNode,
@@ -90,6 +92,7 @@ export default function ForgeV6(){
   const [profileHistory,setProfileHistory]=useState({past:[],future:[]});
   const [placementKind,setPlacementKind]=useState(null);
   const [playablePreview,setPlayablePreview]=useState(null);
+  const [releaseDraft,setReleaseDraft]=useState(null);
   const [gameplayRules,setGameplayRules]=useState(null);
   const [gameRuleHistory,setGameRuleHistory]=useState({past:[],future:[]});
   const [ruleAnchor,setRuleAnchor]=useState('');
@@ -441,7 +444,8 @@ export default function ForgeV6(){
     try{
       if(!vrScene||!vrPhysicsProfile)throw Error('Load or build a validated VR scene and physics profile first.');
       const playable=buildPlayableWorld(vrScene,vrPhysicsProfile,vrHash,gravity,gameplayForExport);
-      const result=await downloadOfflineWorld(playable);
+      const result=await downloadOfflineWorld(playable,
+        releaseDraft??defaultReleaseMetadata(playable.title));
       setMessage('Published offline adventure: '+result.filename+'. It contains no private GLB mesh data or executable world scripts.');
     }catch(e){setMessage('Offline publish refused: '+e.message);}
   }
@@ -737,6 +741,8 @@ export default function ForgeV6(){
           </div>}
         </section>}
         {!showMap&&!physics&&workspace!=='Game Logic'&&<section className="forgeBridge forgePanel"><span className="forgeEyebrow">BRIDGED WORKSPACE / GRADUAL MIGRATION</span><h2>{LINK_PANELS[workspace]?.title||workspace}</h2><p>{LINK_PANELS[workspace]?.text||'This workflow remains in the existing PixelForge toolchain.'}</p><div className="forgeBridgeLinks">{(LINK_PANELS[workspace]?.links||[]).map(([label,path])=><ActionLink key={label} path={path}>{label}</ActionLink>)}</div>{workspace==='Build & Export'&&<>
+  <ReleaseMetadataEditor value={releaseDraft} onChange={setReleaseDraft}
+    worldTitle={vrScene?.title||'PixelForge Adventure'}/>
   <button onClick={exportDemo} type="button" className="forgePrimary">⇩ Export current demo world JSON</button>
   <button onClick={()=>void publishPlayable()} type="button" className="forgePrimary">⇩ Publish Current 3D World Offline (.html)</button>
 </>}</section>}
