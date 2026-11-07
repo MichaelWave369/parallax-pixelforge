@@ -5,6 +5,7 @@ import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 import {PLAYER_MOTION,horizontalMotion,canJump,doorDissolvePose} from './player-playability.js';
 import {readStandardGamepad,neutralGamepad,gamepadRisingEdges,firstStandardGamepad} from './standard-gamepad.js';
+import {GHOST_SAMPLE_INTERVAL_MS,ghostPoseAt} from './ghost-run.js';
 
 const FIXED_STEP=1/60;
 const MAX_BODIES=250;
@@ -13,7 +14,8 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     selectedObjectId=null,gizmoMode='inspect',gizmoSnap=null,onTransformCommit=null,sceneKey=null,
     placementKind=null,onPlacementRequest=null,onPlacementStatus=null,playerSpawn=null,
     gameplay=null,gameplayProgress=null,onPlayerPosition=null,
-    onMotionStatus=null,virtualControls=null,onGamepadStatus=null,onGamepadAction=null},ref) {
+    onMotionStatus=null,virtualControls=null,onGamepadStatus=null,onGamepadAction=null,
+    ghostRun=null,showGhost=false,ghostReplaySerial=0,recordGhost=false,onGhostSample=null},ref) {
   const mountRef=useRef(null),apiRef=useRef(null),pausedRef=useRef(paused),gravityRef=useRef(gravity);
   const statsRef=useRef(onStats),statusRef=useRef(onStatus);
   const sceneObjectsRef=useRef(sceneObjects),selectionRef=useRef(onObjectClick),walkRef=useRef(walkMode);
@@ -24,6 +26,8 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
   const gameplayRef=useRef(gameplay),progressRef=useRef(gameplayProgress),positionCallbackRef=useRef(onPlayerPosition);
   const motionCallbackRef=useRef(onMotionStatus),virtualRef=useRef(virtualControls);
   const gamepadStatusRef=useRef(onGamepadStatus),gamepadActionRef=useRef(onGamepadAction);
+  const ghostRunRef=useRef(ghostRun),showGhostRef=useRef(showGhost),recordGhostRef=useRef(recordGhost);
+  const ghostSampleRef=useRef(onGhostSample);
   const jumpQueueRef=useRef(false),jumpSerialRef=useRef(virtualControls?.jumpSerial||0);
   const [error,setError]=useState('');
   useEffect(()=>{pausedRef.current=paused;apiRef.current?.syncGizmo();},[paused]);
@@ -43,6 +47,16 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
   useEffect(()=>{motionCallbackRef.current=onMotionStatus;},[onMotionStatus]);
   useEffect(()=>{gamepadStatusRef.current=onGamepadStatus;gamepadActionRef.current=onGamepadAction;},
     [onGamepadStatus,onGamepadAction]);
+  useEffect(()=>{
+    ghostRunRef.current=ghostRun;showGhostRef.current=showGhost;
+    apiRef.current?.syncGhost?.();
+  },[ghostRun,showGhost]);
+  useEffect(()=>{apiRef.current?.restartGhost?.();},[ghostReplaySerial]);
+  useEffect(()=>{
+    recordGhostRef.current=recordGhost;
+    apiRef.current?.resetGhostRecordingClock?.();
+  },[recordGhost]);
+  useEffect(()=>{ghostSampleRef.current=onGhostSample;},[onGhostSample]);
   useEffect(()=>{
     virtualRef.current=virtualControls;
     const serial=virtualControls?.jumpSerial||0;
@@ -69,6 +83,41 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
     let cancelled=false,renderer=null,controls=null,resizeObserver=null,world=null,scene=null;
     let dynamic=[],environment=[],canvas=null,player=null,gizmo=null,outline=null,ghost=null;
     let gameplayMeshes=[],positionReportElapsed=0;
+    let ghostAvatar=null,ghostPath=null,ghostClockMs=0;
+    let ghostCaptureMs=0,ghostCaptureAccumulator=0;
+    const clearGhost=()=>{
+      if(ghostAvatar){
+        scene?.remove(ghostAvatar);
+        ghostAvatar.geometry.dispose();ghostAvatar.material.dispose();
+        ghostAvatar=null;
+      }
+      if(ghostPath){
+        scene?.remove(ghostPath);
+        ghostPath.geometry.dispose();ghostPath.material.dispose();
+        ghostPath=null;
+      }
+    };
+    const syncGhost=()=>{
+      clearGhost();
+      if(!scene||!showGhostRef.current||!ghostRunRef.current)return;
+      const run=ghostRunRef.current;
+      ghostAvatar=new THREE.Mesh(new THREE.CapsuleGeometry(.32,1,6,10),
+        new THREE.MeshBasicMaterial({color:0x83f7f0,transparent:true,
+          opacity:.36,depthWrite:false,wireframe:true}));
+      ghostAvatar.renderOrder=4;
+      scene.add(ghostAvatar);
+      const points=run.samples.map(sample=>new THREE.Vector3(...sample.position));
+      if(points.length>1){
+        ghostPath=new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints(points),
+          new THREE.LineBasicMaterial({color:0x62eade,transparent:true,opacity:.54,depthWrite:false})
+        );
+        scene.add(ghostPath);
+      }
+      ghostClockMs=0;
+      const first=ghostPoseAt(run,0);
+      ghostAvatar.position.set(...first.position);
+    };
     const doorBodies=new Map();
     const syncDoorColliders=()=>{
       if(!world||!gameplayRef.current?.graph)return;
@@ -272,7 +321,9 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
         const makeWorld=(frame=true)=>{
           if(gizmo)gizmo.detach();
           clearGameplayMarkers();
+          clearGhost();
           doorBodies.clear();
+          ghostClockMs=0;ghostCaptureMs=0;ghostCaptureAccumulator=0;
           held.clear();jumpQueueRef.current=false;
           disposeOutline();
           clearDynamic();
@@ -302,6 +353,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
           }
           syncGizmo();
           buildGameplayMarkers();
+          syncGhost();
           positionReportElapsed=0;
           statsRef.current?.({fps:0,bodies:dynamic.length});
         };
@@ -360,6 +412,9 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
           syncGizmo,
           buildGameplayMarkers,
           syncGameplayMarkers,
+          syncGhost,
+          restartGhost:()=>{ghostClockMs=0;},
+          resetGhostRecordingClock:()=>{ghostCaptureMs=0;ghostCaptureAccumulator=0;},
           cancelTransform:()=>{
             if(!gizmo?.dragging)return false;
             dragStarted=false;
@@ -541,6 +596,24 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
             }
           }
           if(!pausedRef.current){
+            if(recordGhostRef.current&&player){
+              ghostCaptureMs+=dt*1000;
+              ghostCaptureAccumulator+=dt*1000;
+              if(ghostCaptureAccumulator>=GHOST_SAMPLE_INTERVAL_MS){
+                ghostCaptureAccumulator%=GHOST_SAMPLE_INTERVAL_MS;
+                const p=player.body.translation();
+                ghostSampleRef.current?.({
+                  t:Math.round(ghostCaptureMs),
+                  position:[p.x,p.y,p.z],
+                  grounded:motionState.grounded
+                });
+              }
+            }
+            if(ghostAvatar&&ghostRunRef.current){
+              ghostClockMs+=dt*1000;
+              const pose=ghostPoseAt(ghostRunRef.current,ghostClockMs);
+              ghostAvatar.position.set(...pose.position);
+            }
             for(const entry of doorBodies.values()){
               if(!entry.opening)continue;
               entry.elapsed+=dt;
@@ -589,6 +662,7 @@ function PhysicsStage({paused=false,gravity=-9.81,onStats,onStatus,sceneObjects=
       if(ghost){scene?.remove(ghost);ghost.geometry.dispose();ghost.material.dispose();}
       if(scene)disposeOutline();
       clearGameplayMarkers();
+      clearGhost();
       if(controls)controls.dispose();
       if(scene) {
         clearDynamic();
