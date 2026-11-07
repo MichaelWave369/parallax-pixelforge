@@ -4,6 +4,10 @@ import {PLAYABLE_MAX_BYTES,createSamplePlayableWorld,parsePlayableWorld,validate
 import {advanceGameplaySession,newGameplaySession} from './gameplay-rules.js';
 import {dependenciesMet} from './event-graph.js';
 import {
+  GHOST_MAX_BYTES,GHOST_MAX_SAMPLES,appendGhostSample,ghostStorageKey,
+  validateGhostRun,createGhostRun,parseGhostRun,analyzeGhostRun
+} from './ghost-run.js';
+import {
   PLAYTEST_MAX_BYTES,digestPlayableWorld,playtestStorageKey,
   appendPlaytestFrame,replayPlaytestTrace,createPlaytestSave,parsePlaytestSave,
   lastPlaytestCheckpoint,listPlaytestCheckpoints,playtestCheckpointAt
@@ -26,6 +30,12 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
   const [replayCursor,setReplayCursor]=useState(-1);
   const [checkpointChoice,setCheckpointChoice]=useState('latest');
   const [gamepadConnected,setGamepadConnected]=useState(false);
+  const [recordGhost,setRecordGhost]=useState(false);
+  const [ghostRun,setGhostRun]=useState(null);
+  const [showGhost,setShowGhost]=useState(false);
+  const [ghostReplaySerial,setGhostReplaySerial]=useState(0);
+  const [ghostSampleCount,setGhostSampleCount]=useState(0);
+  const [hasLocalGhost,setHasLocalGhost]=useState(false);
   const [gameSession,setGameSession]=useState(newGameplaySession);
   const [activity,setActivity]=useState([]);
   const [motion,setMotion]=useState({grounded:false,speed:0,sprinting:false,
@@ -33,25 +43,112 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
   const [virtualControls,setVirtualControls]=useState({right:0,forward:0,sprint:false,jumpSerial:0});
   const gameRef=useRef(gameSession),lastPosition=useRef(initialWorld?.spawn||[0,2.2,0]);
   const traceRef=useRef([]);
-  const chooser=useRef(null),saveChooser=useRef(null),stage=useRef(null);
+  const recordingRef=useRef(false),ghostSamplesRef=useRef([]);
+  const chooser=useRef(null),saveChooser=useRef(null),ghostChooser=useRef(null),stage=useRef(null);
   useEffect(()=>{
     let active=true;
-    setWorldDigest('');setHasLocalSave(false);
+    setWorldDigest('');setHasLocalSave(false);setHasLocalGhost(false);
     digestPlayableWorld(world).then(hash=>{
       if(!active)return;
       setWorldDigest(hash);
-      try{setHasLocalSave(localStorage.getItem(playtestStorageKey(hash))!==null);}
-      catch{setHasLocalSave(false);}
+      try{
+        setHasLocalSave(localStorage.getItem(playtestStorageKey(hash))!==null);
+        setHasLocalGhost(localStorage.getItem(ghostStorageKey(hash))!==null);
+      }catch{setHasLocalSave(false);setHasLocalGhost(false);}
     }).catch(error=>{if(active)setStatus('Local save unavailable: '+error.message);});
     return()=>{active=false;};
   },[world]);
   const resetRules=()=>{
+    recordingRef.current=false;ghostSamplesRef.current=[];
+    setRecordGhost(false);setGhostSampleCount(0);
     const fresh=newGameplaySession();gameRef.current=fresh;
     setGameSession(fresh);setActivity([]);
     traceRef.current=[];setTraceFrames([]);setReplayCursor(-1);setCheckpointChoice('latest');
     setVirtualControls({right:0,forward:0,sprint:false,jumpSerial:0});
   };
   const onMotionStatus=useCallback(data=>setMotion(data),[]);
+  const onGhostSample=useCallback(sample=>{
+    if(!recordingRef.current)return;
+    try{
+      ghostSamplesRef.current=appendGhostSample(ghostSamplesRef.current,sample);
+      if(ghostSamplesRef.current.length%5===0)
+        setGhostSampleCount(ghostSamplesRef.current.length);
+    }catch(e){
+      recordingRef.current=false;setRecordGhost(false);
+      setGhostSampleCount(ghostSamplesRef.current.length);
+      setStatus('Ghost capture reached a limit: '+e.message+'. Preview Captured Samples to keep the recorded route.');
+    }
+  },[]);
+  function startGhostCapture(){
+    try{
+      if(!worldDigest||runtime!=='ready'||paused)
+        throw Error('Open a ready, running world with a completed digest first.');
+      const position=stage.current?.getPlayerPosition?.();
+      if(!position)throw Error('Rapier player has not spawned yet.');
+      ghostSamplesRef.current=appendGhostSample([],{t:0,position,grounded:Boolean(motion.grounded)});
+      recordingRef.current=true;
+      setGhostSampleCount(1);setRecordGhost(true);
+      setStatus('Recording local ghost path at approximately 5 Hz. Press Stop & Preview to finish.');
+    }catch(e){setStatus('Ghost capture refused: '+e.message);}
+  }
+  function stopGhostCapture(){
+    recordingRef.current=false;setRecordGhost(false);
+    try{
+      if(!worldDigest)throw Error('World digest has not loaded.');
+      const run=createGhostRun(worldDigest,ghostSamplesRef.current);
+      setGhostRun(run);setShowGhost(true);
+      setGhostReplaySerial(n=>n+1);
+      setGhostSampleCount(run.samples.length);
+      setStatus('Ghost captured. A translucent path replay is running. Save or export it explicitly.');
+    }catch(e){setStatus('Ghost preview refused: '+e.message);}
+  }
+  function playGhost(){
+    if(!ghostRun)return;
+    setShowGhost(true);setGhostReplaySerial(n=>n+1);
+    setStatus('Playing the captured ghost route. The ghost cannot collide or change objectives.');
+  }
+  function saveGhostLocal(){
+    try{
+      const run=validateGhostRun(ghostRun,worldDigest);
+      localStorage.setItem(ghostStorageKey(worldDigest),JSON.stringify(run));
+      setHasLocalGhost(true);setStatus('Saved ghost locally under this exact world digest.');
+    }catch(e){setStatus('Ghost save failed: '+e.message);}
+  }
+  function loadGhostLocal(){
+    try{
+      if(!worldDigest)throw Error('World digest is not ready.');
+      const raw=localStorage.getItem(ghostStorageKey(worldDigest));
+      if(raw===null)throw Error('No ghost recording saved for this world.');
+      const run=parseGhostRun(raw,worldDigest);
+      setGhostRun(run);setShowGhost(true);setGhostReplaySerial(n=>n+1);
+      setStatus('Loaded matching browser-local ghost. Its playback is visual only.');
+    }catch(e){setStatus('Ghost load rejected: '+e.message);}
+  }
+  function deleteGhostLocal(){
+    try{
+      if(!worldDigest)throw Error('World digest is not ready.');
+      localStorage.removeItem(ghostStorageKey(worldDigest));
+      setHasLocalGhost(false);setStatus('Deleted this world’s ghost slot only. The current preview remains available.');
+    }catch(e){setStatus('Ghost delete failed: '+e.message);}
+  }
+  function exportGhost(){
+    try{
+      downloadJson(validateGhostRun(ghostRun,worldDigest),'pixelforge-ghost-run.v1.json');
+      setStatus('Downloaded world-bound ghost JSON. Share the matching playable world separately.');
+    }catch(e){setStatus('Ghost export refused: '+e.message);}
+  }
+  async function importGhost(event){
+    const file=event.target.files?.[0];event.target.value='';if(!file)return;
+    try{
+      if(file.size>GHOST_MAX_BYTES)throw Error('Ghost file exceeds 320 KB.');
+      if(!worldDigest)throw Error('World digest is not ready.');
+      const run=parseGhostRun(await file.text(),worldDigest);
+      setGhostRun(run);setShowGhost(true);setGhostReplaySerial(n=>n+1);
+      setGhostSampleCount(run.samples.length);
+      setStatus('Imported matching ghost. No browser save was written.');
+    }catch(e){setStatus('Ghost import rejected: '+e.message);}
+  }
+  const ghostStats=useMemo(()=>ghostRun?analyzeGhostRun(ghostRun):null,[ghostRun]);
   function startHold(axis,value,event){
     if(paused)return;
     event.preventDefault();
@@ -101,6 +198,7 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
       if(file.size>PLAYABLE_MAX_BYTES)throw Error('Playable world file exceeds 160 KB.');
       const validated=parsePlayableWorld(await file.text());
       resetRules();lastPosition.current=[...validated.spawn];
+      setGhostRun(null);setShowGhost(false);setGhostReplaySerial(0);
       setRespawnAt([...validated.spawn]);setWorldDigest('');
       setWorld(validated);setSession(n=>n+1);setRuntime('loading');setPaused(false);
       setStatus('Loaded portable world: '+validated.title+'. No scripts executed.');
@@ -114,10 +212,13 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
   function demo(){
     const sample=createSamplePlayableWorld();
     resetRules();lastPosition.current=[...sample.spawn];setRespawnAt([...sample.spawn]);
+    setGhostRun(null);setShowGhost(false);setGhostReplaySerial(0);
     setWorldDigest('');setWorld(sample);setSession(n=>n+1);setPaused(false);
     setRuntime('loading');setStatus('Loaded the public starter world.');
   }
   function restoreRun(save,message){
+    recordingRef.current=false;ghostSamplesRef.current=[];
+    setRecordGhost(false);setGhostSampleCount(0);
     const replay=replayPlaytestTrace(world,save.frames);
     const progress=replay.progress;
     gameRef.current=progress;setGameSession(progress);
@@ -239,9 +340,14 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
                 gameplay={rules} gameplayProgress={gameSession} onPlayerPosition={onPlayerPosition}
                 onMotionStatus={onMotionStatus} virtualControls={virtualControls}
                 onGamepadStatus={setGamepadConnected} onGamepadAction={onGamepadAction}
+                recordGhost={recordGhost} onGhostSample={onGhostSample}
+                ghostRun={ghostRun} showGhost={showGhost} ghostReplaySerial={ghostReplaySerial}
                 onStats={setFps} onStatus={setRuntime}/>
             </Suspense>
             <div className="pixWorldOverlay" aria-label="Touch-friendly movement and interaction overlay">
+              {recordGhost&&<div className="pixWorldRecordBadge" aria-live="polite">
+                ● RECORDING PATH · {ghostSampleCount} / {GHOST_MAX_SAMPLES}
+              </div>}
               <div className="pixWorldCenterPrompt">
                 {paused?<span>Ⅱ SIMULATION PAUSED</span>:
                   nearSwitch?<span>⌘ {nearSwitch.name} · PRESS E OR TAP INTERACT</span>:null}
@@ -368,6 +474,53 @@ export default function WorldPlayer({initialWorld=null,onExit=null}){
             </div>
             <input hidden ref={saveChooser} type="file" accept=".json,application/json" onChange={importSave}/>
             <p>Restart begins a fresh run without deleting your saved slot. Choose any previously activated checkpoint, then roll back later events, doors and pickups. Controller Y performs the selected respawn.</p>
+          </section>
+          <section className="pixWorldGhostPanel">
+            <h3>RUNG 11 / GHOST RUNS</h3>
+            <p>Record your Rapier capsule route, then race alongside a transparent ghost of that run. The cyan path has no collider and never affects game rules.</p>
+            <div className="pixWorldGhostStatus">
+              <span>{recordGhost?'● RECORDING IN THIS BROWSER':ghostRun?'◇ GHOST READY':'○ NO ROUTE CAPTURED'}</span>
+              <span>{hasLocalGhost?'SAVED LOCALLY':'NOT SAVED'}</span>
+            </div>
+            <div className="pixWorldActions">
+              {!recordGhost?
+                <>
+                  <button type="button" disabled={!worldDigest||runtime!=='ready'||paused}
+                    onClick={startGhostCapture}>● Start Recording New Run</button>
+                  {ghostSampleCount>=2&&
+                    <button type="button" onClick={stopGhostCapture}>◇ Preview Captured Samples</button>}
+                </>:
+                <button type="button" onClick={stopGhostCapture}>■ Stop & Preview Ghost</button>}
+              <button type="button" disabled={!ghostRun} onClick={playGhost}>▶ Replay Ghost from Start</button>
+              <button type="button" disabled={!ghostRun} onClick={()=>setShowGhost(v=>!v)}>
+                {showGhost?'◉ Hide Ghost & Route':'◎ Show Ghost & Route'}
+              </button>
+              <button type="button" disabled={!ghostRun||!worldDigest} onClick={saveGhostLocal}>▣ Save Ghost in Browser</button>
+              <button type="button" disabled={!hasLocalGhost||!worldDigest} onClick={loadGhostLocal}>↻ Load Saved Ghost</button>
+              <button type="button" disabled={!ghostRun||!worldDigest} onClick={exportGhost}>⇩ Export Ghost JSON</button>
+              <button type="button" disabled={!worldDigest} onClick={()=>ghostChooser.current?.click()}>
+                ⇧ Import Matching Ghost
+              </button>
+              <button type="button" disabled={!hasLocalGhost||!worldDigest}
+                className="pixWorldDeleteSave" onClick={deleteGhostLocal}>Delete Only This World’s Saved Ghost</button>
+            </div>
+            <input ref={ghostChooser} hidden type="file" accept=".json,application/json" onChange={importGhost}/>
+            {ghostStats&&<div className="pixWorldGhostAnalytics">
+              <h4>ROUTE DIAGNOSTICS</h4>
+              <div className="pixWorldGhostNumbers">
+                <div><b>{ghostStats.durationSeconds}s</b><span>Duration</span></div>
+                <div><b>{ghostStats.distanceMeters}m</b><span>Distance</span></div>
+                <div><b>{ghostStats.averageSpeed}m/s</b><span>Avg. speed</span></div>
+                <div><b>{ghostStats.movingSeconds}s</b><span>Moving</span></div>
+                <div><b>{ghostStats.jumps}</b><span>Approx. jumps</span></div>
+                <div><b>{ghostStats.samples}</b><span>Samples</span></div>
+              </div>
+              <h4>FREQUENTLY VISITED 2m GRID CELLS</h4>
+              {ghostStats.hotspots.map((cell,i)=><p key={i}>
+                {i+1}. X {cell.x}, Z {cell.z} · about {cell.seconds}s of sampled time
+              </p>)}
+            </div>}
+            <p>Recordings are sampled at approximately 5 Hz, capped at 2,400 samples. They describe one avatar’s path, not the physics state or a full video. Save/export is always explicit.</p>
           </section>
           <section className="pixWorldReplayPanel">
             <h3>EVENT TRACE / REPLAY</h3>
