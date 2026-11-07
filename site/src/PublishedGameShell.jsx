@@ -104,6 +104,10 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
         if(creditsOpen){
           if(edges.back||edges.confirm)closeCredits();
         }else{
+          if(edges.back&&newRunConfirmation){
+            setNewRunConfirmation(false);
+            menuRefs.current[1]?.focus();
+          }
           if(edges.up||edges.down){
             const available=menuRefs.current.map((el,i)=>el&&!el.disabled?i:-1)
               .filter(i=>i>=0);
@@ -115,8 +119,13 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
             }
           }
           if(edges.confirm){
-            const target=menuRefs.current[selectedIndex.current];
-            if(target&&!target.disabled)target.click();
+            if(selectedIndex.current===10){
+              if(importedSave&&browserSave.status==='ready')
+                setSaveChoice(choice=>choice==='browser'?'imported':'browser');
+            }else{
+              const target=menuRefs.current[selectedIndex.current];
+              if(target&&!target.disabled)target.click();
+            }
           }
         }
       }
@@ -124,7 +133,7 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
     };
     frame=requestAnimationFrame(tick);
     return()=>{active=false;cancelAnimationFrame(frame);};
-  },[started,creditsOpen]);
+  },[started,creditsOpen,newRunConfirmation,importedSave,browserSave.status]);
   useEffect(()=>{
     if(creditsOpen)closeCreditsRef.current?.focus();
     else if(!started){
@@ -200,13 +209,16 @@ export default function PublishedGameShell({world,release:rawRelease,extras:rawE
           {browserSave.otherSlots>0&&<p className="pixPublishedSaveCaution">
             {browserSave.otherSlots} other saved-world/revision slot(s) were found. They remain untouched and cannot be resumed in this world without exact compatibility.</p>}
           <label className="pixPublishedSaveChoice">Save source
-            <select value={saveChoice} onChange={e=>setSaveChoice(e.target.value)}>
+            <select value={saveChoice} onChange={e=>setSaveChoice(e.target.value)}
+              ref={element=>{menuRefs.current[10]=element;}}
+              onFocus={()=>{selectedIndex.current=10;}}>
               <option value="browser" disabled={browserSave.status!=='ready'}>
                 Browser save {browserSave.status==='ready'?'(verified)':'(not available)'}
               </option>
               <option value="imported" disabled={!importedSave}>Imported file {importedSave?'(verified, temporary)':'(none yet)'}</option>
             </select>
           </label>
+          <small className="pixPublishedSaveHint">Select the desired source. With a controller, focus this selector and press A to switch between available saves.</small>
           {saveMessage&&<p className="pixPublishedSaveMessage" role="status">{saveMessage}</p>}
           <input ref={savePicker} hidden type="file" accept=".json,application/json" onChange={importSave}/>
           <div className="pixPublishedLaunchActions">
