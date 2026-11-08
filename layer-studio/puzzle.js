@@ -90,7 +90,7 @@ export function startPuzzle(sceneOrPuzzle) {
   const puzzle=normalizePuzzle(input);
   return {
     puzzle,
-    player:{x:puzzle.spawn.x,y:puzzle.spawn.y,w:28,h:42,vx:0,vy:0,facing:1,grounded:false,invulnerable:0},
+    player:{x:puzzle.spawn.x,y:puzzle.spawn.y,w:28,h:42,vx:0,vy:0,facing:1,grounded:false,invulnerable:0,dashTime:0},
     enemies:puzzle.enemies.map(e=>({...e,stone:false})),
     shots:[],
     effects:[],
@@ -101,6 +101,7 @@ export function startPuzzle(sceneOrPuzzle) {
     shotsFired:0,
     time:0,
     cooldown:0,
+    dashCooldown:0,
     cameraX:0,
     checkpoint:null,
     directorSeen:new Set(),
@@ -129,7 +130,7 @@ function respawn(state) {
   const p=state.player;
   p.x=state.checkpoint?.x??state.puzzle.spawn.x;
   p.y=state.checkpoint?.y??state.puzzle.spawn.y;
-  p.vx=0;p.vy=0;p.grounded=false;p.invulnerable=1.1;
+  p.vx=0;p.vy=0;p.grounded=false;p.invulnerable=1.1;p.dashTime=0;
   state.deaths++;
 }
 // Shared damage path for authored boss projectiles. Existing enemy/hazard rules
@@ -152,10 +153,18 @@ export function stepPuzzle(state,input={},dt=1/60) {
   const delta=bound(dt,1/60,0,1/30),p=state.player;
   state.time+=delta;
   state.cooldown=Math.max(0,state.cooldown-delta);
+  state.dashCooldown=Math.max(0,(state.dashCooldown||0)-delta);
   p.invulnerable=Math.max(0,p.invulnerable-delta);
   const move=(input.right?1:0)-(input.left?1:0);
   if(move)p.facing=move;
-  p.vx=move*265;
+  // A short, deterministic horizontal dash; never granted by untrusted input alone.
+  // The world session must supply allowDash from an acquired, authored ability.
+  if(input.allowDash===true&&input.dashPressed===true&&state.dashCooldown===0){
+    p.dashTime=.16;
+    state.dashCooldown=.55;
+  }
+  p.vx=(p.dashTime||0)>0?p.facing*680:move*265;
+  p.dashTime=Math.max(0,(p.dashTime||0)-delta);
   if(input.jumpPressed&&p.grounded){p.vy=-535;p.grounded=false;}
   if(input.firePressed)shoot(state);
   const previousBottom=p.y+p.h,previousTop=p.y;
