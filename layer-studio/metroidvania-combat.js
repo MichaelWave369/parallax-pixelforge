@@ -1,5 +1,6 @@
 // Optional Metroidvania layer-mode: original short-range chain attack and secret discoveries.
 // Pure fixed-step game state; no new engine, network calls, downloads or executable assets.
+import {combatEffects} from './metroidvania-profile.js';
 const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
 export const CHAIN_REACH=102;
 export const CHAIN_COOLDOWN=.28;
@@ -16,14 +17,19 @@ export function initializeMetroidvaniaCombat(session){
   session.foundSecrets=new Set();
   session.game.chainMode=true;
 }
-export function chainStrikeBox(player){
-  return {x:player.facing>0?player.x+player.w:player.x-CHAIN_REACH,
-    y:player.y-6,w:CHAIN_REACH,h:player.h+12};
+export function chainStrikeBox(player,reach=CHAIN_REACH){
+  return {x:player.facing>0?player.x+player.w:player.x-reach,
+    y:player.y-6,w:reach,h:player.h+12};
+}
+export function effectiveChainReach(session){
+  const effects=combatEffects(session.atlas?.combatProfile);
+  return CHAIN_REACH+(session.atlas?.combatProfile?.movement==='arcane'?18:0)+(effects.has('extra-range')?48:0);
 }
 export function stepMetroidvaniaCombat(session,input={},previousX,dt=1/60){
   if(session.atlas?.combatMode!=='chain'||session.game.status!=='playing')return;
   const game=session.game,p=game.player,room=activeRoom(session),delta=Math.max(0,Math.min(1/30,dt));
   const chain=session.chain;
+  const effects=combatEffects(session.atlas?.combatProfile);
   chain.cooldown=Math.max(0,chain.cooldown-delta);
   chain.active=Math.max(0,chain.active-delta);
   // Keep solid walls physically solid, including when dashing; broken walls cease colliding.
@@ -40,11 +46,15 @@ export function stepMetroidvaniaCombat(session,input={},previousX,dt=1/60){
     chain.cooldown=CHAIN_COOLDOWN;
     chain.active=CHAIN_FLASH;
     chain.swings++;
-    const hit=chainStrikeBox(p);
+    const hit=chainStrikeBox(p,effectiveChainReach(session));
+    if(effects.has('guard-pulse'))p.invulnerable=Math.max(p.invulnerable,.18);
     for(const enemy of game.enemies){
       if(enemy.stone||enemy.dormant||!overlap(hit,enemy))continue;
-      enemy.dormant=true;
-      session.notice='CHAIN STRIKE! WRAITH BANISHED.';
+      const damage=effects.has('bonus-damage')?2:1;
+      enemy.hp=Math.max(0,(enemy.hp??enemy.resilience??1)-damage);
+      if(enemy.hp===0)enemy.dormant=true;
+      if(effects.has('life-steal'))game.health=Math.min(3,game.health+1);
+      session.notice=enemy.dormant?'CHAIN STRIKE! WRAITH BANISHED.':'CHAIN STRIKE! ARMOR CRACKED.';
       session.noticeLeft=2.2;
       break;
     }
@@ -96,7 +106,7 @@ export function renderMetroidvaniaCombat(ctx,session,cameraX=0,{reducedMotion=fa
     }
   }
   if(session.chain?.active>0){
-    const p=game.player,box=chainStrikeBox(p);
+    const p=game.player,box=chainStrikeBox(p,effectiveChainReach(session));
     ctx.save();
     ctx.globalAlpha=reducedMotion?0.7:Math.max(.25,session.chain.active/CHAIN_FLASH);
     ctx.strokeStyle='#ffe1a5';ctx.lineWidth=7;ctx.lineCap='round';
@@ -109,6 +119,10 @@ export function renderMetroidvaniaCombat(ctx,session,cameraX=0,{reducedMotion=fa
       ctx.quadraticCurveTo(box.x+box.w-48,p.y-35,box.x,p.y+11);
     }
     ctx.stroke();ctx.restore();
+    if(combatEffects(session.atlas?.combatProfile).has('guard-pulse')){
+      ctx.strokeStyle='#a9e6fa';ctx.lineWidth=3;ctx.beginPath();
+      ctx.arc(p.x+p.w/2,p.y+p.h/2,43,0,Math.PI*2);ctx.stroke();
+    }
   }
   ctx.restore();
 }
