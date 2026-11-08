@@ -342,7 +342,7 @@ export function renderPuzzleHud(ctx,state,options={}) {
   ctx.fillStyle='#ffe1b1';ctx.font='bold 16px ui-monospace,monospace';
   ctx.fillText('♥'.repeat(state.health),20,40);
   ctx.fillStyle='#c9e6df';ctx.font='12px ui-monospace,monospace';
-  ctx.fillText('STATUES '+state.petrified+'/'+state.enemies.length,113,38);
+  ctx.fillText(state.chainMode?'WRAITHS '+state.enemies.filter(e=>e.dormant).length+'/'+state.enemies.length:'STATUES '+state.petrified+'/'+state.enemies.length,113,38);
   ctx.fillStyle=state.keyCollected?'#f7d092':'#87a2a8';
   ctx.fillText(state.keyCollected?'KEY FOUND':'FIND THE KEY',245,38);
   if(state.checkpoint){
