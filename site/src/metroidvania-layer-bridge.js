@@ -1,8 +1,9 @@
 // PixelForge Metroidvania Maker -> existing Layer Studio playable room runtime.
 // This converter creates original, deterministic placeholder geometry and ability gates.
-// It does NOT export Unreal/Fab assets, purchased music, character meshes or combat synergies.
+// It does NOT export Unreal/Fab assets, purchased music or character meshes.
 import {createScene,normalizeScene} from '../../layer-studio/engine.js';
 import {validateMetroidvaniaProject,PROJECT_SCHEMA} from './metroidvania-content.js';
+import {normalizeCombatProfile} from '../../layer-studio/metroidvania-profile.js';
 
 export const LAYER_BRIDGE_VERSION='pixelforge.metroidvania-layer-bridge.v1';
 const MAX_LAYER_ROOMS=6;
@@ -56,7 +57,10 @@ export function buildMetroidvaniaLayerScene(worldInput,contentInput,characterId)
       {id:'far-floor',x:950,y:500,w:750,h:40}
     ]:[{id:'continuous-floor',x:0,y:500,w:1700,h:40}];
     scene.playable.spawn={x:72,y:458};
-    scene.playable.enemies=[{id:'room-wraith',x:480+i*19,y:448,w:36,h:52}];
+    scene.playable.enemies=[
+      {id:'room-wraith',x:480+i*19,y:448,w:36,h:52},
+      {id:'armored-wraith',x:620+i*18,y:448,w:38,h:52,resilience:2}
+    ];
     scene.playable.key={x:1600,y:455};
     scene.playable.gate={x:1630,y:424};
     const portals=exits.map((route,n)=>{
@@ -72,11 +76,18 @@ export function buildMetroidvaniaLayerScene(worldInput,contentInput,characterId)
       breakables:authoredWalls.get(room.id),
       grantsAbilities:[...room.grants]};
   });
+  const equipped=new Set(character.equipment);
+  const combatProfile=normalizeCombatProfile({
+    id:character.id,name:character.name,movement:character.movement,
+    equipment:content.items.filter(item=>equipped.has(item.id)),
+    synergies:content.synergies.filter(synergy=>equipped.has(synergy.itemA)&&equipped.has(synergy.itemB))
+  });
   const atlas={
     schema:'pixelforge.layer-atlas.v1',startRoom:world.startRoom,
     abilities:world.abilities.map(a=>a.id),
     startingAbilities:[...character.startingAbilities],
     combatMode:'chain',
+    combatProfile,
     rooms,quests:[]
   };
   return normalizeScene({...template,title:world.title+' · '+character.name,

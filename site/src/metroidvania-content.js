@@ -103,10 +103,16 @@ export function createMetroidvaniaContent(worldInput){
     ],
     characters:[
       {id:'wanderer',name:'The Wanderer',movement:'balanced',startingAbilities:[],equipment:['moonblade']},
-      {id:'hunter',name:'The Hunter',movement:'agile',startingAbilities:hasAbility('shadow-dash')?['shadow-dash']:[],equipment:['pilgrim-whip']},
+      {id:'hunter',name:'The Hunter',movement:'agile',startingAbilities:hasAbility('shadow-dash')?['shadow-dash']:[],equipment:['pilgrim-whip','silver-focus']},
       {id:'sentinel',name:'The Sentinel',movement:'heavy',startingAbilities:[],equipment:['oath-shield','silver-focus']}
     ],
-    synergies:[{id:'resonant-ward',name:'Resonant Ward',itemA:'oath-shield',itemB:'silver-focus',effect:'guard-pulse'}],
+    synergies:[
+      {id:'resonant-ward',name:'Resonant Ward',itemA:'oath-shield',itemB:'silver-focus',effect:'guard-pulse'},
+      {id:'far-reaching-covenant',name:'Far-Reaching Covenant',itemA:'pilgrim-whip',itemB:'silver-focus',effect:'extra-range'},
+      {id:'moonfire-pact',name:'Moonfire Pact',itemA:'moonblade',itemB:'oath-shield',effect:'bonus-damage'},
+      {id:'renewal-link',name:'Renewal Link',itemA:'pilgrim-whip',itemB:'oath-shield',effect:'life-steal'},
+      {id:'swift-silver',name:'Swift Silver',itemA:'moonblade',itemB:'silver-focus',effect:'speed-burst'}
+    ],
     secrets:special?[
       {id:'cracked-crypt-wall',name:'Cracked Crypt Wall',roomId:'forgotten-crypt',type:'breakable-wall',requires:hasAbility('shadow-dash')?['shadow-dash']:[]},
       {id:'forgotten-archive',name:'Forgotten Archive',roomId:'moon-library',type:'concealed-door',requires:hasAbility('mist-form')?['mist-form']:[]}

@@ -60,7 +60,7 @@ export default function MetroidvaniaCreativeLab({world,content,onChange,selected
     if(edit(c=>c.quietSpaces.push({roomId:selectedRoom,name,mood:quietMood,note:'A quiet place to stop and listen.'}),name+' atmosphere spot added.'))setQuietName('');
   }
   return <section className="mvCreative" aria-label="Character creator, secrets and equipment synergies">
-    <div className="mvCreativeHeading"><h2>Character Creator & Castle Secrets</h2><p>Design replay modes, hidden discoveries, equipment combinations and places worth lingering. These are validated plans, not implemented combat or audio playback.</p></div>
+    <div className="mvCreativeHeading"><h2>Character Creator & Castle Secrets</h2><p>Design alternate playable characters, secret walls and two-item combinations. Movement styles and the five listed synergies now affect the 2.5D prototype; listening spots and other secret types remain design-only.</p></div>
     <div className="mvCreativeGrid">
       <article className="mvCreativeCard">
         <div className="mvCreativeTitle"><h3>Playable characters</h3><small>{content.characters.length}/{CONTENT_LIMITS.characters}</small></div>
@@ -122,7 +122,7 @@ export default function MetroidvaniaCreativeLab({world,content,onChange,selected
       </article>
       <article className="mvCreativeCard">
         <div className="mvCreativeTitle"><h3>Equipment combinations</h3><small>{content.synergies.length} combinations</small></div>
-        <p>Plan secret interactions between two equipment pieces. Effects are design labels until a combat runtime consumes them.</p>
+        <p>Two equipped items activate their authored effect in the 2.5D chain-combat prototype. One equipment pair can be active at a time; effects use a fixed, tested vocabulary.</p>
         <div className="mvCreativeEntries">
           {content.synergies.map(s=><div key={s.id}><div><strong>{s.name}</strong>
             <small>{content.items.find(i=>i.id===s.itemA)?.name} + {content.items.find(i=>i.id===s.itemB)?.name}</small>
