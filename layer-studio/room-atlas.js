@@ -2,6 +2,7 @@
 // Rooms reuse Layer Scene v1; links are declarative, never scriptable.
 import {startPuzzle,stepPuzzle} from './puzzle.js';
 import {initializeMetroidvaniaCombat,stepMetroidvaniaCombat,secretKey} from './metroidvania-combat.js';
+import {normalizeCombatProfile,combatEffects} from './metroidvania-profile.js';
 import {normalizeQuestLine,consumeWorldEvents,refreshQuestProgress} from './quest-world.js';
 import {normalizeStory,initializeStoryRoom,stepStoryEvents,storyFor,nearbyDialogue} from './living-story.js';
 import {BOSS_SCHEMA,normalizeBoss,initializeBossRoom,stepBossStage,snapshotBoss,restoreBossProgress} from './boss-stage.js';
@@ -80,6 +81,9 @@ export function normalizeAtlas(source,normalizeRoom){
   const startingAbilities=Array.isArray(source.startingAbilities)?
     checkAbilities(source.startingAbilities,'starting'):[];
   const combatMode=source.combatMode;
+  if(source.combatProfile!==undefined&&combatMode!=='chain')
+    throw Error('Metroidvania combat profile requires chain mode.');
+  const combatProfile=source.combatProfile===undefined?null:normalizeCombatProfile(source.combatProfile);
   if(combatMode!==undefined&&combatMode!=='chain')throw Error('Invalid Metroidvania combat mode.');
   const normalizeBreakables=(raw,label)=>{
     if(!Array.isArray(raw)||raw.length>8)throw Error('Invalid Metroidvania breakable wall count in '+label+'.');
@@ -134,6 +138,7 @@ export function normalizeAtlas(source,normalizeRoom){
   return {schema:ATLAS_SCHEMA,startRoom,rooms,
     ...(hasAbilities?{abilities:[...abilities],startingAbilities}:{}),
     ...(combatMode?{combatMode}:{}),
+    ...(combatProfile?{combatProfile}:{}),
     quests:normalizeQuestLine(source.quests)};
 }
 export function makeStarterAtlas(scene,normalizeRoom){
@@ -307,7 +312,11 @@ export function snapshotRoom(game){
   return {
     keyCollected:game.keyCollected,
     stones:game.enemies.filter(e=>e.stone).map(e=>e.id),
-    ...(game.chainMode?{defeated:game.enemies.filter(e=>e.dormant).map(e=>e.id)}:{}),
+    ...(game.chainMode?{
+      defeated:game.enemies.filter(e=>e.dormant).map(e=>e.id),
+      wounds:game.enemies.filter(e=>!e.dormant&&(e.hp??1)<(e.resilience??1))
+        .map(e=>({id:e.id,hp:e.hp}))
+    }:{}),
     seen:[...(game.directorSeen||[])],
     checkpoint:game.checkpoint?{...game.checkpoint}:null,
     ...(game.storySeen?{storySeen:[...game.storySeen]}:{}),
@@ -321,7 +330,11 @@ export function restoreRoom(game,progress){
   const stones=new Set(progress.stones||[]);
   for(const enemy of game.enemies){
     enemy.stone=stones.has(enemy.id);
-    if(game.chainMode)enemy.dormant=(progress.defeated||[]).includes(enemy.id);
+    if(game.chainMode){
+      enemy.dormant=(progress.defeated||[]).includes(enemy.id);
+      const wound=(progress.wounds||[]).find(w=>w.id===enemy.id);
+      if(wound&&Number.isInteger(wound.hp)&&wound.hp>=1&&wound.hp<=(enemy.resilience??1))enemy.hp=wound.hp;
+    }
   }
   game.petrified=game.enemies.filter(e=>e.stone).length;
   game.directorSeen=new Set(progress.seen||[]);
@@ -332,7 +345,10 @@ export function restoreRoom(game,progress){
 export function stepWorldSession(session,input={},dt=1/60){
   const game=session.game;
   const previousX=game.player.x;
+  const effects=combatEffects(session.atlas?.combatProfile);
   stepPuzzle(game,{...input,firePressed:session.atlas?.combatMode==='chain'?false:input.firePressed,
+    movementStyle:session.atlas?.combatProfile?.movement,
+    speedBurst:effects.has('speed-burst'),
     allowDash:session.abilities?.has('shadow-dash')===true},dt);
   stepMetroidvaniaCombat(session,input,previousX,dt);
   consumeWorldEvents(session);
