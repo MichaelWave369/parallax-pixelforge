@@ -27,7 +27,7 @@ function sanitizePortal(p,i){
     requiresRelic:text(p?.requiresRelic,'',130),
     requiresFlag:text(p?.requiresFlag,'',64),
     requiresQuest:text(p?.requiresQuest,'',64),
-    ...(Array.isArray(p?.requiresAbilities)?{requiresAbilities:p.requiresAbilities.slice(0,16)}:{}),
+    ...(p&&Object.prototype.hasOwnProperty.call(p,'requiresAbilities')?{requiresAbilities:p.requiresAbilities}:{}),
     label:text(p?.label,'PASSAGE',60)
   };
 }
