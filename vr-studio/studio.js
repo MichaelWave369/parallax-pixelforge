@@ -657,3 +657,5 @@ mountPrivateAssetLibrary({
 });
 redraw();
 void detectVR();
+// No listener or state in ordinary standalone PixelForge builds.
+mountPixelForgePhiOSBridgeUI();
