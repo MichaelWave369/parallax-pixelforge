@@ -92,7 +92,9 @@ export function captureSave(rootScene,session,slot,now=Date.now()){
     health:clamp(session.game.health,3,1,3),deaths:clamp(session.game.deaths,0,0,100000),
     transitions:clamp(session.transitions,0,0,100000),
     visited,inventory:[...(session.inventory||[])].filter(k=>allowedRelics.has(k)),
-    worldFlags:[...(session.worldFlags||[])].filter(f=>knownWorldFlags(rootScene.atlas).includes(f)), 
+    worldFlags:[...(session.worldFlags||[])].filter(f=>knownWorldFlags(rootScene.atlas).includes(f)),
+    ...(rootScene.atlas?.abilities?{abilities:[...(session.abilities||[])]
+      .filter(a=>rootScene.atlas.abilities.includes(a))}:{}),
     snapshots,player:{x:clamp(p.x,0,0,session.game.puzzle.worldWidth-p.w),
       y:clamp(p.y,458,-200,750)}
   };
@@ -118,6 +120,14 @@ export function restoreSave(rootScene,data){
   const allowedFlags=new Set(knownWorldFlags(rootScene.atlas));
   session.worldFlags=new Set((Array.isArray(data.worldFlags)?data.worldFlags:[])
     .filter(f=>typeof f==='string'&&allowedFlags.has(f)));
+  if(session.atlas?.abilities){
+    const allowed=new Set(session.atlas.abilities);
+    session.abilities=new Set((Array.isArray(data.abilities)?data.abilities:[])
+      .filter(a=>typeof a==='string'&&allowed.has(a)));
+    // Current room grants are earned by entry, even when restoring an older slot.
+    const authored=session.atlas.rooms.find(r=>r.id===data.roomId);
+    for(const ability of authored?.grantsAbilities||[])session.abilities.add(ability);
+  }
   if(session.atlas){
     const target=session.atlas.rooms.find(r=>r.id===data.roomId);
     session.roomId=target.id;session.scene=target.scene;
