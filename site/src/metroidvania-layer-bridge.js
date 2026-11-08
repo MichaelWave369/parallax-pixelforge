@@ -33,6 +33,17 @@ export function buildMetroidvaniaLayerScene(worldInput,contentInput,characterId)
   }
 
   const template=createScene();
+  // This rung deliberately supports only physical breakable-wall discoveries.
+  // Other secret types stay design-only until their gameplay mechanics exist.
+  const authoredWalls=new Map(world.rooms.map(room=>[room.id,[]]));
+  for(const secret of content.secrets){
+    if(secret.type!=='breakable-wall')continue;
+    const walls=authoredWalls.get(secret.roomId);
+    if(walls.length>=8)fail('Room '+secret.roomId+' has more than eight breakable secrets.');
+    const n=walls.length;
+    walls.push({id:secret.id,name:secret.name,x:365+n*180,y:442,w:36,h:58,
+      requiresAbilities:[...secret.requires]});
+  }
   const rooms=world.rooms.map((room,i)=>{
     const scene=safeRoom(createScene());
     scene.title=room.name;
@@ -58,12 +69,14 @@ export function buildMetroidvaniaLayerScene(worldInput,contentInput,characterId)
         label:'ENTER '+world.rooms.find(r=>r.id===route.to).name.toUpperCase().slice(0,30)};
     });
     return {id:room.id,title:room.name,scene,portals,relics:[],
+      breakables:authoredWalls.get(room.id),
       grantsAbilities:[...room.grants]};
   });
   const atlas={
     schema:'pixelforge.layer-atlas.v1',startRoom:world.startRoom,
     abilities:world.abilities.map(a=>a.id),
     startingAbilities:[...character.startingAbilities],
+    combatMode:'chain',
     rooms,quests:[]
   };
   return normalizeScene({...template,title:world.title+' · '+character.name,
