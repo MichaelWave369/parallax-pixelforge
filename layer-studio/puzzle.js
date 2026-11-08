@@ -95,7 +95,7 @@ export function startPuzzle(sceneOrPuzzle) {
   return {
     puzzle,
     player:{x:puzzle.spawn.x,y:puzzle.spawn.y,w:28,h:42,vx:0,vy:0,facing:1,grounded:false,invulnerable:0,dashTime:0},
-    enemies:puzzle.enemies.map(e=>({...e,stone:false,hp:e.resilience??1})),
+    enemies:puzzle.enemies.map(e=>({...e,stone:false,dormant:false,hp:e.resilience??1})),
     shots:[],
     effects:[],
     health:3,
