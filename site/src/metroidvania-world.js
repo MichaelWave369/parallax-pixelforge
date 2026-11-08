@@ -65,9 +65,13 @@ export function validateMetroidvaniaWorld(input){
   if(new TextEncoder().encode(JSON.stringify(normalized)).length>LIMITS.bytes)fail('world exceeds size limit.');
   return normalized;
 }
-export function analyzeMetroidvaniaWorld(input){
+export function analyzeMetroidvaniaWorld(input,{startingAbilities=[]}={}){
   const world=validateMetroidvaniaWorld(input);
-  const found=new Set([world.startRoom]),unlocked=new Set(),steps=[];
+  if(!Array.isArray(startingAbilities)||startingAbilities.length>LIMITS.abilities||new Set(startingAbilities).size!==startingAbilities.length)
+    fail('invalid starting abilities.');
+  const known=new Set(world.abilities.map(a=>a.id));
+  for(const id of startingAbilities)if(!known.has(id))fail('unknown starting ability '+String(id)+'.');
+  const found=new Set([world.startRoom]),unlocked=new Set(startingAbilities),steps=[];
   for(let pass=0;pass<=LIMITS.rooms+LIMITS.abilities;pass++){
     const newAbilities=[];
     for(const room of world.rooms){
@@ -92,7 +96,7 @@ export function analyzeMetroidvaniaWorld(input){
   }
   return {reachable:[...found],unlocked:[...unlocked],
     unreachable:world.rooms.filter(r=>!found.has(r.id)).map(r=>r.id),
-    stages:[{pass:0,newAbilities:[],newRooms:[world.startRoom],visited:[world.startRoom],unlocked:[]},...steps]};
+    stages:[{pass:0,newAbilities:[],newRooms:[world.startRoom],visited:[world.startRoom],unlocked:[...startingAbilities]},...steps]};
 }
 const SAMPLE={
   format:METROIDVANIA_SCHEMA,title:'The Ashen Belfry',startRoom:'outer-gate',

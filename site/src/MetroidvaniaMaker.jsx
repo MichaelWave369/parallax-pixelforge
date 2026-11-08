@@ -1,6 +1,8 @@
 import React,{useMemo,useRef,useState} from 'react';
 import {METROIDVANIA_SCHEMA,LIMITS,createMetroidvaniaStarter,validateMetroidvaniaWorld,analyzeMetroidvaniaWorld} from './metroidvania-world.js';
 import './metroidvania-maker.css';
+import MetroidvaniaCreativeLab from './MetroidvaniaCreativeLab.jsx';
+import {CONTENT_LIMITS,PROJECT_SCHEMA,createMetroidvaniaContent,validateMetroidvaniaContent,validateMetroidvaniaProject} from './metroidvania-content.js';
 const BASE=import.meta.env.BASE_URL;
 function slug(value){return (value.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)||'room');}
 function saveJson(world){
@@ -9,8 +11,16 @@ function saveJson(world){
   const a=document.createElement('a');a.href=url;a.download='pixelforge-metroidvania-world.json';a.click();
   URL.revokeObjectURL(url);
 }
+function saveProjectJson(world,content){
+  const project=validateMetroidvaniaProject({format:PROJECT_SCHEMA,world,content});
+  const blob=new Blob([JSON.stringify(project,null,2)+'\n'],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='pixelforge-metroidvania-project.json';a.click();URL.revokeObjectURL(url);
+}
 export default function MetroidvaniaMaker(){
   const [world,setWorld]=useState(createMetroidvaniaStarter);
+  const [content,setContent]=useState(()=>createMetroidvaniaContent(createMetroidvaniaStarter()));
+  const [characterId,setCharacterId]=useState('wanderer');
   const [selected,setSelected]=useState('cathedral-nave');
   const [newRoom,setNewRoom]=useState('');
   const [newAbility,setNewAbility]=useState('');
@@ -20,7 +30,8 @@ export default function MetroidvaniaMaker(){
   const [step,setStep]=useState(-1);
   const [status,setStatus]=useState('Sample loaded. Select a room, design an ability gate, or import your own world.');
   const picker=useRef(null);
-  const report=useMemo(()=>analyzeMetroidvaniaWorld(world),[world]);
+  const activeCharacter=content.characters.find(c=>c.id===characterId)||content.characters[0];
+  const report=useMemo(()=>analyzeMetroidvaniaWorld(world,{startingAbilities:activeCharacter?.startingAbilities||[]}),[world,activeCharacter]);
   const stage=report.stages[step<0?report.stages.length-1:Math.min(step,report.stages.length-1)];
   const accessible=new Set(stage.visited),activeAbilities=new Set(stage.unlocked);
   const room=world.rooms.find(r=>r.id===selected)||world.rooms[0];
@@ -29,7 +40,9 @@ export default function MetroidvaniaMaker(){
   const mutate=(fn,message)=>{
     try{
       const draft=JSON.parse(JSON.stringify(world));fn(draft);
-      const valid=validateMetroidvaniaWorld(draft);setWorld(valid);setStep(-1);setStatus(message);
+      const valid=validateMetroidvaniaWorld(draft);
+      validateMetroidvaniaContent(content,valid);
+      setWorld(valid);setStep(-1);setStatus(message);
     }catch(error){setStatus(error.message||'Update refused.');}
   };
   const addRoom=event=>{
@@ -58,9 +71,23 @@ export default function MetroidvaniaMaker(){
   const importJson=async event=>{
     const file=event.target.files?.[0];if(!file)return;
     try{
-      if(file.size>LIMITS.bytes){throw Error('Import exceeds 64 KB limit.');}
-      const incoming=validateMetroidvaniaWorld(JSON.parse(await file.text()));
-      setWorld(incoming);setSelected(incoming.startRoom);setStep(-1);setStatus('World imported and validated. No code or assets were loaded.');
+      if(file.size>CONTENT_LIMITS.projectBytes){throw Error('Import exceeds 128 KB limit.');}
+      const data=JSON.parse(await file.text());
+      if(data.format===PROJECT_SCHEMA){
+        const project=validateMetroidvaniaProject(data);
+        setWorld(project.world);setContent(project.content);
+        setCharacterId(project.content.characters[0]?.id||'');
+        setSelected(project.world.startRoom);
+        setStatus('Full Maker project imported: world, characters, secrets, equipment and atmosphere.');
+      }else{
+        if(file.size>LIMITS.bytes)throw Error('World-only import exceeds 64 KB limit.');
+        const incoming=validateMetroidvaniaWorld(data);
+        const freshContent=createMetroidvaniaContent(incoming);
+        setWorld(incoming);setContent(freshContent);setCharacterId(freshContent.characters[0]?.id||'');
+        setSelected(incoming.startRoom);
+        setStatus('World imported; character, secret, equipment and atmosphere designs reset to new project defaults. Export the FULL Maker project to retain all creative designs.');
+      }
+      setStep(-1);
     }catch(error){setStatus('Import refused: '+error.message);}
     event.target.value='';
   };
@@ -75,10 +102,15 @@ export default function MetroidvaniaMaker(){
       <label>World title <input value={world.title} maxLength={100} onChange={e=>mutate(w=>{w.title=e.target.value;},'World title updated.')}/></label>
       <label>Start room <select value={world.startRoom} onChange={e=>mutate(w=>{w.startRoom=e.target.value;},'Starting room changed.')}>
         {world.rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
-      <button type="button" onClick={()=>saveJson(world)}>Export world JSON ↓</button>
-      <button type="button" onClick={()=>picker.current?.click()}>Import world JSON ↑</button>
+      <button type="button" onClick={()=>saveProjectJson(world,content)}>Export FULL Maker project ↓</button>
+      <button type="button" onClick={()=>saveJson(world)}>Export atlas only ↓</button>
+      <button type="button" onClick={()=>picker.current?.click()}>Import world / project ↑</button>
       <input ref={picker} type="file" accept=".json,application/json" hidden onChange={importJson}/>
-      <button type="button" onClick={()=>{setWorld(createMetroidvaniaStarter());setSelected('cathedral-nave');setStep(-1);setStatus('Original sample restored.');}}>Restore sample</button>
+      <button type="button" onClick={()=>{
+        const sample=createMetroidvaniaStarter(),design=createMetroidvaniaContent(sample);
+        setWorld(sample);setContent(design);setCharacterId('wanderer');
+        setSelected('cathedral-nave');setStep(-1);setStatus('Original sample and creative designs restored.');
+      }}>Restore sample</button>
     </div>
     <p className="mvStatus" role="status">{status}</p>
     <div className="mvColumns">
@@ -101,7 +133,7 @@ export default function MetroidvaniaMaker(){
         </div>
         <div className="mvLegend"><span>● Reachable</span><span>● Locked or undiscovered</span><span>┄ Ability-gated</span></div>
         <div className="mvProgress">
-          <h3>Progression simulator</h3>
+          <h3>Progression simulator · {activeCharacter?.name||'Default'}</h3>
           <p>This analysis collects abilities in entered rooms, then tests every passage until no more rooms unlock. It is a planning check, not a playable character.</p>
           <div className="mvStepBtns">
             <button type="button" onClick={()=>setStep(0)}>Spawn</button>
@@ -161,8 +193,11 @@ export default function MetroidvaniaMaker(){
         }}>Remove selected room</button>
       </section>
     </div>
+    <MetroidvaniaCreativeLab world={world} content={content} onChange={next=>{setContent(next);setStep(-1);}}
+      selectedCharacter={activeCharacter?.id||''} onSelectCharacter={next=>{setCharacterId(next);setStep(-1);}}
+      selectedRoom={room.id} onStatus={setStatus}/>
     <footer className="mvFooter">
-      <p><strong>{METROIDVANIA_SCHEMA}</strong> · Browser-local map design. JSON exports contain no game code, purchased assets, or private credentials.</p>
+      <p><strong>{METROIDVANIA_SCHEMA}</strong> · Browser-local world and creative designs. Project JSON exports contain no game code, purchased assets, audio, or private credentials.</p>
       <p>Next: adapt validated world graphs to existing Layer Studio room scenes, then create separate Unreal and VR runtime adapters. Those exports are not implemented in this rung.</p>
     </footer>
   </div>;
