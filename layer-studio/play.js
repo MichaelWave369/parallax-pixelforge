@@ -36,14 +36,14 @@ function fitCanvas(){
   $('touchInteract').hidden=!session.atlas;
 }
 fitCanvas();
-const keys=new Set(),touch=new Set(),edge={jump:false,fire:false,interact:false};
-let lastJumpPad=false,lastFirePad=false,lastInteractPad=false;
-const controlKeys=new Set(['ArrowLeft','ArrowRight','ArrowUp','KeyA','KeyD','KeyW','Space','Enter','KeyF','KeyK','KeyR','KeyP','KeyE','KeyM','KeyI','KeyJ','KeyQ','Escape']);
+const keys=new Set(),touch=new Set(),edge={jump:false,fire:false,interact:false,dash:false};
+let lastJumpPad=false,lastFirePad=false,lastInteractPad=false,lastDashPad=false;
+const controlKeys=new Set(['ArrowLeft','ArrowRight','ArrowUp','KeyA','KeyD','KeyW','Space','Enter','KeyF','KeyK','KeyR','KeyP','KeyE','KeyM','KeyI','KeyJ','KeyQ','Escape','ShiftLeft','ShiftRight']);
 function setMessage(s){if($('message').textContent!==s)$('message').textContent=s;}
 function reset(){
   session=createWorldSession(rootScene);
   game=session.game;scene=session.scene;fitCanvas();
-  paused=false;edge.jump=false;edge.fire=false;edge.interact=false;
+  paused=false;edge.jump=false;edge.fire=false;edge.interact=false;edge.dash=false;
   $('pause').textContent='Pause';
   closePanel();
   setMessage('Aim across the chasm. A stone spirit can carry your weight.');
@@ -96,17 +96,18 @@ window.addEventListener('keydown',e=>{
   if(['ArrowUp','KeyW','Space'].includes(e.code))edge.jump=true;
   if(['KeyF','KeyK','Enter'].includes(e.code))edge.fire=true;
   if(e.code==='KeyE')edge.interact=true;
+  if(['ShiftLeft','ShiftRight'].includes(e.code))edge.dash=true;
   if(e.code==='KeyR')reset();
   if(e.code==='KeyP')togglePause();
 });
 window.addEventListener('keyup',e=>keys.delete(e.code));
-window.addEventListener('blur',()=>{keys.clear();touch.clear();edge.jump=false;edge.fire=false;edge.interact=false;});
+window.addEventListener('blur',()=>{keys.clear();touch.clear();edge.jump=false;edge.fire=false;edge.interact=false;edge.dash=false;});
 function bindHold(id,action) {
   const el=$(id);
   el.addEventListener('pointerdown',e=>{
     e.preventDefault();el.setPointerCapture(e.pointerId);
     touch.add(action);el.classList.add('active');
-    if(action==='jump'||action==='fire'||action==='interact')edge[action]=true;
+    if(action==='jump'||action==='fire'||action==='interact'||action==='dash')edge[action]=true;
   });
   function release(){
     touch.delete(action);el.classList.remove('active');
@@ -117,21 +118,23 @@ function bindHold(id,action) {
 }
 for(const [id,action] of [
   ['touchLeft','left'],['touchRight','right'],
-  ['touchJump','jump'],['touchFire','fire'],['touchInteract','interact']
+  ['touchJump','jump'],['touchFire','fire'],['touchInteract','interact'],['touchDash','dash']
 ])bindHold(id,action);
 function pollPad(){
   let pads=[];
   try{pads=navigator.getGamepads?.()||[];}catch{pads=[];}
   const pad=Array.from(pads).find(Boolean);
-  if(!pad){lastJumpPad=false;lastFirePad=false;lastInteractPad=false;return {left:false,right:false};}
+  if(!pad){lastJumpPad=false;lastFirePad=false;lastInteractPad=false;lastDashPad=false;return {left:false,right:false};}
   const ax=pad.axes?.[0]??0;
   const jump=Boolean(pad.buttons?.[0]?.pressed);
   const fire=Boolean(pad.buttons?.[1]?.pressed || pad.buttons?.[5]?.pressed || pad.buttons?.[7]?.pressed);
   const interact=Boolean(pad.buttons?.[2]?.pressed);
+  const dash=Boolean(pad.buttons?.[3]?.pressed);
+  if(dash&&!lastDashPad)edge.dash=true;
   if(jump&&!lastJumpPad)edge.jump=true;
   if(fire&&!lastFirePad)edge.fire=true;
   if(interact&&!lastInteractPad)edge.interact=true;
-  lastJumpPad=jump;lastFirePad=fire;lastInteractPad=interact;
+  lastJumpPad=jump;lastFirePad=fire;lastInteractPad=interact;lastDashPad=dash;
   return {left:ax<-.28||Boolean(pad.buttons?.[14]?.pressed),right:ax>.28||Boolean(pad.buttons?.[15]?.pressed)};
 }
 function controls(pad){
@@ -140,6 +143,7 @@ function controls(pad){
     right:keys.has('ArrowRight')||keys.has('KeyD')||touch.has('right')||pad.right,
     jumpPressed:edge.jump,
     firePressed:edge.fire,
+    dashPressed:edge.dash,
     interactPressed:edge.interact
   };
 }
@@ -158,7 +162,7 @@ function updateMessage(old){
 }
 function clearMovement(){
   keys.clear();touch.clear();
-  edge.jump=false;edge.fire=false;edge.interact=false;
+  edge.jump=false;edge.fire=false;edge.interact=false;edge.dash=false;
   for(const button of document.querySelectorAll('.touch-controls button'))button.classList.remove('active');
 }
 function closePanel(){
@@ -344,7 +348,8 @@ function renderPanel(){
         (edge.requiresKey?' · room key':'')+
         (edge.requiresRelic?' · relic gate':'')+
         (edge.requiresFlag?' · world-state gate':'')+
-        (edge.requiresQuest?' · quest gate':'')));
+        (edge.requiresQuest?' · quest gate':'')+
+        (edge.requiresAbilities?.length?' · ability gate':'')));
     }
   }else if(activePanel==='quests'){
     $('journalTitle').textContent='Quest Journal';
@@ -379,6 +384,13 @@ function renderPanel(){
     }
     content.append(element('p','journal-note','The current room key does not travel. Relics stay with you between rooms.'));
     content.append(element('p','inventory-key',game.keyCollected?'CURRENT ROOM KEY: FOUND':'CURRENT ROOM KEY: NOT FOUND'));
+    if(session.atlas.abilities){
+      content.append(element('h3',null,'Traversal Abilities'));
+      const known=[...(session.abilities||[])];
+      if(!known.length)content.append(element('p','journal-empty','No traversal abilities acquired yet.'));
+      for(const ability of known)content.append(element('div','world-flag','✦ '+ability.replace(/[-_]/g,' ')));
+      if(session.abilities?.has('shadow-dash'))content.append(element('p','journal-note','Shadow Dash: Shift / gamepad Y / DASH. A fast horizontal burst with a short cooldown.'));
+    }
     const found=[];
     for(const room of session.atlas.rooms)for(const relic of room.relics||[]){
       if(session.inventory.has(room.id+':'+relic.id))found.push({relic,room});
@@ -473,22 +485,22 @@ function frame(now) {
       game=session.game;
       if(outcome.worldSequence){
         togglePanel('world-sequence');
-        edge.jump=false;edge.fire=false;edge.interact=false;accumulator=0;
+        edge.jump=false;edge.fire=false;edge.interact=false;edge.dash=false;accumulator=0;
         break;
       }
       if(outcome.bossIntro||outcome.bossVictory){
         togglePanel(outcome.bossIntro?'boss-intro':'boss-victory');
-        edge.jump=false;edge.fire=false;edge.interact=false;accumulator=0;
+        edge.jump=false;edge.fire=false;edge.interact=false;edge.dash=false;accumulator=0;
         break;
       }
       if(outcome.storyOpen){
         togglePanel('story');
-        edge.jump=false;edge.fire=false;edge.interact=false;accumulator=0;
+        edge.jump=false;edge.fire=false;edge.interact=false;edge.dash=false;accumulator=0;
         break;
       }
-      if(outcome.travelled){scene=session.scene;fitCanvas();setMessage('ENTERED '+scene.title.toUpperCase()+'. EXPLORE THE NEW ROOM.');}
+      if(outcome.travelled){scene=session.scene;fitCanvas();setMessage(session.notice);}
       else if(outcome.denied)setMessage(session.notice);
-      edge.jump=false;edge.fire=false;edge.interact=false;
+      edge.jump=false;edge.fire=false;edge.interact=false;edge.dash=false;
       if(!outcome.travelled&&!outcome.denied)updateMessage(before);
       accumulator-=STEP;runs++;
     }
@@ -496,7 +508,7 @@ function frame(now) {
   }else{
     accumulator=0;
     // Ignore queued actions while paused or after victory, so resuming cannot fire unexpectedly.
-    edge.jump=false;edge.fire=false;edge.interact=false;
+    edge.jump=false;edge.fire=false;edge.interact=false;edge.dash=false;
   }
   if(ctx){
     const directedView=cinematicView(cinematicDirector);
