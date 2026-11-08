@@ -402,6 +402,20 @@ function renderPanel(){
     }
     content.append(element('p','journal-note','The current room key does not travel. Relics stay with you between rooms.'));
     content.append(element('p','inventory-key',game.keyCollected?'CURRENT ROOM KEY: FOUND':'CURRENT ROOM KEY: NOT FOUND'));
+    const profile=session.atlas.combatProfile;
+    if(profile){
+      content.append(element('h3',null,'Playable Character: '+profile.name));
+      content.append(element('p','journal-note','Movement mode: '+profile.movement.toUpperCase()+
+        '. These combat and movement settings come from your selected Maker character.'));
+      content.append(element('h3',null,'Equipped Items'));
+      if(!profile.equipment.length)content.append(element('p','journal-empty','No equipment assigned.'));
+      for(const item of profile.equipment)content.append(element('div','world-flag','◆ '+item.name+' · '+item.type));
+      content.append(element('h3',null,'Active Equipment Synergies'));
+      if(!profile.synergies.length)content.append(element('p','journal-empty','Equip a valid two-item combination in Maker to unlock a combat effect.'));
+      for(const combo of profile.synergies){
+        content.append(element('div','world-flag','✦ '+combo.name+' · '+combo.effect.replace(/-/g,' ')));
+      }
+    }
     if(session.atlas.abilities){
       content.append(element('h3',null,'Traversal Abilities'));
       const known=[...(session.abilities||[])];
