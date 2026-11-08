@@ -2,6 +2,7 @@ import React,{useMemo,useRef,useState} from 'react';
 import {METROIDVANIA_SCHEMA,LIMITS,createMetroidvaniaStarter,validateMetroidvaniaWorld,analyzeMetroidvaniaWorld} from './metroidvania-world.js';
 import './metroidvania-maker.css';
 import MetroidvaniaCreativeLab from './MetroidvaniaCreativeLab.jsx';
+import {buildMetroidvaniaLayerScene} from './metroidvania-layer-bridge.js';
 import {CONTENT_LIMITS,PROJECT_SCHEMA,createMetroidvaniaContent,validateMetroidvaniaContent,validateMetroidvaniaProject} from './metroidvania-content.js';
 const BASE=import.meta.env.BASE_URL;
 function slug(value){return (value.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)||'room');}
@@ -68,6 +69,13 @@ export default function MetroidvaniaMaker(){
     let id=base,n=2;while(existing.has(id)){id=(base.slice(0,40)+'-'+n++).slice(0,48);}
     mutate(w=>w.links.push({id,from:room.id,to:target,requires:required?[required]:[],twoWay}), 'New doorway added.');
   };
+  const playLayerProof=()=>{
+    try{
+      const layerScene=buildMetroidvaniaLayerScene(world,content,activeCharacter?.id);
+      sessionStorage.setItem('pixelforge.layer-studio.play-scene.v1',JSON.stringify(layerScene));
+      window.location.href=BASE+'layer-studio/play.html';
+    }catch(error){setStatus('Playable prototype unavailable: '+error.message);}
+  };
   const importJson=async event=>{
     const file=event.target.files?.[0];if(!file)return;
     try{
@@ -102,6 +110,7 @@ export default function MetroidvaniaMaker(){
       <label>World title <input value={world.title} maxLength={100} onChange={e=>mutate(w=>{w.title=e.target.value;},'World title updated.')}/></label>
       <label>Start room <select value={world.startRoom} onChange={e=>mutate(w=>{w.startRoom=e.target.value;},'Starting room changed.')}>
         {world.rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
+      <button type="button" onClick={playLayerProof}>Play 2.5D prototype ↗</button>
       <button type="button" onClick={()=>saveProjectJson(world,content)}>Export FULL Maker project ↓</button>
       <button type="button" onClick={()=>saveJson(world)}>Export atlas only ↓</button>
       <button type="button" onClick={()=>picker.current?.click()}>Import world / project ↑</button>
@@ -113,6 +122,7 @@ export default function MetroidvaniaMaker(){
       }}>Restore sample</button>
     </div>
     <p className="mvStatus" role="status">{status}</p>
+    <p className="mvStatus">2.5D preview uses original placeholder scenery, doors, existing enemies and a working Shadow Dash. Max 6 rooms; secrets, equipment effects, other movement styles and music are still design-only.</p>
     <div className="mvColumns">
       <section className="mvPanel mvMapPanel" aria-label="World map">
         <div className="mvPanelTitle"><h2>World atlas</h2><span>{world.rooms.length}/{LIMITS.rooms} rooms · {world.links.length} passages</span></div>

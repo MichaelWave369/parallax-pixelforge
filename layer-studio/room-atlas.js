@@ -27,6 +27,7 @@ function sanitizePortal(p,i){
     requiresRelic:text(p?.requiresRelic,'',130),
     requiresFlag:text(p?.requiresFlag,'',64),
     requiresQuest:text(p?.requiresQuest,'',64),
+    ...(p&&Object.prototype.hasOwnProperty.call(p,'requiresAbilities')?{requiresAbilities:p.requiresAbilities}:{}),
     label:text(p?.label,'PASSAGE',60)
   };
 }
@@ -58,6 +59,21 @@ export function normalizeAtlas(source,normalizeRoom){
   if(!Array.isArray(source.rooms)||source.rooms.length<1||source.rooms.length>6)
     throw new Error('Room Atlas requires 1 to 6 rooms.');
   if(typeof normalizeRoom!=='function')throw new Error('Room Atlas requires a scene normalizer.');
+  // Optional Metroidvania extension. Legacy atlas bytes stay unchanged when absent.
+  const hasAbilities=Array.isArray(source.abilities);
+  const abilities=hasAbilities?source.abilities:[];
+  if(abilities.length>16||abilities.some(a=>typeof a!=='string'||!/^[a-z][a-z0-9-]{0,47}$/.test(a))||
+     new Set(abilities).size!==abilities.length)
+    throw new Error('Invalid Metroidvania ability catalog.');
+  const knownAbilities=new Set(abilities);
+  const checkAbilities=(list,label)=>{
+    if(!Array.isArray(list)||list.length>16||new Set(list).size!==list.length||
+       list.some(a=>typeof a!=='string'||!knownAbilities.has(a)))
+      throw new Error('Invalid Metroidvania '+label+' ability reference.');
+    return [...list];
+  };
+  const startingAbilities=Array.isArray(source.startingAbilities)?
+    checkAbilities(source.startingAbilities,'starting'):[];
   const rooms=distinctIds(source.rooms.map((r,i)=>{
     if(!r||typeof r!=='object'||!r.scene||!Array.isArray(r.scene.layers))
       throw new Error('Every atlas room must contain a Layer Studio scene.');
@@ -68,6 +84,7 @@ export function normalizeAtlas(source,normalizeRoom){
       scene:stripAtlas(cleaned),
       portals:distinctIds((Array.isArray(r.portals)?r.portals:[]).slice(0,8).map(sanitizePortal),'portal'),
       relics:distinctIds((Array.isArray(r.relics)?r.relics:[]).slice(0,8).map(sanitizeRelic),'relic'),
+      ...(r.grantsAbilities!==undefined?{grantsAbilities:checkAbilities(r.grantsAbilities,'room grant')}:{}),
       ...(r.story!=null?{story:normalizeStory(r.story)}:{}),
       ...(r.boss!=null?{boss:normalizeBoss(r.boss)}:{}),
       ...(r.sequences!=null?{sequences:normalizeWorldSequences(r.sequences)}:{})
@@ -75,6 +92,8 @@ export function normalizeAtlas(source,normalizeRoom){
   }),'room');
   const ids=new Set(rooms.map(r=>r.id));
   for(const room of rooms)for(const portal of room.portals){
+    if(portal.requiresAbilities!==undefined)
+      portal.requiresAbilities=checkAbilities(portal.requiresAbilities,'portal gate');
     // Invalid destinations are preserved as visibly blocked doors, never followed.
     if(!ids.has(portal.targetRoom))portal.targetRoom='';
     const destination=rooms.find(r=>r.id===portal.targetRoom);
@@ -85,6 +104,7 @@ export function normalizeAtlas(source,normalizeRoom){
   // Dangling relic requirements remain visibly locked, never silently become open doors.
   const startRoom=ids.has(source.startRoom)?source.startRoom:rooms[0].id;
   return {schema:ATLAS_SCHEMA,startRoom,rooms,
+    ...(hasAbilities?{abilities:[...abilities],startingAbilities}:{}),
     quests:normalizeQuestLine(source.quests)};
 }
 export function makeStarterAtlas(scene,normalizeRoom){
@@ -221,6 +241,15 @@ export function makeStarterAtlas(scene,normalizeRoom){
     ]
   },normalizeRoom);
 }
+function grantCurrentRoomAbilities(session){
+  if(!session.atlas)return [];
+  const room=session.atlas.rooms.find(r=>r.id===session.roomId);
+  const granted=[];
+  for(const id of room?.grantsAbilities||[]){
+    if(!session.abilities.has(id)){session.abilities.add(id);granted.push(id);}
+  }
+  return granted;
+}
 export function createWorldSession(rootScene){
   const atlas=rootScene.atlas||null;
   const roomId=atlas?.startRoom||null;
@@ -230,7 +259,9 @@ export function createWorldSession(rootScene){
   game.worldTravel=Boolean(atlas);
   const session={atlas,roomId,scene,game,snapshots:{},inventory:new Set(),
     visitedRooms:new Set(atlas?[roomId]:[]),worldFlags:new Set(),completedQuests:new Set(),
+    ...(atlas?.abilities?{abilities:new Set(atlas.startingAbilities||[])}:{}),
     flagVersion:0,questVersion:0,transitions:0,notice:'',noticeLeft:0};
+  if(session.abilities)grantCurrentRoomAbilities(session);
   initializeStoryRoom(session);
   initializeBossRoom(session);
   initializeSequenceRoom(session);
@@ -266,7 +297,7 @@ export function restoreRoom(game,progress){
 }
 export function stepWorldSession(session,input={},dt=1/60){
   const game=session.game;
-  stepPuzzle(game,input,dt);
+  stepPuzzle(game,{...input,allowDash:session.abilities?.has('shadow-dash')===true},dt);
   consumeWorldEvents(session);
   if(session.atlas&&game.status==='playing'){
     const room=session.atlas.rooms.find(r=>r.id===session.roomId);
@@ -299,6 +330,11 @@ export function stepWorldSession(session,input={},dt=1/60){
     session.notice='THIS DOOR LEADS NOWHERE.';
     session.noticeLeft=3;
     return {travelled:false,denied:'unlinked'};
+  }
+  if(door.requiresAbilities?.some(id=>!session.abilities?.has(id))){
+    session.notice='YOU NEED '+door.requiresAbilities.filter(id=>!session.abilities?.has(id)).join(' + ').toUpperCase()+'.';
+    session.noticeLeft=3;
+    return {travelled:false,denied:'ability'};
   }
   if(door.requiresFlag&&!session.worldFlags.has(door.requiresFlag)){
     session.notice='THE WORLD HAS NOT CHANGED ENOUGH FOR THIS PASSAGE.';
@@ -336,13 +372,15 @@ export function stepWorldSession(session,input={},dt=1/60){
   session.roomId=target.id;
   session.game=next;
   session.visitedRooms.add(target.id);
+  const gained=session.abilities?grantCurrentRoomAbilities(session):[];
   initializeStoryRoom(session);
   initializeBossRoom(session);
   restoreBossProgress(session,session.snapshots[target.id]?.boss);
   initializeSequenceRoom(session);
   refreshQuestProgress(session);
   session.transitions++;
-  session.notice='ENTERED '+target.title.toUpperCase();
+  session.notice='ENTERED '+target.title.toUpperCase()+
+    (gained.length?' · ABILITY ACQUIRED: '+gained.join(', ').toUpperCase():'');
   session.noticeLeft=3.5;
   return {travelled:true,from,to:target.id};
 }
@@ -356,6 +394,7 @@ export function renderPortals(ctx,session,cameraX=0,{guides=false}={}){
     const open=(!portal.requiresKey||session.game.keyCollected) &&
       (!portal.requiresRelic||session.inventory?.has(portal.requiresRelic)) &&
       (!portal.requiresFlag||session.worldFlags?.has(portal.requiresFlag)) &&
+      (!portal.requiresAbilities||portal.requiresAbilities.every(id=>session.abilities?.has(id))) &&
       (!portal.requiresQuest||session.completedQuests?.has(portal.requiresQuest)) && portal.targetRoom;
     const x=portal.x,y=portal.y,w=portal.w,h=portal.h;
     ctx.fillStyle=open?'#165956b8':'#3a3448c9';
@@ -381,7 +420,8 @@ export function renderPortalPrompt(ctx,session,viewWidth=960,viewHeight=540){
     'PRESS E / X TO DISCOVER '+sequence.title.toUpperCase():door?
     !door.targetRoom?'UNLINKED PASSAGE':door.requiresKey&&!session.game.keyCollected?
     'FIND THE KEY TO OPEN THIS DOOR':door.requiresRelic&&!session.inventory.has(door.requiresRelic)?
-    'FIND THE REQUIRED RELIC':door.requiresFlag&&!session.worldFlags?.has(door.requiresFlag)?
+    'FIND THE REQUIRED RELIC':door.requiresAbilities?.some(id=>!session.abilities?.has(id))?
+    'ABILITY REQUIRED: '+door.requiresAbilities.filter(id=>!session.abilities?.has(id)).join(', ').toUpperCase():door.requiresFlag&&!session.worldFlags?.has(door.requiresFlag)?
     'ACTIVATE THE WORLD FLAG FIRST':door.requiresQuest&&!session.completedQuests?.has(door.requiresQuest)?
     'COMPLETE THE REQUIRED QUEST':'PRESS E / X TO ENTER '+door.label:'';
   if(!message)return;
