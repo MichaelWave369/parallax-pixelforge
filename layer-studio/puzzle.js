@@ -1,6 +1,7 @@
 // PixelForge Layer Studio Rung 2: tiny, deterministic, dependency-free 2.5D puzzle runtime.
 // All gameplay takes place in one world-space plane. Visual depth is rendered separately.
 import {normalizeTileWorld,normalizeActor,tileCellsNear,renderTileWorld,renderActor} from './studio-bridge.js';
+import {combatMovementSpeed} from './metroidvania-profile.js';
 import {demoDirector,normalizeDirector,stepDirector,cameraFocus} from './world-director.js';
 export const PUZZLE_SCHEMA = 'pixelforge.layer-puzzle.v1';
 const bound = (value, fallback, min, max) => {
@@ -47,7 +48,10 @@ export function normalizePuzzle(input) {
       id:name(obj?.id,type+'-'+i),
       x:bound(obj?.x,60,0,worldWidth),
       y:bound(obj?.y,440,-200,850),
-      w,h
+      w,h,
+      ...(type==='enemy'&&obj?.resilience!==undefined?{
+        resilience:Math.round(bound(obj.resilience,1,1,3))
+      }: {})
     };
   };
   const normalizeSet=(v,type,max)=> {
@@ -91,7 +95,7 @@ export function startPuzzle(sceneOrPuzzle) {
   return {
     puzzle,
     player:{x:puzzle.spawn.x,y:puzzle.spawn.y,w:28,h:42,vx:0,vy:0,facing:1,grounded:false,invulnerable:0,dashTime:0},
-    enemies:puzzle.enemies.map(e=>({...e,stone:false})),
+    enemies:puzzle.enemies.map(e=>({...e,stone:false,hp:e.resilience??1})),
     shots:[],
     effects:[],
     health:3,
@@ -163,7 +167,9 @@ export function stepPuzzle(state,input={},dt=1/60) {
     p.dashTime=.16;
     state.dashCooldown=.55;
   }
-  p.vx=(p.dashTime||0)>0?p.facing*680:move*265;
+  const movementSpeed=combatMovementSpeed(input.movementStyle);
+  const burst=input.speedBurst===true?1.18:1;
+  p.vx=(p.dashTime||0)>0?p.facing*680*burst:move*movementSpeed*(input.speedBurst===true?1.07:1);
   p.dashTime=Math.max(0,(p.dashTime||0)-delta);
   if(input.jumpPressed&&p.grounded){p.vy=-535;p.grounded=false;}
   if(input.firePressed)shoot(state);
