@@ -58,8 +58,15 @@ function limitProgress(rootScene,id,data){
   return {
     keyCollected:data.keyCollected===true,
     stones:(Array.isArray(data.stones)?data.stones:[]).filter(v=>typeof v==='string'&&enemyIds.has(v)).slice(0,32),
-    ...(rootScene.atlas?.combatMode==='chain'?{defeated:(Array.isArray(data.defeated)?data.defeated:[])
-      .filter(v=>typeof v==='string'&&enemyIds.has(v)).slice(0,32)}:{}),
+    ...(rootScene.atlas?.combatMode==='chain'?{
+      defeated:(Array.isArray(data.defeated)?data.defeated:[])
+        .filter(v=>typeof v==='string'&&enemyIds.has(v)).slice(0,32),
+      wounds:(Array.isArray(data.wounds)?data.wounds:[]).filter(w=>{
+        if(!w||typeof w!=='object'||Array.isArray(w))return false;
+        const enemy=puzzle.enemies.find(e=>e.id===w.id);
+        return enemy&&Number.isInteger(w.hp)&&w.hp>0&&w.hp<(enemy.resilience??1);
+      }).slice(0,32).map(w=>({id:w.id,hp:w.hp}))
+    }:{}),
     seen:(Array.isArray(data.seen)?data.seen:[]).filter(v=>typeof v==='string'&&triggerIds.has(v)).slice(0,32),
     ...(story?{storySeen:(Array.isArray(data.storySeen)?data.storySeen:[])
       .filter(v=>typeof v==='string'&&authoredStoryIds.has(v)).slice(0,24)}:{}),
