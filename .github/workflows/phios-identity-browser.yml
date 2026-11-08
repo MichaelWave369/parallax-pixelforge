@@ -34,7 +34,10 @@ jobs:
       - name: Verify exact exporter and Chrome test syntax
         run: |
           node --check vr-studio/phios-world-identity.js
+          node --check vr-studio/phios-bridge-client.js
+          node --check vr-studio/phios-bridge-ui.js
           node --check vr-studio/studio.js
+          node --test tests/vr-phios-bridge.test.js
           node --check scripts/browser-phios-world-identity.mjs
 
       - name: Require local Chrome or Chromium
