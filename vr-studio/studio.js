@@ -1,5 +1,6 @@
 import {newWorld,parseWorld,validateWorld,addObject,editObject,removeObject,renameWorld,editWorldLighting,replaceWorldLighting,MAX_OBJECTS} from './world.js';
 import {buildPhiOSWorldIdentityManifest,encodePhiOSWorldIdentityManifest} from './phios-world-identity.js';
+import {mountPixelForgePhiOSBridgeUI} from './phios-bridge-ui.js';
 import {exportSceneForEngine} from './engine-export.js';
 import {createGodotProjectPack,MAX_GODOT_PACK_BYTES} from './godot-package.js';
 import {exportUniversalGlb} from './universal-glb.js';
