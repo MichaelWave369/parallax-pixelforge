@@ -1,0 +1,29 @@
+.mvCreative{max-width:1540px;margin:20px auto 0;color:#e9efee}
+.mvCreativeHeading{border-top:1px solid #355467;padding:25px 0 18px}
+.mvCreativeHeading h2{font-size:clamp(22px,2.6vw,31px);margin:0 0 8px;letter-spacing:-.035em}
+.mvCreativeHeading p{color:#a6c3cb;font-size:13px;line-height:1.6;margin:0;max-width:960px}
+.mvCreativeGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.mvCreativeCard{min-width:0;background:#132333;border:1px solid #2f4a59;border-radius:15px;padding:18px;display:flex;flex-direction:column;gap:13px}
+.mvCreativeTitle{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.mvCreativeTitle h3{font-size:18px;margin:0;color:#f2d8b2}.mvCreativeTitle small{color:#91b1bd;font-size:11px;white-space:nowrap}
+.mvCreativeCard>p{font-size:12px;line-height:1.6;color:#afc7ce;margin:0}
+.mvCreativeCard label:not(.mvCreativeCheck){display:grid;gap:6px;font-size:12px;font-weight:700;color:#adc9d2}
+.mvCreativeCard input:not([type=checkbox]),.mvCreativeCard select{width:100%;min-width:0;background:#071723;border:1px solid #345968;color:#e9f6f5;border-radius:9px;padding:9px;min-height:39px;font-size:13px}
+.mvCreativeCard form{border-top:1px solid #2e4556;padding-top:14px;margin-top:8px;display:grid;gap:11px}
+.mvCreativeCard form h4{color:#eec79c;font-size:13px;margin:0}
+.mvCreativeCard button{align-self:flex-start;border:1px solid #427d79;background:#244d54;color:#b8f6db;border-radius:8px;padding:9px 12px;font-weight:750;font-size:12px;cursor:pointer}
+.mvCreativeCard button:disabled{opacity:.45;cursor:not-allowed}
+.mvCreativeCard fieldset{border:1px solid #335262;border-radius:10px;padding:10px 12px;display:grid;gap:8px}
+.mvCreativeCard legend{font-size:12px;font-weight:750;color:#c6dbd9;padding:0 6px}
+.mvCreativeCheck{display:flex;align-items:center;gap:10px;color:#dbebea;font-size:12px}
+.mvCreativeCheck input{accent-color:#90e0ba}.mvCreativeCheck small{color:#8dabb5}
+.mvCreativeReadout{border:1px solid #45665c;background:#19392f;border-radius:11px;padding:12px}
+.mvCreativeReadout strong{color:#b3f5d3}.mvCreativeReadout p{font-size:11px;line-height:1.6;color:#b1d8c5;margin:6px 0 0}
+.mvCreativeCard .mvCreativeRemove,.mvCreativeEntries button{background:transparent;color:#edb0ad;border-color:#714f5a}
+.mvCreativeEntries{display:grid;gap:8px}
+.mvCreativeEntries>div{display:flex;align-items:start;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #294252}
+.mvCreativeEntries strong,.mvCreativeEntries small{display:block;overflow-wrap:anywhere}
+.mvCreativeEntries strong{font-size:12px;color:#d9f3e7}.mvCreativeEntries small{font-size:11px;color:#9bb6c2;margin-top:4px;line-height:1.5}
+.mvCreativeEntries p{font-size:12px;color:#9bb6c2}
+.mvCreativeEntries button{flex-shrink:0;padding:6px 8px;font-size:11px}
+@media(max-width:980px){.mvCreativeGrid{grid-template-columns:1fr}}
