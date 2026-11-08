@@ -82,7 +82,7 @@ export function normalizeAtlas(source,normalizeRoom){
     checkAbilities(source.startingAbilities,'starting'):[];
   const combatMode=source.combatMode;
   if(source.combatProfile!==undefined&&combatMode!=='chain')
-    throw Error('Metroidvania combat profile requires chain mode.');
+    throw Error('Metroidvania combat mode must be chain for a character profile.');
   const combatProfile=source.combatProfile===undefined?null:normalizeCombatProfile(source.combatProfile);
   if(combatMode!==undefined&&combatMode!=='chain')throw Error('Invalid Metroidvania combat mode.');
   const normalizeBreakables=(raw,label)=>{
