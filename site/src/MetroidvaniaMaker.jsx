@@ -104,7 +104,7 @@ export default function MetroidvaniaMaker(){
       <a href={BASE} className="mvBack">← PixelForge</a>
       <div><span className="mvEyebrow">PARALLAX PIXELFORGE / EXPERIMENTAL CREATOR MODE</span><h1>Metroidvania <em>Maker</em></h1>
         <p>Build an interconnected world. Place abilities. Gate shortcuts and secrets. Test the route before building rooms.</p></div>
-      <span className="mvVersion">PLAYABLE PROTOTYPE · RUNG 4</span>
+      <span className="mvVersion">PLAYABLE LOADOUTS · RUNG 5</span>
     </header>
     <div className="mvToolbar">
       <label>World title <input value={world.title} maxLength={100} onChange={e=>mutate(w=>{w.title=e.target.value;},'World title updated.')}/></label>
@@ -122,7 +122,7 @@ export default function MetroidvaniaMaker(){
       }}>Restore sample</button>
     </div>
     <p className="mvStatus" role="status">{status}</p>
-    <p className="mvStatus">2.5D preview now includes the original chain attack, breakable-wall secrets with collectible rewards, ability-gated doors and Shadow Dash. Up to 6 rooms. Other secret types, equipment effects, alternate movement styles, original audio and VR remain design-only.</p>
+    <p className="mvStatus">2.5D preview now includes original chain combat, physical breakable-wall rewards, character-specific movement speeds, five bounded two-item effects, ability-gated doors and Shadow Dash. Max 6 rooms. Other secret types, original audio, Unreal and VR remain design-only.</p>
     <div className="mvColumns">
       <section className="mvPanel mvMapPanel" aria-label="World map">
         <div className="mvPanelTitle"><h2>World atlas</h2><span>{world.rooms.length}/{LIMITS.rooms} rooms · {world.links.length} passages</span></div>
