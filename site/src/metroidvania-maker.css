@@ -1,0 +1,35 @@
+.mvApp{color:#e9efee;min-height:100vh;padding:clamp(18px,3vw,42px);background:radial-gradient(circle at 80% -20%,#30314f 0,transparent 40%),#091421;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+.mvApp *{box-sizing:border-box}.mvApp input,.mvApp select,.mvApp button{font:inherit}.mvApp button{cursor:pointer}
+.mvApp button:disabled{opacity:.45;cursor:not-allowed}.mvApp input:focus-visible,.mvApp select:focus-visible,.mvApp button:focus-visible{outline:2px solid #a9e5d0;outline-offset:3px}
+.mvHeader{display:grid;grid-template-columns:140px minmax(0,1fr) auto;align-items:start;gap:18px;max-width:1540px;margin:0 auto 22px}
+.mvBack{color:#9be1cb;border:1px solid #365b61;border-radius:9px;padding:12px 14px;font-size:13px;font-weight:700;display:inline-flex;justify-content:center}
+.mvHeader h1{font-size:clamp(28px,4vw,54px);letter-spacing:-.045em;margin:8px 0}.mvHeader h1 em{font-style:normal;color:#f5bb8f}
+.mvHeader p{margin:0;color:#a5bdc7;line-height:1.5}.mvEyebrow,.mvVersion{font-size:10px;font-weight:800;letter-spacing:.16em;color:#88cab7}.mvVersion{text-align:right;line-height:2}
+.mvToolbar{max-width:1540px;margin:auto;display:flex;align-items:end;flex-wrap:wrap;gap:10px;border:1px solid #2e4c5d;border-radius:14px;padding:15px;background:#142535}
+.mvToolbar label,.mvEditor label:not(.mvCheck){display:grid;gap:7px;font-size:12px;font-weight:750;color:#aac7ce}
+.mvToolbar input,.mvToolbar select,.mvEditor input:not([type=checkbox]),.mvEditor select{color:#eff8f6;background:#081722;border:1px solid #34515e;border-radius:8px;min-height:39px;padding:8px 10px;min-width:0}
+.mvToolbar input{min-width:220px}.mvToolbar button,.mvEditor .mvForm>button,.mvStepBtns button{background:#284e56;color:#b4f8df;border:1px solid #396b70;border-radius:8px;padding:10px 13px;font-weight:750;font-size:12px}
+.mvToolbar button:hover,.mvEditor .mvForm>button:hover,.mvStepBtns button:hover{filter:brightness(1.16)}
+.mvStatus{max-width:1540px;margin:12px auto 16px;color:#bcd9ce;min-height:22px;font-size:12px}
+.mvColumns{max-width:1540px;margin:auto;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(310px,1fr);gap:16px;align-items:start}
+.mvPanel{background:#122130;border:1px solid #2b4656;border-radius:16px;padding:20px;min-width:0}
+.mvPanelTitle{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.mvPanelTitle h2{font-size:21px;margin:0;letter-spacing:-.03em}.mvPanelTitle span{font-size:11px;color:#89acb6}
+.mvMap{position:relative;width:100%;height:420px;background:radial-gradient(circle at 45% 50%,#2d3b4a,#0c1b2a 78%);border:1px solid #335668;border-radius:13px;overflow:hidden;background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px),radial-gradient(circle at 45% 50%,#2d3b4a,#0c1b2a 78%);background-size:8% 10%,8% 10%,100% 100%}
+.mvMap svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.mvRoom{position:absolute;transform:translate(-50%,-50%);max-width:130px;min-width:80px;min-height:44px;padding:6px 8px;border-radius:8px;border:1px solid #547b82;color:#e4ffef;background:#225244f0;text-align:center;font-size:11px;font-weight:750;box-shadow:0 6px 16px #0007}
+.mvRoom span{display:block;overflow-wrap:anywhere}.mvRoom.locked{background:#472c40e8;border-color:#805167;color:#f2c9d5}
+.mvRoom.chosen{border:2px solid #f9c191;z-index:2;box-shadow:0 0 0 3px #f9c19142,0 7px 20px #0008}
+.mvLegend{display:flex;flex-wrap:wrap;gap:20px;color:#a1bdca;font-size:11px;margin:13px 1px}.mvLegend span:nth-child(1){color:#91e0ba}.mvLegend span:nth-child(2){color:#df9db1}
+.mvProgress{border-top:1px solid #2d4856;padding-top:16px}.mvProgress h3,.mvEditor h3{font-size:14px;margin:2px 0 9px;color:#f2cfac}
+.mvProgress p,.mvEditor p{color:#aabfc9;font-size:12px;line-height:1.6}.mvProgress strong{color:#e9f5f3}
+.mvStepBtns{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0}.mvWarning{color:#f3b9ae!important}.mvSuccess{color:#91e0ba!important}
+.mvEditor{display:grid;gap:16px}.mvEditor>label{width:100%}.mvEditor select{width:100%}
+.mvRoomDetails,.mvForm,.mvLinks{background:#0d1b29;border:1px solid #253d4b;border-radius:11px;padding:14px;display:grid;gap:9px}
+.mvRoomDetails>strong{font-size:17px;color:#f3e0bc}.mvRoomDetails>span{font-size:10px;color:#8aa9bd}
+.mvCheck{display:flex;align-items:center;gap:8px;font-size:12px;color:#d4e3e7;font-weight:600}.mvCheck input{accent-color:#83d9b9}
+.mvForm>button{justify-self:start}.mvForm>h3{margin:0}.mvLinks{gap:8px}.mvLink{display:flex;justify-content:space-between;gap:8px;align-items:center;border-bottom:1px solid #263b49;padding:6px 0}
+.mvLink span{font-size:11px;line-height:1.5;color:#c5d8db}.mvLink button,.mvDanger{color:#f3b6b2;background:transparent;border:1px solid #654453;border-radius:7px;font-size:11px;padding:7px 9px}
+.mvDanger{justify-self:start}.mvFooter{max-width:1540px;margin:24px auto 0;border-top:1px solid #2e4c5d;padding-top:14px;color:#8ba6b3;font-size:11px;line-height:1.6}
+@media(max-width:1000px){.mvColumns{grid-template-columns:1fr}.mvHeader{grid-template-columns:1fr}.mvVersion{text-align:left}.mvMap{height:360px}}
+@media(max-width:600px){.mvMap{height:310px}.mvRoom{min-width:64px;max-width:86px;font-size:10px;padding:5px}.mvToolbar input{min-width:140px}.mvApp{padding:14px}}
