@@ -273,6 +273,14 @@
         <button id="phiosIdentityExport" class="full" type="button">Export PhiOS identity-only JSON</button>
         <p class="hint">Exports only the project ID, world title, source format and schema label. No scene objects, private assets, credentials or permissions. It is NOT an installed app, verified ownership, or an approved PhiOS adapter. The browser's download prompt is not proof the file was saved.</p>
       </section>
+      <section id="phiosBridgePanel" class="receipt" aria-label="PhiOS workspace reference bridge" hidden>
+        <strong>Φ PHIOS WORKSPACE BRIDGE · READ ONLY</strong>
+        <p class="hint">Embedded PhiOS session only. No project content, asset, GLB, world data or execution rights are transferred. An identity label is not file access or verified ownership.</p>
+        <p id="phiosBridgeStatus" role="status">Waiting for Φ PhiOS session handshake</p>
+        <p id="phiosBridgeReceived" aria-label="Received PhiOS project reference"></p>
+        <button type="button" id="phiosBridgeRequest" disabled>Request project reference</button>
+        <button type="button" id="phiosBridgeDisconnect">Disconnect from PhiOS</button>
+      </section>
       <p class="hint">Scene JSON contains transforms and asset hashes only, never purchased models or executable scripts. After a refresh, rebind your local GLB file by the same SHA-256 to display its mesh again.</p>
       <div class="receipt"><strong>QUALIFICATION BOUNDARY</strong>
         <p>Supported static GLB geometry can display embedded base-color PNG/JPEG textures. This is a simple UV-shaded preview, not full glTF/PBR parity. External images, animation, physics, interaction, multiplayer, licensing, headset comfort and frame-rate qualification remain unsupported.</p>
