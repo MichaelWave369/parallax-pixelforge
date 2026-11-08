@@ -78,7 +78,7 @@ try{
   await send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:downloadDir,eventsEnabled:true});
   const evaluate=async(expression)=>{
     const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true},sessionId);
-    assert.ok(!r.exceptionDetails,'Browser error: '+JSON.stringify(r.exceptionDetails).slice(0,320));
+    assert.ok(!r.exceptionDetails,'Browser error: '+(JSON.stringify(r.exceptionDetails)||'none').slice(0,320));
     return r.result?.value;
   };
   await send('Page.navigate',{url:origin+'/'},sessionId);
