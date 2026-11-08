@@ -97,8 +97,9 @@ test('Resonant Ward temporarily guards against contact damage but expires',()=>{
   stepWorldSession(normal,{});
   assert.equal(guard.game.health,3);
   assert.equal(normal.game.health,2);
-  // Verify the pulse expires even if no further attacks are made.
-  for(let i=0;i<80;i++)stepWorldSession(guard,{});
+  // Leave contact range before checking expiration; enemy hits have their own invulnerability timer.
+  playerAt(guard,200);
+  for(let i=0;i<40;i++)stepWorldSession(guard,{});
   assert.equal(guard.game.player.invulnerable,0);
 });
 test('Swift Silver movement burst gives same agile character extra dash distance',()=>{
