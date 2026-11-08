@@ -7,7 +7,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build && node scripts/build-publisher.mjs && node scripts/assemble.mjs && node scripts/verify.mjs",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --test scripts/assemble.test.mjs scripts/forge-world.test.mjs scripts/vr-physics-bridge.test.mjs scripts/vr-gizmo-contract.test.mjs scripts/vr-construction.test.mjs scripts/playable-world.test.mjs scripts/gameplay-rules.test.mjs scripts/event-graph.test.mjs scripts/player-playability.test.mjs scripts/playtest-save.test.mjs scripts/gamepad-checkpoints.test.mjs scripts/ghost-run.test.mjs scripts/playtest-inspector.test.mjs scripts/offline-publisher.test.mjs scripts/release-metadata.test.mjs scripts/release-extras.test.mjs scripts/title-gamepad.test.mjs scripts/published-save-menu.test.mjs scripts/published-session.test.mjs scripts/metroidvania-world.test.mjs"
+    "test": "node --test scripts/assemble.test.mjs scripts/forge-world.test.mjs scripts/vr-physics-bridge.test.mjs scripts/vr-gizmo-contract.test.mjs scripts/vr-construction.test.mjs scripts/playable-world.test.mjs scripts/gameplay-rules.test.mjs scripts/event-graph.test.mjs scripts/player-playability.test.mjs scripts/playtest-save.test.mjs scripts/gamepad-checkpoints.test.mjs scripts/ghost-run.test.mjs scripts/playtest-inspector.test.mjs scripts/offline-publisher.test.mjs scripts/release-metadata.test.mjs scripts/release-extras.test.mjs scripts/title-gamepad.test.mjs scripts/published-save-menu.test.mjs scripts/published-session.test.mjs scripts/metroidvania-world.test.mjs scripts/metroidvania-content.test.mjs"
   },
   "dependencies": {
     "react": "19.2.0",
