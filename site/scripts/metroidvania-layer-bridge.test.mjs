@@ -28,7 +28,7 @@ test('a Maker castle becomes a real normalized 2.5D Layer Studio atlas with no p
   assert.ok(scene.atlas.rooms.find(r=>r.id==='cathedral-nave').portals.some(p=>p.requiresAbilities.includes('shadow-dash')));
   assert.deepEqual(normalizeScene(scene),scene);
   assert.ok(!JSON.stringify(scene).includes('asset-passport'));
-  assert.equal(content.secrets.length,2); // Not exported into executable world.
+  assert.equal(content.secrets.length,2); // Breakable walls are playable; other secret types remain planning-only.
 });
 test('a locked dash-gated passage refuses Wanderer, then unlocks on crypt ability pickup',()=>{
   const {scene}=fixture();
