@@ -1,0 +1,44 @@
+name: PixelForge PhiOS R1 identity browser acceptance
+
+on:
+  pull_request:
+    paths:
+      - 'vr-studio/**'
+      - 'scripts/browser-phios-world-identity.mjs'
+      - '.github/workflows/phios-identity-browser.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'vr-studio/**'
+      - 'scripts/browser-phios-world-identity.mjs'
+      - '.github/workflows/phios-identity-browser.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  chrome-identity-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Checkout candidate without retained credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Verify exact exporter and Chrome test syntax
+        run: |
+          node --check vr-studio/phios-world-identity.js
+          node --check vr-studio/studio.js
+          node --check scripts/browser-phios-world-identity.mjs
+
+      - name: Require local Chrome or Chromium
+        run: command -v google-chrome || command -v chromium || command -v chromium-browser
+
+      - name: Run real browser identity export and refusal acceptance
+        run: node scripts/browser-phios-world-identity.mjs
