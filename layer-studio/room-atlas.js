@@ -1,6 +1,7 @@
 // PixelForge Rung 05 / Room Atlas. Bounded multi-room scene data and local-only travel.
 // Rooms reuse Layer Scene v1; links are declarative, never scriptable.
 import {startPuzzle,stepPuzzle} from './puzzle.js';
+import {initializeMetroidvaniaCombat,stepMetroidvaniaCombat,secretKey} from './metroidvania-combat.js';
 import {normalizeQuestLine,consumeWorldEvents,refreshQuestProgress} from './quest-world.js';
 import {normalizeStory,initializeStoryRoom,stepStoryEvents,storyFor,nearbyDialogue} from './living-story.js';
 import {BOSS_SCHEMA,normalizeBoss,initializeBossRoom,stepBossStage,snapshotBoss,restoreBossProgress} from './boss-stage.js';
@@ -37,6 +38,10 @@ function sanitizeRelic(r,i){
     x:bounded(r?.x,350,0,6000),y:bounded(r?.y,440,-200,800)};
 }
 function collectibleKey(roomId,relicId){return roomId+':'+relicId;}
+export function availableSecretKeys(atlas){
+  if(!atlas||atlas.combatMode!=='chain')return [];
+  return atlas.rooms.flatMap(room=>(room.breakables||[]).map(wall=>secretKey(room.id,wall.id)));
+}
 export function availableRelicKeys(atlas){
   if(!atlas)return [];
   return atlas.rooms.flatMap(room=>
@@ -74,6 +79,28 @@ export function normalizeAtlas(source,normalizeRoom){
   };
   const startingAbilities=Array.isArray(source.startingAbilities)?
     checkAbilities(source.startingAbilities,'starting'):[];
+  const combatMode=source.combatMode;
+  if(combatMode!==undefined&&combatMode!=='chain')throw Error('Invalid Metroidvania combat mode.');
+  const normalizeBreakables=(raw,label)=>{
+    if(!Array.isArray(raw)||raw.length>8)throw Error('Invalid Metroidvania breakable wall count in '+label+'.');
+    const ids=new Set();
+    return raw.map((wall,i)=>{
+      if(!wall||typeof wall!=='object'||Array.isArray(wall)||
+         Object.keys(wall).some(key=>!['id','name','x','y','w','h','requiresAbilities'].includes(key)))
+        throw Error('Invalid Metroidvania breakable wall in '+label+'.');
+      if(typeof wall.id!=='string'||!/^[a-z][a-z0-9-]{0,47}$/.test(wall.id)||ids.has(wall.id))
+        throw Error('Invalid or duplicate breakable wall ID in '+label+'.');
+      ids.add(wall.id);
+      if(typeof wall.name!=='string'||!wall.name.trim()||wall.name.length>70)
+        throw Error('Invalid breakable wall name in '+label+'.');
+      if(![wall.x,wall.y,wall.w,wall.h].every(Number.isFinite)||
+        wall.x<0||wall.x>6000||wall.y< -200||wall.y>800||
+        wall.w<24||wall.w>80||wall.h<24||wall.h>120)
+        throw Error('Invalid breakable wall geometry in '+label+'.');
+      return {id:wall.id,name:wall.name.trim(),x:wall.x,y:wall.y,w:wall.w,h:wall.h,
+        requiresAbilities:checkAbilities(wall.requiresAbilities,'breakable secret')};
+    });
+  };
   const rooms=distinctIds(source.rooms.map((r,i)=>{
     if(!r||typeof r!=='object'||!r.scene||!Array.isArray(r.scene.layers))
       throw new Error('Every atlas room must contain a Layer Studio scene.');
@@ -85,6 +112,7 @@ export function normalizeAtlas(source,normalizeRoom){
       portals:distinctIds((Array.isArray(r.portals)?r.portals:[]).slice(0,8).map(sanitizePortal),'portal'),
       relics:distinctIds((Array.isArray(r.relics)?r.relics:[]).slice(0,8).map(sanitizeRelic),'relic'),
       ...(r.grantsAbilities!==undefined?{grantsAbilities:checkAbilities(r.grantsAbilities,'room grant')}:{}),
+      ...(r.breakables!==undefined?{breakables:normalizeBreakables(r.breakables,r.id)}:{}),
       ...(r.story!=null?{story:normalizeStory(r.story)}:{}),
       ...(r.boss!=null?{boss:normalizeBoss(r.boss)}:{}),
       ...(r.sequences!=null?{sequences:normalizeWorldSequences(r.sequences)}:{})
@@ -105,6 +133,7 @@ export function normalizeAtlas(source,normalizeRoom){
   const startRoom=ids.has(source.startRoom)?source.startRoom:rooms[0].id;
   return {schema:ATLAS_SCHEMA,startRoom,rooms,
     ...(hasAbilities?{abilities:[...abilities],startingAbilities}:{}),
+    ...(combatMode?{combatMode}:{}),
     quests:normalizeQuestLine(source.quests)};
 }
 export function makeStarterAtlas(scene,normalizeRoom){
@@ -262,6 +291,7 @@ export function createWorldSession(rootScene){
     ...(atlas?.abilities?{abilities:new Set(atlas.startingAbilities||[])}:{}),
     flagVersion:0,questVersion:0,transitions:0,notice:'',noticeLeft:0};
   if(session.abilities)grantCurrentRoomAbilities(session);
+  initializeMetroidvaniaCombat(session);
   initializeStoryRoom(session);
   initializeBossRoom(session);
   initializeSequenceRoom(session);
@@ -277,6 +307,7 @@ export function snapshotRoom(game){
   return {
     keyCollected:game.keyCollected,
     stones:game.enemies.filter(e=>e.stone).map(e=>e.id),
+    ...(game.chainMode?{defeated:game.enemies.filter(e=>e.dormant).map(e=>e.id)}:{}),
     seen:[...(game.directorSeen||[])],
     checkpoint:game.checkpoint?{...game.checkpoint}:null,
     ...(game.storySeen?{storySeen:[...game.storySeen]}:{}),
@@ -288,7 +319,10 @@ export function restoreRoom(game,progress){
   if(!progress)return;
   game.keyCollected=progress.keyCollected===true;
   const stones=new Set(progress.stones||[]);
-  for(const enemy of game.enemies)enemy.stone=stones.has(enemy.id);
+  for(const enemy of game.enemies){
+    enemy.stone=stones.has(enemy.id);
+    if(game.chainMode)enemy.dormant=(progress.defeated||[]).includes(enemy.id);
+  }
   game.petrified=game.enemies.filter(e=>e.stone).length;
   game.directorSeen=new Set(progress.seen||[]);
   game.checkpoint=progress.checkpoint?{...progress.checkpoint}:null;
@@ -297,7 +331,10 @@ export function restoreRoom(game,progress){
 }
 export function stepWorldSession(session,input={},dt=1/60){
   const game=session.game;
-  stepPuzzle(game,{...input,allowDash:session.abilities?.has('shadow-dash')===true},dt);
+  const previousX=game.player.x;
+  stepPuzzle(game,{...input,firePressed:session.atlas?.combatMode==='chain'?false:input.firePressed,
+    allowDash:session.abilities?.has('shadow-dash')===true},dt);
+  stepMetroidvaniaCombat(session,input,previousX,dt);
   consumeWorldEvents(session);
   if(session.atlas&&game.status==='playing'){
     const room=session.atlas.rooms.find(r=>r.id===session.roomId);
@@ -360,6 +397,7 @@ export function stepWorldSession(session,input={},dt=1/60){
   session.snapshots[from]=snapshotRoom(game);
   const next=startPuzzle(target.scene);
   next.worldTravel=true;
+  if(session.atlas?.combatMode==='chain')next.chainMode=true;
   next.health=game.health;
   next.deaths=game.deaths;
   restoreRoom(next,session.snapshots[target.id]);
