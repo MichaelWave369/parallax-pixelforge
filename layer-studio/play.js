@@ -2,6 +2,7 @@ import {createScene, normalizeScene, renderScene} from './engine.js';
 import {startPuzzle,stepPuzzle,renderPuzzle,renderPuzzleHud,cameraFor} from './puzzle.js';
 import {renderDirectorLighting} from './world-director.js';
 import {createWorldSession,stepWorldSession,renderPortals,renderPortalPrompt,renderRelics,atlasMapData} from './room-atlas.js';
+import {renderMetroidvaniaCombat} from './metroidvania-combat.js';
 import {writeSaveSlot,readSaveSlot,inspectSaveSlot,deleteSaveSlot,SLOT_COUNT} from './adventure-journal.js';
 import {evaluateQuestLine,refreshQuestProgress} from './quest-world.js';
 import {storyScene,chooseDialogue} from './living-story.js';
@@ -34,8 +35,20 @@ function fitCanvas(){
   canvas.width=scene.width;canvas.height=scene.height;
   canvas.style.aspectRatio=scene.width+' / '+scene.height;
   $('touchInteract').hidden=!session.atlas;
+  const chain=session.atlas?.combatMode==='chain';
+  $('touchFire').textContent=chain?'CHAIN':'STONE RAY';
+  $('attackHelp').textContent=chain?'F / ENTER CHAIN STRIKE':'F / ENTER STONE RAY';
 }
 fitCanvas();
+if(session.atlas?.combatMode==='chain'){
+  document.title=session.scene.title+' | Metroidvania Maker · PixelForge';
+  document.querySelector('.heading strong').textContent='METROIDVANIA PROTOTYPE';
+  document.querySelector('.intro .eyebrow').textContent='RUNG 4 / ATTACK & DISCOVERY';
+  document.querySelector('.intro h1').textContent='Explore. Strike. Discover.';
+  document.querySelector('.intro p').textContent='Chain-strike wraiths and cracked secret walls. Discover hidden relics, earn movement abilities and explore an original castle.';
+  document.querySelector('.legend span').textContent='CHAIN → SECRETS → DASH → GATES';
+  $('message').textContent='Original chain attack: F / gamepad B / CHAIN. Search for cracked walls.';
+}
 const keys=new Set(),touch=new Set(),edge={jump:false,fire:false,interact:false,dash:false};
 let lastJumpPad=false,lastFirePad=false,lastInteractPad=false,lastDashPad=false;
 const controlKeys=new Set(['ArrowLeft','ArrowRight','ArrowUp','KeyA','KeyD','KeyW','Space','Enter','KeyF','KeyK','KeyR','KeyP','KeyE','KeyM','KeyI','KeyJ','KeyQ','Escape','ShiftLeft','ShiftRight']);
@@ -46,7 +59,9 @@ function reset(){
   paused=false;edge.jump=false;edge.fire=false;edge.interact=false;edge.dash=false;
   $('pause').textContent='Pause';
   closePanel();
-  setMessage('Aim across the chasm. A stone spirit can carry your weight.');
+  setMessage(session.atlas?.combatMode==='chain'?
+    'CHAIN READY. Explore for cracked walls and hidden relics.':
+    'Aim across the chasm. A stone spirit can carry your weight.');
 }
 function togglePause(){
   if(game.status==='won')return;
@@ -156,6 +171,9 @@ function updateMessage(old){
   else if(old.questVersion!==session.questVersion)setMessage(session.notice);
   else if(old.flagVersion!==session.flagVersion)setMessage(session.notice);
   else if(old.inventoryCount!==session.inventory.size)setMessage(session.notice);
+  else if(old.foundSecretsCount!==(session.foundSecrets?.size||0))setMessage(session.notice);
+  else if(old.brokenSecretsCount!==(session.brokenSecrets?.size||0))setMessage(session.notice);
+  else if(old.defeatedCount!==game.enemies.filter(e=>e.dormant).length)setMessage(session.notice);
   else if(old.deaths!==game.deaths)setMessage(game.checkpoint?'Returned to the activated beacon.':'Back to the courtyard. The statues and key remain until restart.');
   else if(old.health!==game.health)setMessage('A spirit struck you! Keep some distance and fire your stone ray.');
   else if(old.eventVersion!==game.eventVersion)setMessage(game.eventMessage);
@@ -404,6 +422,18 @@ function renderPanel(){
       row.append(element('small',null,'FOUND IN '+entry.room.title.toUpperCase()));
       content.append(row);
     }
+    if(session.atlas.combatMode==='chain'){
+      content.append(element('h3',null,'Hidden Discoveries '+session.foundSecrets.size+' / '+
+        session.atlas.rooms.reduce((count,r)=>count+(r.breakables?.length||0),0)));
+      if(!session.foundSecrets.size)content.append(element('p','journal-empty','No hidden relics collected. Strike cracked walls with the chain.'));
+      for(const room of session.atlas.rooms)for(const secret of room.breakables||[]){
+        if(!session.foundSecrets.has(room.id+':'+secret.id))continue;
+        const row=element('div','relic-card');
+        row.append(element('strong',null,'◆ '+secret.name));
+        row.append(element('small',null,'DISCOVERED IN '+room.title.toUpperCase()));
+        content.append(row);
+      }
+    }
   }else if(activePanel==='saves'){
     $('journalTitle').textContent='Save Journal';
     content.append(element('p','journal-note',
@@ -479,6 +509,7 @@ function frame(now) {
     let runs=0;
     while(accumulator>=STEP && runs<6){
       const before={health:game.health,deaths:game.deaths,petrified:game.petrified,keyCollected:game.keyCollected,eventVersion:game.eventVersion,inventoryCount:session.inventory.size,
+        foundSecretsCount:session.foundSecrets?.size||0,brokenSecretsCount:session.brokenSecrets?.size||0,defeatedCount:game.enemies.filter(e=>e.dormant).length,
         questVersion:session.questVersion,flagVersion:session.flagVersion,
         storyVersion:session.storyVersion,bossVersion:session.bossVersion};
       const outcome=stepWorldSession(session,controls(pad),STEP);
@@ -517,6 +548,7 @@ function frame(now) {
     const visibleScene=storyScene(session);
     renderScene(ctx,visibleScene,game.time,{cameraX:cam,endLayer:split,reducedMotion});
     renderPuzzle(ctx,game,{cameraX:cam,width:scene.width,height:scene.height,reducedMotion,hud:false});
+    renderMetroidvaniaCombat(ctx,session,cam,{reducedMotion});
     renderBossStage(ctx,session,cam);
     renderRelics(ctx,session,cam);
     renderPortals(ctx,session,cam);

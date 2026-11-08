@@ -1,6 +1,6 @@
 // Rung 6 / Adventure Journal: three browser-local save slots for a fixed authored world.
 // Explicit save/load only. No background persistence, network calls or executable data.
-import {createWorldSession,availableRelicKeys,snapshotRoom,restoreRoom} from './room-atlas.js';
+import {createWorldSession,availableRelicKeys,availableSecretKeys,snapshotRoom,restoreRoom} from './room-atlas.js';
 import {knownWorldFlags,refreshQuestProgress} from './quest-world.js';
 import {initializeStoryRoom} from './living-story.js';
 import {initializeBossRoom,restoreBossProgress,normalizeBossProgress} from './boss-stage.js';
@@ -58,6 +58,8 @@ function limitProgress(rootScene,id,data){
   return {
     keyCollected:data.keyCollected===true,
     stones:(Array.isArray(data.stones)?data.stones:[]).filter(v=>typeof v==='string'&&enemyIds.has(v)).slice(0,32),
+    ...(rootScene.atlas?.combatMode==='chain'?{defeated:(Array.isArray(data.defeated)?data.defeated:[])
+      .filter(v=>typeof v==='string'&&enemyIds.has(v)).slice(0,32)}:{}),
     seen:(Array.isArray(data.seen)?data.seen:[]).filter(v=>typeof v==='string'&&triggerIds.has(v)).slice(0,32),
     ...(story?{storySeen:(Array.isArray(data.storySeen)?data.storySeen:[])
       .filter(v=>typeof v==='string'&&authoredStoryIds.has(v)).slice(0,24)}:{}),
@@ -92,6 +94,10 @@ export function captureSave(rootScene,session,slot,now=Date.now()){
     health:clamp(session.game.health,3,1,3),deaths:clamp(session.game.deaths,0,0,100000),
     transitions:clamp(session.transitions,0,0,100000),
     visited,inventory:[...(session.inventory||[])].filter(k=>allowedRelics.has(k)),
+    ...(rootScene.atlas?.combatMode==='chain'?{
+      brokenSecrets:[...(session.brokenSecrets||[])].filter(k=>availableSecretKeys(rootScene.atlas).includes(k)),
+      foundSecrets:[...(session.foundSecrets||[])].filter(k=>session.brokenSecrets?.has(k)&&availableSecretKeys(rootScene.atlas).includes(k))
+    }:{}),
     worldFlags:[...(session.worldFlags||[])].filter(f=>knownWorldFlags(rootScene.atlas).includes(f)),
     ...(rootScene.atlas?.abilities?{abilities:[...(session.abilities||[])]
       .filter(a=>rootScene.atlas.abilities.includes(a))}:{}),
@@ -115,6 +121,13 @@ export function restoreSave(rootScene,data){
   session.snapshots=safe;
   session.inventory=new Set((Array.isArray(data.inventory)?data.inventory:[])
     .filter(id=>typeof id==='string'&&availableRelicKeys(rootScene.atlas).includes(id)));
+  if(session.atlas?.combatMode==='chain'){
+    const allowed=new Set(availableSecretKeys(session.atlas));
+    session.brokenSecrets=new Set((Array.isArray(data.brokenSecrets)?data.brokenSecrets:[])
+      .filter(id=>typeof id==='string'&&allowed.has(id)));
+    session.foundSecrets=new Set((Array.isArray(data.foundSecrets)?data.foundSecrets:[])
+      .filter(id=>typeof id==='string'&&session.brokenSecrets.has(id)));
+  }
   session.visitedRooms=new Set((Array.isArray(data.visited)?data.visited:[])
     .filter(id=>ids.has(id)));
   const allowedFlags=new Set(knownWorldFlags(rootScene.atlas));
@@ -134,6 +147,7 @@ export function restoreSave(rootScene,data){
   }
   session.game=createWorldSession(session.scene).game;
   session.game.worldTravel=Boolean(session.atlas);
+  if(session.atlas?.combatMode==='chain')session.game.chainMode=true;
   restoreRoom(session.game,safe[data.roomId]);
   initializeStoryRoom(session); // Reactivate only encounters earned in this room.
   initializeBossRoom(session);
