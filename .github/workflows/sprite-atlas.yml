@@ -1,0 +1,32 @@
+name: Pixel Art Atlas Shelf
+
+on:
+  pull_request:
+    paths:
+      - 'sprite-atlas.js'
+      - 'sprite-atlas.css'
+      - 'sprite-studio.js'
+      - 'tests/sprite-atlas.test.js'
+      - '.github/workflows/sprite-atlas.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'sprite-atlas.js'
+      - 'sprite-atlas.css'
+      - 'sprite-studio.js'
+      - 'tests/sprite-atlas.test.js'
+
+jobs:
+  atlas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check browser-module JavaScript syntax
+        run: |
+          node --check sprite-atlas.js
+          node --check sprite-studio.js
+      - name: Test Atlas API paging, provenance and RGBA conversion
+        run: node --test tests/sprite-atlas.test.js
