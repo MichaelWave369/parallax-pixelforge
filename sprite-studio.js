@@ -1,3 +1,5 @@
+import { renderSpriteAtlas, normalizeAtlasProvenance } from "./sprite-atlas.js";
+
 const DEFAULT_PALETTES = [
   { id: 'pf-ui', name: 'PixelForge Framed UI', colors: ['#0b1020','#151d38','#24305a','#3e4d78','#f8f2de','#d9cfb2','#ffd36e','#ff9b6e','#ff7aa2','#8c6dff','#61f0ff','#8df7c8','#5abf65','#3779d4','#8b4a32','#ffffff'] },
   { id: 'bouncehome', name: 'Bouncehome Grove', colors: ['#101820','#1d2a24','#264d35','#347a46','#55a95d','#7bc96f','#b5df83','#e3efad','#6b4a2d','#9b6b43','#c99a5b','#f0c27a','#ffd36e','#8dc8ff','#f8f2de','#ffffff'] },
@@ -43,7 +45,8 @@ export function buildDemoSpriteStudio() {
     assetSlotId:'more-bounce-hero',
     rightsStatus:'original',
     frames:[{ id:'frame_001', label:'idle', duration:1, pixels:blankPixels(32,48) }],
-    lastAttachment:null
+    lastAttachment:null,
+    sourceAttribution:null
   };
 }
 
@@ -77,7 +80,8 @@ export function normalizeSpriteStudio(input={}) {
     assetSlotId:String(src.assetSlotId||'more-bounce-hero').slice(0,80),
     rightsStatus:['original','licensed','public-domain','needs-review'].includes(src.rightsStatus)?src.rightsStatus:'original',
     frames,
-    lastAttachment:src.lastAttachment&&typeof src.lastAttachment==='object'?src.lastAttachment:null
+    lastAttachment:src.lastAttachment&&typeof src.lastAttachment==='object'?src.lastAttachment:null,
+    sourceAttribution:normalizeAtlasProvenance(src.sourceAttribution)
   };
 }
 
@@ -169,17 +173,45 @@ export function renderSpriteStudio(){
           <label>Frame label <select id="spriteFrameLabel">${FRAME_LABELS.map(l=>`<option ${f.label===l?'selected':''}>${l}</option>`).join('')}</select></label>
           <label>Asset Forge slot <input id="spriteAssetSlot" value="${escapeHTML(s.assetSlotId)}" placeholder="more-bounce-hero"></label>
           <label>Rights <select id="spriteRights"><option ${s.rightsStatus==='original'?'selected':''}>original</option><option ${s.rightsStatus==='licensed'?'selected':''}>licensed</option><option ${s.rightsStatus==='public-domain'?'selected':''}>public-domain</option><option ${s.rightsStatus==='needs-review'?'selected':''}>needs-review</option></select></label>
+          ${s.sourceAttribution ? `<p class="sprite-boundary">Atlas source: ${escapeHTML(s.sourceAttribution.dataset)} #${s.sourceAttribution.rowId}. ${escapeHTML(s.sourceAttribution.caption)} · Rights review required.</p>` : ""}
           <div class="sprite-status"><span>${s.canvas.width}×${s.canvas.height}</span><span>${s.frames.length} frame${s.frames.length===1?'':'s'}</span><span>${escapeHTML(f.label)}</span></div>
         </div>
       </div>
       <div class="sprite-palette"><button type="button" class="sprite-swatch transparent" data-sprite-color="transparent" title="Transparent"></button>${palette.colors.map(c=>`<button type="button" class="sprite-swatch ${c.toLowerCase()===s.color.toLowerCase()?'active':''}" data-sprite-color="${c}" style="--swatch:${c}" title="${c}"></button>`).join('')}<label class="custom-color">Custom <input id="spriteCustomColor" type="color" value="${s.color}"></label></div>
       <div class="sprite-timeline">${renderFrames(s)}<button type="button" id="spriteAddFrame">＋ Frame</button><button type="button" id="spriteDuplicateFrame">⧉ Duplicate</button><button type="button" id="spriteDeleteFrame">− Delete</button><button type="button" id="spriteSeedHero">Seed SNES Hero Set</button></div>
+      <section id="spriteAtlasShelf" class="sprite-atlas-shelf" aria-label="Hugging Face Pixel Art Atlas sprite browser"></section>
       <div class="sprite-actions"><button type="button" id="spriteExportPng">Export Sprite Sheet PNG</button><button type="button" id="spriteExportJson">Export Animation JSON</button><button type="button" id="spriteAttach">Attach to Asset Forge Slot</button></div>
       <p class="sprite-boundary">PixelForge can validate dimensions, frames, palettes and provenance. Human visual review still decides whether artwork reaches the SNES gold standard.</p>
     </article>`;
-  bindDynamicEvents(); drawEditorCanvas();
+  renderSpriteAtlas(root, importAtlasSelection); bindDynamicEvents(); drawEditorCanvas();
 }
 
+function importAtlasSelection({ pixels, source }) {
+  if (!Array.isArray(pixels) || pixels.length !== 256 ||
+      !pixels.every(v => v === null || /^#[0-9a-f]{6}$/i.test(v))) {
+    throw new Error("The sprite must contain 256 valid hex or transparent pixels.");
+  }
+  const provenance = normalizeAtlasProvenance(source);
+  if (!provenance) throw new Error("Atlas provenance is missing or invalid.");
+  const s = getStudio();
+  const occupied = s.canvas.width !== 16 || s.canvas.height !== 16 ||
+    s.frames.length !== 1 || s.frames.some(frame => frame.pixels.some(Boolean));
+  if (occupied && !window.confirm("Replace the current Sprite Studio canvas with this 16×16 Atlas sprite? You can use Undo to restore your previous work.")) {
+    return false;
+  }
+  snapshot();
+  s.canvas.width = 16;
+  s.canvas.height = 16;
+  s.canvas.zoom = 16;
+  s.frames = [{ id: "atlas_" + provenance.rowId, label: "idle", duration: 1, pixels: pixels.slice() }];
+  s.activeFrame = 0;
+  s.assetSlotId = "atlas-" + provenance.rowId;
+  s.rightsStatus = "needs-review";
+  s.sourceAttribution = provenance;
+  s.lastAttachment = null;
+  setStudio(s, "Imported Atlas sprite #" + provenance.rowId + " for editing; rights review required.");
+  return true;
+}
 function mutate(fn,msg){ snapshot(); const s=getStudio(); fn(s); setStudio(s,msg); }
 function bindDynamicEvents(){
   const root=document.getElementById('spriteStudioPanel'); if(!root)return;
@@ -226,10 +258,17 @@ function exportSheetPng(){const s=getStudio();const c=makeSheetCanvas(s);c.toBlo
 function animationMap(s){const groups={};s.frames.forEach((f,i)=>{(groups[f.label]||=[]).push(i);});return {schema:'pixelforge.sprite-animation.v5.9',frameWidth:s.canvas.width,frameHeight:s.canvas.height,frameCount:s.frames.length,fps:s.fps,animations:Object.fromEntries(Object.entries(groups).map(([k,v])=>[k,{frames:v,fps:s.fps,loop:!['damage','victory','interact'].includes(k)}]))};}
 function exportAnimationJson(){const s=getStudio();downloadBlob(new Blob([JSON.stringify(animationMap(s),null,2)],{type:'application/json'}),`${slugify(bridge.getProjectTitle?.()||'pixelforge')}-${slugify(s.assetSlotId)}.animations.json`);bridge.log?.('Exported Sprite Studio animation map.');}
 async function hashBlob(blob){const buf=await blob.arrayBuffer();const dig=await crypto.subtle.digest('SHA-256',buf);return [...new Uint8Array(dig)].map(b=>b.toString(16).padStart(2,'0')).join('');}
-async function attachToAssetForge(){const s=getStudio();const sheet=makeSheetCanvas(s);const blob=await new Promise(r=>sheet.toBlob(r,'image/png'));const hash=await hashBlob(blob);const dataUrl=sheet.toDataURL('image/png');const asset={id:`sprite_studio_${slugify(s.assetSlotId).replace(/-/g,'_')}`,name:s.assetSlotId,role:'Sprite Studio / Asset Forge',colors:(s.palettes.find(p=>p.id===s.paletteId)?.colors||[]).slice(0,16),note:`Sprite Studio ${s.canvas.width}×${s.canvas.height}, ${s.frames.length} frame(s), rights: ${s.rightsStatus}.`,dataUrl,animationMap:animationMap(s),assetForgeSlot:s.assetSlotId,sha256:hash,rightsStatus:s.rightsStatus};bridge.attachSprite?.(asset);const receipt={schema:'pixelforge.asset-forge-attachment.v5.9',createdAt:new Date().toISOString(),projectTitle:bridge.getProjectTitle?.()||'',slotId:s.assetSlotId,rightsStatus:s.rightsStatus,sha256:hash,sprite:{frameWidth:s.canvas.width,frameHeight:s.canvas.height,frameCount:s.frames.length,fps:s.fps,paletteId:s.paletteId},animationMap:animationMap(s),boundary:'Attachment proves local creation metadata and declared rights state; it is not a substitute for human rights or visual review.'};const next=getStudio();next.lastAttachment=receipt;bridge.setState(next);downloadBlob(blob,`${slugify(s.assetSlotId)}.png`);downloadBlob(new Blob([JSON.stringify(receipt,null,2)],{type:'application/json'}),`${slugify(s.assetSlotId)}.asset-forge-receipt.json`);renderSpriteStudio();bridge.log?.(`Attached Sprite Studio output to project Sprite Gallery and prepared Asset Forge receipt for ${s.assetSlotId}.`);}
+async function attachToAssetForge(){const s=getStudio();const sheet=makeSheetCanvas(s);const blob=await new Promise(r=>sheet.toBlob(r,'image/png'));const hash=await hashBlob(blob);const dataUrl=sheet.toDataURL('image/png');const asset={id:`sprite_studio_${slugify(s.assetSlotId).replace(/-/g,'_')}`,name:s.assetSlotId,role:'Sprite Studio / Asset Forge',colors:(s.palettes.find(p=>p.id===s.paletteId)?.colors||[]).slice(0,16),note:`Sprite Studio ${s.canvas.width}×${s.canvas.height}, ${s.frames.length} frame(s), rights: ${s.rightsStatus}.${s.sourceAttribution ? " External dataset row #" + s.sourceAttribution.rowId + "; rights review required." : ""}`,dataUrl,animationMap:animationMap(s),assetForgeSlot:s.assetSlotId,sha256:hash,rightsStatus:s.rightsStatus,sourceAttribution:s.sourceAttribution};bridge.attachSprite?.(asset);const receipt={schema:'pixelforge.asset-forge-attachment.v5.9',createdAt:new Date().toISOString(),projectTitle:bridge.getProjectTitle?.()||'',slotId:s.assetSlotId,rightsStatus:s.rightsStatus,sha256:hash,sprite:{frameWidth:s.canvas.width,frameHeight:s.canvas.height,frameCount:s.frames.length,fps:s.fps,paletteId:s.paletteId},animationMap:animationMap(s),sourceAttribution:s.sourceAttribution,boundary:'Attachment proves local creation metadata and declared rights state; it is not a substitute for human rights or visual review.'};const next=getStudio();next.lastAttachment=receipt;bridge.setState(next);downloadBlob(blob,`${slugify(s.assetSlotId)}.png`);downloadBlob(new Blob([JSON.stringify(receipt,null,2)],{type:'application/json'}),`${slugify(s.assetSlotId)}.asset-forge-receipt.json`);renderSpriteStudio();bridge.log?.(`Attached Sprite Studio output to project Sprite Gallery and prepared Asset Forge receipt for ${s.assetSlotId}.`);}
 
 export function initSpriteStudio(inputBridge){
   bridge=inputBridge;
+  if (!document.getElementById("spriteAtlasStyles")) {
+    const link = document.createElement("link");
+    link.id = "spriteAtlasStyles";
+    link.rel = "stylesheet";
+    link.href = new URL("./sprite-atlas.css", import.meta.url).href;
+    document.head.appendChild(link);
+  }
   if(!bridge?.getState||!bridge?.setState) throw new Error('Sprite Studio bridge requires getState/setState.');
   bridge.setState(normalizeSpriteStudio(bridge.getState()));
   const dialog=document.getElementById('spriteStudioDialog');
