@@ -1,3 +1,5 @@
+import {generateProceduralMap, buildProceduralStarterTiles} from './procedural-map.js';
+
 const DEFAULT_PALETTES = [
   { id:'pf-ui', name:'PixelForge Framed UI', colors:['#0b1020','#151d38','#24305a','#3e4d78','#f8f2de','#d9cfb2','#ffd36e','#ff9b6e','#ff7aa2','#8c6dff','#61f0ff','#8df7c8','#5abf65','#3779d4','#8b4a32','#ffffff'] },
   { id:'bouncehome', name:'Bouncehome Grove', colors:['#101820','#1d2a24','#264d35','#347a46','#55a95d','#7bc96f','#b5df83','#e3efad','#6b4a2d','#9b6b43','#c99a5b','#f0c27a','#ffd36e','#8dc8ff','#f8f2de','#ffffff'] },
@@ -45,7 +47,8 @@ export function buildDemoTileStudio(){
     assetSlotId:'bouncehome-grove-tiles',
     rightsStatus:'original',
     lastAttachment:null,
-    lastMapExport:null
+    lastMapExport:null,
+    lastGeneration:null
   };
 }
 
@@ -83,7 +86,8 @@ export function normalizeTileStudio(input={}){
     assetSlotId:String(src.assetSlotId||'bouncehome-grove-tiles').slice(0,80),
     rightsStatus:['original','licensed','public-domain','needs-review'].includes(src.rightsStatus)?src.rightsStatus:'original',
     lastAttachment:src.lastAttachment&&typeof src.lastAttachment==='object'?src.lastAttachment:null,
-    lastMapExport:src.lastMapExport&&typeof src.lastMapExport==='object'?src.lastMapExport:null
+    lastMapExport:src.lastMapExport&&typeof src.lastMapExport==='object'?src.lastMapExport:null,
+    lastGeneration:src.lastGeneration&&src.lastGeneration.schema==='pixelforge.procedural-map.v1'?src.lastGeneration:null
   };
 }
 
@@ -156,6 +160,17 @@ export function renderTileStudio(){
     <section class="tile-bank"><h3>Tileset Bank <span>${s.tiles.length}/128</span></h3><div class="tile-bank-scroll">${renderTileBank(s)}</div></section>
     <section class="map-composer">
       <div class="map-composer-head"><div><h3>Map Composer</h3><small>${s.map.width}×${s.map.height} cells · 16×16 tiles · scene ${escapeHTML(s.map.sceneId)}</small></div><div class="map-layer-controls"><label>Layer <select id="tileMapLayer"><option value="ground" ${s.map.activeLayer==='ground'?'selected':''}>Ground</option><option value="decor" ${s.map.activeLayer==='decor'?'selected':''}>Decor</option><option value="collision" ${s.map.activeLayer==='collision'?'selected':''}>Collision</option></select></label><button data-map-tool="paint" class="${s.mapTool==='paint'?'active':''}">Paint</button><button data-map-tool="erase" class="${s.mapTool==='erase'?'active':''}">Erase</button><button data-map-tool="fill" class="${s.mapTool==='fill'?'active':''}">Fill</button></div></div>
+      <div class="tile-procedural-tools">
+        <label>World type <select id="tileProcMode">
+          <option value="dungeon" ${s.lastGeneration?.mode==='dungeon'?'selected':''}>Connected dungeon</option>
+          <option value="cavern" ${s.lastGeneration?.mode==='cavern'?'selected':''}>Organic cavern</option>
+          <option value="forest" ${s.lastGeneration?.mode==='forest'?'selected':''}>Forest trails</option>
+        </select></label>
+        <label>World seed <input id="tileProcSeed" maxlength="80" value="${escapeHTML(s.lastGeneration?.seed||'PIXELFORGE-369')}" placeholder="Any memorable seed"></label>
+        <button id="tileProcGenerate" type="button">Generate Map</button>
+        <small>Replaces only this scene's map layers. Undo is available. Custom tile art is preserved; a blank starter tileset gets placeholder art.</small>
+        ${s.lastGeneration ? `<small role="status">Last generation: ${escapeHTML(s.lastGeneration.mode)} / ${escapeHTML(s.lastGeneration.seed)} · ${s.lastGeneration.walkableCells} walkable cells · entrance (${s.lastGeneration.entrance.x},${s.lastGeneration.entrance.y}) to exit (${s.lastGeneration.exit.x},${s.lastGeneration.exit.y}) · route ${s.lastGeneration.reachable?'verified':'not verified'}</small>` : ''}
+      </div>
       <div class="tile-map-wrap"><canvas id="tileMapCanvas"></canvas></div>
     </section>
     <section class="tile-export-pane">
@@ -189,7 +204,20 @@ function bindTileStudioEvents(){
   document.getElementById('tileSceneId').onchange=e=>mutate(x=>x.map.sceneId=e.target.value.trim()||'scene_untitled');
   document.getElementById('tileAssetSlot').onchange=e=>mutate(x=>x.assetSlotId=e.target.value.trim()||'unassigned-tiles');
   document.getElementById('tileRights').onchange=e=>mutate(x=>x.rightsStatus=e.target.value);
-  document.getElementById('tileMapPreset').onchange=e=>{const[w,h]=e.target.value.split('x').map(Number);mutate(x=>resizeMap(x,w,h),`Map resized to ${w}×${h}.`);};
+  document.getElementById('tileMapPreset').onchange=e=>{const[w,h]=e.target.value.split('x').map(Number);mutate(x=>{resizeMap(x,w,h);x.lastGeneration=null;},`Map resized to ${w}×${h}.`);};
+  document.getElementById('tileProcGenerate').onclick=()=>{
+    const mode=document.getElementById('tileProcMode').value;
+    const seed=document.getElementById('tileProcSeed').value.trim();
+    if (!seed) { bridge?.log?.('Enter a world seed first.'); document.getElementById('tileProcSeed').focus(); return; }
+    try {
+      mutate(x=>{
+        if (x.tiles.length===1 && x.tiles[0].pixels.every(color=>!color)) x.tiles=buildProceduralStarterTiles();
+        const generated=generateProceduralMap({width:x.map.width,height:x.map.height,mode,seed,tiles:x.tiles});
+        x.map.layers=generated.layers;
+        x.lastGeneration=generated.metadata;
+      },`Generated a seeded ${mode} map (${seed}); entrance-to-exit route verified.`);
+    } catch (error) { bridge?.log?.('Procedural generation failed: '+error.message); }
+  };
   document.getElementById('tileUndo').onclick=undoLocal;document.getElementById('tileRedo').onclick=redoLocal;
   document.getElementById('tileMirrorH').onclick=()=>mutate(mirrorH,'Tile mirrored horizontally.');document.getElementById('tileMirrorV').onclick=()=>mutate(mirrorV,'Tile mirrored vertically.');document.getElementById('tileClear').onclick=()=>mutate(x=>currentTile(x).pixels=blankPixels(),'Tile cleared.');
   document.getElementById('tileAdd').onclick=()=>mutate(addTile,'Blank tile added.');document.getElementById('tileDuplicate').onclick=()=>mutate(duplicateTile,'Tile duplicated.');document.getElementById('tileDelete').onclick=()=>mutate(deleteTile,'Tile deleted; map references normalized.');document.getElementById('tileSeedGrove').onclick=()=>mutate(seedGroveSkeleton,'Seeded SNES Grove tileset skeleton (blank art slots, semantic metadata only).');
@@ -216,7 +244,7 @@ function undoLocal(){if(!undoStack.length){bridge?.log?.('Tile Studio: nothing t
 function redoLocal(){if(!redoStack.length){bridge?.log?.('Tile Studio: nothing to redo.');return;}undoStack.push(clone(getStudio()));bridge.setState(normalizeTileStudio(redoStack.pop()));renderTileStudio();}
 
 function makeTilesetCanvas(s){const cols=Math.min(8,s.tiles.length),rows=Math.ceil(s.tiles.length/cols),c=document.createElement('canvas');c.width=cols*16;c.height=rows*16;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;s.tiles.forEach((t,i)=>drawTilePixels(ctx,t,1,(i%cols)*16,Math.floor(i/cols)*16));return c;}
-function mapPayload(s){return {schema:'pixelforge.tile-map.v5.10',tileSize:16,width:s.map.width,height:s.map.height,sceneId:s.map.sceneId,paletteId:s.paletteId,assetSlotId:s.assetSlotId,layers:clone(s.map.layers),tiles:s.tiles.map((t,i)=>({index:i,id:t.id,name:t.name,tag:t.tag,walkable:t.walkable,autotileGroup:t.autotileGroup})),boundary:'Map JSON records authored tile references, collision and semantic metadata. Human visual review remains required for final art.'};}
+function mapPayload(s){return {schema:'pixelforge.tile-map.v5.10',tileSize:16,width:s.map.width,height:s.map.height,sceneId:s.map.sceneId,paletteId:s.paletteId,assetSlotId:s.assetSlotId,layers:clone(s.map.layers),generation:s.lastGeneration?clone(s.lastGeneration):null,tiles:s.tiles.map((t,i)=>({index:i,id:t.id,name:t.name,tag:t.tag,walkable:t.walkable,autotileGroup:t.autotileGroup})),boundary:'Map JSON records authored tile references, collision and semantic metadata. Human visual review remains required for final art.'};}
 function exportTilesetPng(){const s=getStudio(),c=makeTilesetCanvas(s);c.toBlob(blob=>downloadBlob(blob,`${slugify(s.assetSlotId)}.tileset.png`),'image/png');bridge?.log?.(`Exported ${s.tiles.length}-tile PNG sheet.`);}
 function exportMapJson(){const s=getStudio(),payload=mapPayload(s);downloadBlob(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),`${slugify(s.map.sceneId)}.tile-map.json`);bridge?.log?.(`Exported ${s.map.width}×${s.map.height} map JSON.`);}
 async function hashBlob(blob){const buf=await blob.arrayBuffer(),dig=await crypto.subtle.digest('SHA-256',buf);return[...new Uint8Array(dig)].map(b=>b.toString(16).padStart(2,'0')).join('');}
