@@ -141,6 +141,15 @@ function drawTileCanvas(){const canvas=document.getElementById('tileArtCanvas');
 function drawMapCanvas(){const canvas=document.getElementById('tileMapCanvas');if(!canvas)return;const s=getStudio(),scale=s.map.zoom,tilePx=16*scale;canvas.width=s.map.width*tilePx;canvas.height=s.map.height*tilePx;canvas.style.width=`${canvas.width}px`;canvas.style.height=`${canvas.height}px`;const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.fillStyle='#0c1220';ctx.fillRect(0,0,canvas.width,canvas.height);
   for(let y=0;y<s.map.height;y++)for(let x=0;x<s.map.width;x++){const i=mapIdx(s,x,y),g=s.map.layers.ground[i],d=s.map.layers.decor[i];if(Number.isInteger(g)&&s.tiles[g])drawTilePixels(ctx,s.tiles[g],scale,x*tilePx,y*tilePx);if(Number.isInteger(d)&&s.tiles[d])drawTilePixels(ctx,s.tiles[d],scale,x*tilePx,y*tilePx);if(s.map.layers.collision[i]){ctx.fillStyle='rgba(255,70,90,.22)';ctx.fillRect(x*tilePx,y*tilePx,tilePx,tilePx);ctx.strokeStyle='rgba(255,100,120,.7)';ctx.strokeRect(x*tilePx+.5,y*tilePx+.5,tilePx-1,tilePx-1);}}
   if(scale>=2){ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;for(let x=0;x<=s.map.width;x++){ctx.beginPath();ctx.moveTo(x*tilePx+.5,0);ctx.lineTo(x*tilePx+.5,canvas.height);ctx.stroke();}for(let y=0;y<=s.map.height;y++){ctx.beginPath();ctx.moveTo(0,y*tilePx+.5);ctx.lineTo(canvas.width,y*tilePx+.5);ctx.stroke();}}
+  if(s.lastGeneration){
+    for(const [point,label,color] of [[s.lastGeneration.entrance,'S','#8df7c8'],[s.lastGeneration.exit,'E','#ffd36e']]){
+      const px=point.x*tilePx,py=point.y*tilePx;
+      ctx.fillStyle='#081522';ctx.fillRect(px+2,py+2,tilePx-4,tilePx-4);
+      ctx.strokeStyle=color;ctx.lineWidth=2;ctx.strokeRect(px+3,py+3,tilePx-6,tilePx-6);
+      ctx.fillStyle=color;ctx.font=`${Math.max(12,Math.floor(tilePx*.55))}px monospace`;
+      ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,px+tilePx/2,py+tilePx/2);
+    }
+  }
 }
 function drawTileThumb(canvas,tile){const scale=3;canvas.width=48;canvas.height=48;const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.fillStyle='#111625';ctx.fillRect(0,0,48,48);drawTilePixels(ctx,tile,scale);}
 
