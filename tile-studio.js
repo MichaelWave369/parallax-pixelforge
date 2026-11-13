@@ -1,4 +1,4 @@
-import {generateProceduralMap, buildProceduralStarterTiles} from './procedural-map.js';
+import {generateProceduralMap, buildProceduralStarterTiles, pathExists} from './procedural-map.js';
 
 const DEFAULT_PALETTES = [
   { id:'pf-ui', name:'PixelForge Framed UI', colors:['#0b1020','#151d38','#24305a','#3e4d78','#f8f2de','#d9cfb2','#ffd36e','#ff9b6e','#ff7aa2','#8c6dff','#61f0ff','#8df7c8','#5abf65','#3779d4','#8b4a32','#ffffff'] },
@@ -52,6 +52,24 @@ export function buildDemoTileStudio(){
   };
 }
 
+function normalizeGenerationReceipt(value,w,h) {
+  if (!value || value.schema!=='pixelforge.procedural-map.v1' ||
+    !['dungeon','cavern','forest'].includes(value.mode) ||
+    typeof value.seed!=='string' || !value.seed.trim() ||
+    value.width!==w || value.height!==h ||
+    !value.entrance || !value.exit ||
+    ![value.entrance.x,value.entrance.y,value.exit.x,value.exit.y].every(Number.isInteger) ||
+    value.entrance.x<0 || value.exit.x<0 || value.entrance.y<0 || value.exit.y<0 ||
+    value.entrance.x>=w || value.exit.x>=w || value.entrance.y>=h || value.exit.y>=h) return null;
+  return {
+    schema:'pixelforge.procedural-map.v1',mode:value.mode,seed:value.seed.slice(0,80),width:w,height:h,
+    entrance:{x:value.entrance.x,y:value.entrance.y},exit:{x:value.exit.x,y:value.exit.y},
+    walkableCells:clamp(Number(value.walkableCells)||0,0,w*h),
+    blockedCells:clamp(Number(value.blockedCells)||0,0,w*h),
+    reachable:value.reachable===true
+  };
+}
+
 export function normalizeTileStudio(input={}){
   const fallback=buildDemoTileStudio();
   const src=input&&typeof input==='object'&&!Array.isArray(input)?input:fallback;
@@ -87,7 +105,7 @@ export function normalizeTileStudio(input={}){
     rightsStatus:['original','licensed','public-domain','needs-review'].includes(src.rightsStatus)?src.rightsStatus:'original',
     lastAttachment:src.lastAttachment&&typeof src.lastAttachment==='object'?src.lastAttachment:null,
     lastMapExport:src.lastMapExport&&typeof src.lastMapExport==='object'?src.lastMapExport:null,
-    lastGeneration:src.lastGeneration&&src.lastGeneration.schema==='pixelforge.procedural-map.v1'?src.lastGeneration:null
+    lastGeneration:normalizeGenerationReceipt(src.lastGeneration,mw,mh)
   };
 }
 
@@ -169,7 +187,7 @@ export function renderTileStudio(){
         <label>World seed <input id="tileProcSeed" maxlength="80" value="${escapeHTML(s.lastGeneration?.seed||'PIXELFORGE-369')}" placeholder="Any memorable seed"></label>
         <button id="tileProcGenerate" type="button">Generate Map</button>
         <small>Replaces only this scene's map layers. Undo is available. Custom tile art is preserved; a blank starter tileset gets placeholder art.</small>
-        ${s.lastGeneration ? `<small role="status">Last generation: ${escapeHTML(s.lastGeneration.mode)} / ${escapeHTML(s.lastGeneration.seed)} · ${s.lastGeneration.walkableCells} walkable cells · entrance (${s.lastGeneration.entrance.x},${s.lastGeneration.entrance.y}) to exit (${s.lastGeneration.exit.x},${s.lastGeneration.exit.y}) · route ${s.lastGeneration.reachable?'verified':'not verified'}</small>` : ''}
+        ${s.lastGeneration ? `<small role="status">Last generation: ${escapeHTML(s.lastGeneration.mode)} / ${escapeHTML(s.lastGeneration.seed)} · ${s.lastGeneration.walkableCells} walkable cells · entrance (${s.lastGeneration.entrance.x},${s.lastGeneration.entrance.y}) to exit (${s.lastGeneration.exit.x},${s.lastGeneration.exit.y}) · route ${pathExists(s.map.layers,s.map.width,s.map.height,s.lastGeneration.entrance,s.lastGeneration.exit)?'verified now':'blocked or changed'}</small>` : ''}
       </div>
       <div class="tile-map-wrap"><canvas id="tileMapCanvas"></canvas></div>
     </section>
