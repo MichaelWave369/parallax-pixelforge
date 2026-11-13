@@ -323,7 +323,7 @@ With the current UE Agent Office arsenal, the 263 governed records classify as *
 
 See `docs/V5_28_EXTERNAL_ASSET_FORGE.md`.
 
-## Procedural Map Generator v1 (feature branch)
+## Procedural Map Generator v1
 
 Tile Studio + Map Composer now includes deterministic **Dungeon**, **Cavern**, and **Forest** generation with user-entered seeds, editable ground/decor/collision layers, simple starter tile art for blank projects, Undo, and verified entrance-to-exit reachability. Generate, refine, and export through the normal v5.10 tile-map contract.
 
