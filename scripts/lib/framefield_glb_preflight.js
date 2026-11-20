@@ -67,14 +67,18 @@ export function preflightFramefieldGlb(input){
     return finish();
   }
   const start=12+8+chunks[0].length+8;
-  const binary=input.subarray(start,start+chunks[1].length);
+  let binary=input.subarray(start,start+chunks[1].length);
   if(!Array.isArray(doc.buffers)||doc.buffers.length!==1||
     doc.buffers[0]?.uri!==undefined||!integer(doc.buffers[0]?.byteLength)||
-    doc.buffers[0].byteLength>binary.length){
+    doc.buffers[0].byteLength<1||doc.buffers[0].byteLength>binary.length||
+    binary.length-doc.buffers[0].byteLength>3){
     fail('BUFFER_LAYOUT','Requires exactly one embedded buffer with valid byte length.',
       'Export an embedded single-buffer GLB.');
     return finish();
   }
+  // Alignment padding belongs to the BIN chunk, not to the declared buffer.
+  // Accessors may never borrow these trailing bytes to complete geometry.
+  binary=binary.subarray(0,doc.buffers[0].byteLength);
   if(doc.extensionsRequired?.length){
     fail('REQUIRED_EXTENSIONS','Framefield does not implement required glTF extensions.',
       'Export uncompressed standard triangle geometry without required extensions.');

@@ -134,3 +134,16 @@ test('read-only CLI emits SHA-256 and changes no project files without --out',()
     assert.match(bad.stdout,/FRAMEFIELD_IMPORT_BLOCKED/);
   }finally{rmSync(folder,{recursive:true,force:true});}
 });
+
+test('does not treat GLB alignment padding as declared buffer data',()=>{
+  // The final uint16 index extends into the two-byte BIN alignment padding.
+  const file=fixture({indices:[0,1,2],more:{buffers:[{byteLength:41}]}});
+  const r=preflightFramefieldGlb(file);
+  assert.equal(r.framefield_candidate,false);
+  assert.ok(codes(r.blockers).includes('INDICES_RANGE'));
+});
+test('refuses BIN chunks with more than three undeclared bytes',()=>{
+  const r=preflightFramefieldGlb(fixture({more:{buffers:[{byteLength:36}]}}));
+  assert.equal(r.framefield_candidate,false);
+  assert.ok(codes(r.blockers).includes('BUFFER_LAYOUT'));
+});
